@@ -677,6 +677,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
         <label>Steam App ID</label>
         <input type="text" id="fAppId" placeholder="e.g. 2239770" inputmode="numeric">
         <div class="ferr" id="appIdErr">Already in your list.</div>
+        <div id="steamStatus" style="display:none;font-size:.62rem;margin-top:.2rem"></div>
       </div>
     </div>
     <!-- Row 3: Cover preview + URL -->
@@ -1966,10 +1967,117 @@ function checkAppIdDup(){
   errEl.classList.remove('on');inp.classList.remove('err');
   return false;
 }
+// ══════════════════════════════════════════
+//  STEAM AUTOFILL via Cloudflare Worker
+// ══════════════════════════════════════════
+const STEAM_WORKER='https://steam-proxy-cm26.carmine-migliore26.workers.dev';
+
+function steamStatus(msg,type){
+  // type: 'loading' | 'ok' | 'err' | ''
+  const el=document.getElementById('steamStatus');
+  if(!msg){el.style.display='none';el.textContent='';return}
+  el.style.display='block';
+  el.textContent=msg;
+  el.style.color=type==='ok'?'var(--green)':type==='err'?'var(--pink)':'var(--t3)';
+}
+
+// Returns appId string if input is a full Steam URL or a pure numeric ID, else null
+function extractAppId(input){
+  if(!input)return null;
+  // Full Steam store URL
+  const m=input.match(/store\.steampowered\.com\/app\/(\d+)/);
+  if(m)return m[1];
+  // Pure numeric App ID (at least 4 digits to avoid accidents)
+  if(/^\d{4,}$/.test(input))return input;
+  return null;
+}
+
+// fromUrl: when triggered by a URL paste, always overwrite the title from the API
+async function steamAutoFill(appId,{fromUrl=false}={}){
+  if(!appId)return;
+  steamStatus('Fetching from Steam…','loading');
+  try{
+    const res=await fetch(`${STEAM_WORKER}/?appid=${appId}`);
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const json=await res.json();
+    const entry=json[appId];
+    if(!entry||!entry.success||!entry.data){steamStatus('No data found for this App ID.','err');return}
+    const d=entry.data;
+    const filled=[];
+
+    // Title — always overwrite when triggered from a URL (slug mangling); else only if empty
+    const titleEl=document.getElementById('fTitle');
+    if(d.name&&(fromUrl||!titleEl.value.trim())){titleEl.value=d.name;filled.push('title')}
+
+    // Cover — use header_image directly from the API (correct CDN + cache-busting timestamp)
+    const fc=document.getElementById('fCover');
+    const isSteamCover=!fc.value||
+      fc.value.startsWith('https://cdn.cloudflare.steamstatic.com/steam/apps/')||
+      fc.value.startsWith('https://shared.akamai.steamstatic.com/store_item_assets/')||
+      fc.value.startsWith('https://shared.fastly.steamstatic.com/');
+    if(d.header_image&&isSteamCover){fc.value=d.header_image;setCoverPreview(d.header_image);filled.push('cover')}
+
+    // Store link — populate when triggered from App ID field (not URL, which already set it)
+    const storeEl=document.getElementById('fStore');
+    if(!fromUrl&&!storeEl.value.trim()){
+      storeEl.value=`https://store.steampowered.com/app/${appId}/`;filled.push('store link');
+    }
+
+    // Genres — push into chip array, skip dupes
+    if(d.genres&&d.genres.length){
+      const incoming=d.genres.map(g=>g.description).filter(Boolean);
+      const added=incoming.filter(g=>!cGenres.includes(g));
+      if(added.length){cGenres.push(...added);renderGenres();filled.push('genres')}
+    }
+
+    // Developer (all, comma-separated)
+    const devEl=document.getElementById('fDev');
+    if(!devEl.value.trim()&&d.developers&&d.developers.length){devEl.value=d.developers.join(', ');filled.push('developer')}
+
+    // Publisher (all, comma-separated)
+    const pubEl=document.getElementById('fPub');
+    if(!pubEl.value.trim()&&d.publishers&&d.publishers.length){pubEl.value=d.publishers.join(', ');filled.push('publisher')}
+
+    // Release date
+    const isTba=d.release_date&&d.release_date.coming_soon;
+    const dateStr=d.release_date&&d.release_date.date;
+    if(dateStr){
+      if(isTba){
+        setTbaState(true);
+        const tbaEl=document.getElementById('fTbaText');
+        if(!tbaEl.value.trim()){tbaEl.value=dateStr;filled.push('release')}
+      } else {
+        const dateEl=document.getElementById('fDate');
+        if(!dateEl.value){
+          const parsed=new Date(dateStr);
+          if(!isNaN(parsed)){dateEl.value=parsed.toISOString().split('T')[0];filled.push('release')}
+        }
+      }
+    }
+
+    // Price — comes in cents, convert to euros (2 decimals)
+    const priceEl=document.getElementById('fPrice');
+    if(!priceEl.value.trim()&&d.price_overview&&d.price_overview.initial!=null){
+      priceEl.value=(d.price_overview.initial/100).toFixed(2);filled.push('price');
+    } else if(!priceEl.value.trim()&&d.is_free){
+      priceEl.value='0.00';filled.push('price');
+    }
+
+    steamStatus(filled.length?`✓ Filled: ${filled.join(', ')}`:'✓ Fetched — fields already filled','ok');
+  }catch(err){
+    steamStatus(`Could not fetch Steam data (${err.message})`,'err');
+  }
+}
+
 document.getElementById('fAppId').addEventListener('blur',()=>{
-  const id=document.getElementById('fAppId').value.trim();
+  const raw=document.getElementById('fAppId').value.trim();
   checkAppIdDup();
-  if(id)tryAutoFillCover(id);
+  const id=extractAppId(raw);
+  if(id){
+    // If user pasted a full URL into the App ID field, extract and clean it up
+    if(raw.includes('store.steampowered.com'))document.getElementById('fAppId').value=id;
+    steamAutoFill(id,{fromUrl:false});
+  }
 });
 document.getElementById('fCover').addEventListener('blur',()=>{
   setCoverPreview(document.getElementById('fCover').value.trim());
@@ -1999,10 +2107,10 @@ function parseStoreLink(url){
 document.getElementById('fStore').addEventListener('blur',()=>{
   const url=document.getElementById('fStore').value.trim();if(!url)return;
   const parsed=parseStoreLink(url);if(!parsed)return;
-  const titleEl=document.getElementById('fTitle');
   const appIdEl=document.getElementById('fAppId');
-  if(!titleEl.value.trim())titleEl.value=parsed.title;
-  if(!appIdEl.value.trim()){appIdEl.value=parsed.appId;checkAppIdDup();tryAutoFillCover(parsed.appId)}
+  if(!appIdEl.value.trim()){appIdEl.value=parsed.appId;checkAppIdDup()}
+  // Always fetch — title will be overwritten with the correct API name (fromUrl=true)
+  steamAutoFill(parsed.appId,{fromUrl:true});
 });
 
 // ══════════════════════════════════════════
@@ -2071,7 +2179,7 @@ function openEdit(id){
   renderGenres();renderTags();updatePrioLbl();
   document.getElementById('mov').classList.add('on');
 }
-function closeModal(){document.getElementById('mov').classList.remove('on')}
+function closeModal(){document.getElementById('mov').classList.remove('on');steamStatus('')}
 document.getElementById('addBtn').onclick=openAdd;
 document.getElementById('mcancel').onclick=closeModal;
 document.getElementById('mov').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
