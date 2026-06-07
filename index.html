@@ -365,6 +365,27 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 
 /* ── CALENDAR ── */
 #calOv.on{display:flex!important}
+/* Calendar header layout */
+.cal-hdr-inner{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.85rem 1rem;flex-wrap:nowrap
+}
+.cal-hdr-title{
+  font-family:Rajdhani,sans-serif;font-weight:700;font-size:1.1rem;
+  color:var(--text);flex-shrink:0
+}
+.cal-hdr-nav{
+  display:flex;align-items:center;gap:.35rem;flex:1;justify-content:center
+}
+.cal-month-sel{
+  font-family:Rajdhani,sans-serif;font-weight:700;font-size:.88rem;
+  color:var(--blue);min-width:100px
+}
+.cal-year-sel{
+  font-family:Rajdhani,sans-serif;font-weight:700;font-size:.88rem;
+  color:var(--blue);min-width:72px
+}
+.cal-hdr-right{display:flex;align-items:center;gap:.35rem;flex-shrink:0}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .cal-dow{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
   color:var(--t3);text-align:center;padding:.25rem 0;margin-bottom:2px}
@@ -429,10 +450,16 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 @media(max-width:640px){
   #calTba{display:none}
   #calViewToggle{display:none!important}
+  .cal-arrow{display:none!important}
   .cal-tba-toggle{display:flex!important}
+  /* Two-row header on mobile */
+  .cal-hdr-inner{flex-wrap:wrap;padding:.6rem .75rem;gap:.4rem}
+  .cal-hdr-title{flex:1}
+  .cal-hdr-nav{flex:none;width:100%;order:3;justify-content:flex-start}
+  .cal-month-sel{flex:1;min-width:0}
+  .cal-hdr-right{order:2;margin-left:auto}
   .cal-chip{font-size:.55rem}
   .cal-cell{min-height:52px;padding:.2rem}
-  /* Mobile calendar list: stack date above title */
   .cal-list-item{flex-direction:column;align-items:flex-start;gap:.15rem}
   .cal-list-date{min-width:unset}
 }
@@ -589,20 +616,25 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 <div id="calOv" style="display:none;position:fixed;inset:0;background:rgba(3,19,41,.85);backdrop-filter:blur(4px);z-index:250;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto">
   <div style="background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);width:100%;max-width:900px;margin:0 auto">
     <!-- Calendar header -->
-    <div style="display:flex;align-items:center;gap:.5rem;padding:.85rem 1rem;border-bottom:1px solid var(--bd);flex-wrap:nowrap">
-      <span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:1.1rem;color:var(--text);flex-shrink:0">Release Calendar</span>
-      <div style="display:flex;align-items:center;gap:.35rem;flex:1;justify-content:center;flex-wrap:nowrap">
-        <button class="hb" id="calPrev">‹</button>
-        <select id="calMonthSel" class="ts" style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);min-width:100px"></select>
-        <select id="calYearSel" class="ts" style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);min-width:72px"></select>
-        <button class="hb" id="calNext">›</button>
+    <div id="calHdr" style="border-bottom:1px solid var(--bd)">
+      <!-- Desktop: single row. Mobile: two rows (CSS handles it) -->
+      <div class="cal-hdr-inner">
+        <span class="cal-hdr-title">Release Calendar</span>
+        <div class="cal-hdr-nav">
+          <button class="hb cal-arrow" id="calPrev">‹</button>
+          <select id="calMonthSel" class="ts cal-month-sel"></select>
+          <select id="calYearSel" class="ts cal-year-sel"></select>
+          <button class="hb cal-arrow" id="calNext">›</button>
+        </div>
+        <div class="cal-hdr-right">
+          <div id="calViewToggle" style="display:flex;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden">
+            <button class="vtb on" id="calGridBtn" title="Grid">⊞</button>
+            <button class="vtb" id="calListBtn" title="List">☰</button>
+          </div>
+          <button class="hb cal-tba-toggle" id="calTbaBtn" title="Date Unknown games" style="display:none">TBA</button>
+          <button class="hb" id="calClose">✕</button>
+        </div>
       </div>
-      <div id="calViewToggle" style="display:flex;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;flex-shrink:0">
-        <button class="vtb on" id="calGridBtn" title="Grid">⊞</button>
-        <button class="vtb" id="calListBtn" title="List">☰</button>
-      </div>
-      <button class="hb cal-tba-toggle" id="calTbaBtn" title="Date Unknown games" style="flex-shrink:0;display:none">TBA</button>
-      <button class="hb" id="calClose" style="flex-shrink:0">✕</button>
     </div>
     <!-- Calendar body -->
     <div style="display:flex;gap:0;min-height:400px">
@@ -1050,7 +1082,7 @@ function populateCalSelects(){
   mSel.innerHTML=MONTHS.map((m,i)=>`<option value="${i}"${i===calMonth?' selected':''}>${m}</option>`).join('');
   const curY=new Date().getFullYear();
   let yHTML='';
-  for(let y=curY-10;y<=curY+10;y++) yHTML+=`<option value="${y}"${y===calYear?' selected':''}>${y}</option>`;
+  for(let y=1951;y<=curY+10;y++) yHTML+=`<option value="${y}"${y===calYear?' selected':''}>${y}</option>`;
   ySel.innerHTML=yHTML;
 }
 
@@ -2028,7 +2060,6 @@ function openEdit(id){
   document.getElementById('fPriority').value=g.priority||'medium';
   document.getElementById('fHotness').value=(g.hotness===null||g.hotness===undefined)?'':g.hotness;
   document.getElementById('fStore').value=g.storeLink||'';
-  document.getElementById('fNotes').value=g.notes||'';
   if(g.tbaText){setTbaState(true);document.getElementById('fTbaText').value=g.tbaText}
   else{document.getElementById('fDate').value=g.releaseDate||''}
   const savedCover=g.cover||'';
