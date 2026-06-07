@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building the Backlog</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --base:#031329;--s1:#0d1e33;--s3:#353e46;
+  --cbg:#0d1e33;--cbr:#14528f55;
+  --blue:#02b3fc;--pink:#ff00aa;--green:#9cff00;--amber:#f7cd26;--muted:#b3b3b3;
+  --cyan:#02b3fc;--magenta:#ff00aa;--lime:#9cff00;
+  --text:#e8f4ff;--t2:#8aabcc;--t3:#4a6280;
+  --bd:#14528f44;--bd2:#02b3fc44;
+  --pw:430px;--hh:60px;--r:10px;--rl:16px;
+}
+[data-theme=light]{
+  --base:#eef4fb;--s1:#fff;--s3:#c8daf0;--cbg:#fff;--cbr:#02b3fc44;
+  --muted:#6b7c93;--text:#031329;--t2:#2a5080;--t3:#7090b0;--bd:#02b3fc33;--bd2:#02b3fc66;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Inter',sans-serif;font-weight:300;background:var(--base);color:var(--text);
+  display:flex;flex-direction:column;overflow:hidden;transition:background .3s,color .3s}
+button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--s3);border-radius:99px}
+
+/* HEADER */
+#hdr{height:var(--hh);min-height:var(--hh);background:var(--s1);border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;padding:0 1.1rem;gap:.6rem;z-index:50;position:relative;flex-shrink:0}
+.logo-svg{flex-shrink:0;user-select:none;-webkit-user-select:none}
+.hs{flex:1;max-width:280px;position:relative}
+.hs svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--t3);fill:none;pointer-events:none}
+.hs input{width:100%;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);
+  padding:.36rem .7rem .36rem 1.9rem;color:var(--text);font-size:.78rem;outline:none;transition:border-color .15s}
+.hs input:focus{border-color:var(--blue)}
+.hr{display:flex;align-items:center;gap:.35rem;margin-left:auto}
+.hb{background:var(--s3);border:1px solid var(--bd);color:var(--t2);border-radius:var(--r);height:30px;
+  padding:0 .6rem;cursor:pointer;font-size:.72rem;font-weight:500;display:flex;align-items:center;gap:.28rem;
+  transition:all .15s;white-space:nowrap}
+.hb:hover{border-color:var(--blue);color:var(--blue)}
+.hb.p{background:var(--blue);border-color:var(--blue);color:#031329;font-weight:700}
+.hb.p:hover{opacity:.85;color:#031329}
+
+/* TOOLBAR */
+#tb{background:var(--s1);border-bottom:1px solid var(--bd);padding:.45rem 1.1rem;
+  display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;flex-shrink:0}
+.ft{background:transparent;border:1px solid var(--bd);color:var(--t2);border-radius:var(--r);
+  padding:.25rem .65rem;font-size:.7rem;font-weight:500;cursor:pointer;transition:all .15s;
+  white-space:nowrap;font-family:'Inter',sans-serif}
+.ft.on{background:var(--blue);border-color:var(--blue);color:#031329;font-weight:700}
+.ft:hover:not(.on){border-color:var(--blue);color:var(--blue)}
+.tsep{width:1px;height:16px;background:var(--bd);flex-shrink:0}
+.ts{background:var(--base);border:1px solid var(--bd);color:var(--t2);border-radius:var(--r);
+  padding:.25rem 1.5rem .25rem .55rem;font-size:.7rem;cursor:pointer;outline:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%234a6280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 6px center;transition:border-color .15s}
+.ts:focus{border-color:var(--blue)}.ts option{background:var(--s1)}
+.vt{display:flex;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.vtb{background:transparent;border:none;color:var(--t3);padding:.25rem .45rem;cursor:pointer;font-size:.82rem;transition:all .15s}
+.vtb.on{background:var(--blue);color:#031329}
+.sc{display:flex;gap:.3rem;margin-left:auto;flex-wrap:wrap}
+.chip{background:var(--s3);border:1px solid var(--bd);border-radius:99px;padding:.16rem .55rem;
+  font-size:.66rem;color:var(--t2);display:flex;align-items:center;gap:.22rem}
+.chip b{color:var(--text);font-weight:500}
+
+/* MAIN */
+#main{flex:1;display:flex;overflow:hidden}
+#content{flex:1;overflow-y:auto;padding:1rem}
+.sl{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.66rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--t3);margin-bottom:.5rem;display:flex;align-items:center;gap:.35rem}
+.sl::after{content:'';flex:1;height:1px;background:var(--bd)}
+.sb{margin-bottom:1rem}
+
+/* GRID */
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.8rem}
+.gg.lv{grid-template-columns:1fr;gap:.3rem}
+
+/* CARD */
+.gc{background:var(--cbg);border:1px solid var(--cbr);border-radius:var(--rl);overflow:hidden;
+  cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;position:relative;display:flex;flex-direction:column}
+.gc:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 6px 20px #02b3fc12}
+.gc.st-removed{opacity:.45;filter:grayscale(.6)}.gc.sb2{border-color:#9cff0044}
+
+/* pill bar */
+.pb{position:absolute;top:0;left:0;right:0;height:var(--rl);display:flex;align-items:center;
+  justify-content:space-between;padding:0 6px;gap:3px;z-index:2;pointer-events:none}
+.pb-r{display:flex;align-items:center;gap:3px}
+
+/* cover */
+.cc{width:100%;aspect-ratio:16/9;background:var(--s3);position:relative;overflow:hidden;flex-shrink:0}
+.cc img{width:100%;height:100%;object-fit:cover;display:block}
+.cph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;
+  background:linear-gradient(135deg,var(--s1),var(--base))}
+.cg{position:absolute;inset:0;background:linear-gradient(to top,#031329cc 0%,transparent 60%);pointer-events:none}
+.hb2{position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--s3)}
+.hf{height:100%;background:var(--pink);transition:width .3s}
+
+/* badges */
+.bdg{font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap}
+.b-hot{background:var(--pink);color:#031329}
+.b-rev{background:var(--amber);color:#031329;font-size:.56rem;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap}
+.b-bt{background:var(--green);color:#031329}
+.b-rm{background:var(--s3);color:var(--muted);border:1px solid #4a5560}
+/* priority label badge on card — same style as side panel pill */
+.b-prio{font-size:.55rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 5px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;color:#031329}
+
+/* card body */
+.cb{padding:.5rem .65rem .55rem;flex:1;display:flex;flex-direction:column;gap:.3rem}
+.ct{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.9rem;line-height:1.25;color:var(--text);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.cbot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-top:auto}
+.cprice{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);flex-shrink:0}
+.b-unrel-card{font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--lime);flex-shrink:0}
+/* buttons row — centered */
+.cq{display:flex;gap:.22rem;flex-wrap:wrap;justify-content:center;width:100%}
+.qb{background:var(--base);border:1px solid var(--bd);color:var(--t3);border-radius:5px;
+  width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:.62rem;transition:all .15s;text-decoration:none;flex-shrink:0}
+.qb:hover{border-color:var(--blue);color:var(--blue)}
+.qb.ba{border-color:#9cff0066;color:var(--green)}
+.qb.qr:hover{border-color:var(--pink);color:var(--pink)}
+.qb.qri{color:var(--green);border-color:#9cff0044}
+.qb.qri:hover{border-color:var(--green);color:var(--green)}
+.qb img{width:12px;height:12px;object-fit:contain;display:block}
+
+/* list view */
+.gg.lv .gc{flex-direction:row;align-items:center;border-radius:var(--r)}
+.gg.lv .cc{width:52px;height:36px;aspect-ratio:unset;flex-shrink:0;border-radius:var(--r) 0 0 var(--r)}
+.gg.lv .pb,.gg.lv .cg,.gg.lv .hb2{display:none}
+.gg.lv .cb{flex-direction:row;align-items:center;padding:.4rem .65rem;gap:.5rem}
+.gg.lv .ct{font-size:.82rem;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;flex:1;min-width:0}
+.gg.lv .cbot{margin-top:0;flex-shrink:0;flex-wrap:nowrap}
+.gg.lv .cq{width:auto;flex-wrap:nowrap}
+
+/* empty */
+.empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--t3)}
+.ei{font-size:2.5rem;margin-bottom:.6rem}
+
+/* SIDE PANEL */
+#pov{display:none;position:fixed;inset:0;background:rgba(3,19,41,.55);backdrop-filter:blur(3px);z-index:80}
+#pov.on{display:block}
+#panel{position:fixed;top:0;right:0;bottom:0;width:var(--pw);max-width:100vw;
+  background:var(--s1);border-left:1px solid var(--bd2);z-index:90;display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow:hidden}
+#panel.on{transform:translateX(0)}
+.pcov{width:100%;height:195px;background:var(--s3);position:relative;flex-shrink:0;overflow:hidden}
+.pcov img{width:100%;height:100%;object-fit:cover;display:block}
+.pcg{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,var(--s1) 100%)}
+.pcph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;
+  background:linear-gradient(135deg,var(--s3),var(--base))}
+.pcl{position:absolute;top:.55rem;right:.55rem;background:#03132988;border:1px solid var(--bd);
+  color:var(--t2);border-radius:7px;width:28px;height:28px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:all .15s}
+.pcl:hover{background:var(--s3);color:var(--text)}
+.pb2{flex:1;overflow-y:auto;padding:.85rem 1rem 2rem}
+.pt{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.35rem;line-height:1.2;margin-bottom:.4rem;color:var(--text)}
+.pm{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.65rem}
+.ps{margin-bottom:.8rem}
+.psl{font-size:.61rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);
+  margin-bottom:.3rem;display:flex;align-items:center;gap:.3rem}
+.psl::after{content:'';flex:1;height:1px;background:var(--bd)}
+.pv{font-size:.8rem;color:var(--t2);line-height:1.6}
+.plks{display:flex;gap:.35rem;flex-wrap:wrap}
+.plk{display:flex;align-items:center;gap:.28rem;background:var(--base);border:1px solid var(--bd);
+  color:var(--t2);border-radius:var(--r);padding:.28rem .6rem;font-size:.7rem;font-weight:500;cursor:pointer;transition:all .15s}
+.plk:hover{border-color:var(--blue);color:var(--blue)}
+.plk img{width:13px;height:13px;object-fit:contain}
+.pac{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem}
+.pa{flex:1;min-width:100px;background:var(--base);border:1px solid var(--bd);color:var(--t2);
+  border-radius:var(--r);padding:.4rem .6rem;font-size:.72rem;font-weight:500;cursor:pointer;
+  transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.3rem}
+.pa:hover{border-color:var(--blue);color:var(--blue)}
+.pa.d:hover{border-color:var(--pink);color:var(--pink)}
+.pa.s{border-color:#9cff0066;color:var(--green);background:#9cff0011}
+.pa.s:hover{background:#9cff0022}
+.hr2{display:flex;align-items:center;gap:.6rem}
+.ht{flex:1;height:5px;background:var(--s3);border-radius:99px;overflow:hidden}
+.htf{height:100%;background:var(--pink);transition:width .3s}
+.hn{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;color:var(--pink);min-width:2rem;text-align:right}
+.stars{display:flex;gap:.22rem;margin-bottom:.35rem}
+.star{font-size:1.1rem;cursor:pointer;color:var(--s3);transition:color .1s}.star.on{color:var(--amber)}
+.rta{width:100%;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);
+  padding:.45rem .6rem;color:var(--text);font-size:.78rem;resize:vertical;min-height:60px;outline:none;transition:border-color .15s}
+.rta:focus{border-color:var(--blue)}
+
+/* MODAL */
+#mov{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
+  z-index:200;align-items:center;justify-content:center;padding:1rem}
+#mov.on{display:flex}
+.modal{background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);
+  padding:1.3rem;width:100%;max-width:720px;max-height:90vh;overflow-y:auto}
+.mt{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:1rem;color:var(--text)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.fr{margin-bottom:.6rem}
+.fr label{display:block;font-size:.63rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:.25rem}
+.fr input,.fr select,.fr textarea{width:100%;background:var(--base);border:1px solid var(--bd);
+  border-radius:var(--r);padding:.42rem .65rem;color:var(--text);font-size:.78rem;outline:none;
+  transition:border-color .15s;appearance:none;font-family:'Inter',sans-serif;font-weight:300}
+.fr input:focus,.fr select:focus,.fr textarea:focus{border-color:var(--blue)}
+.fr input.err{border-color:var(--pink)!important}
+.fr textarea{resize:vertical;min-height:58px}
+.fr select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%234a6280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 7px center;padding-right:1.5rem}
+.fr select option{background:var(--s1)}
+.ferr{font-size:.63rem;color:var(--pink);margin-top:.2rem;display:none}
+.ferr.on{display:block}
+.ma{display:flex;gap:.6rem;margin-top:1rem}
+.mb2{flex:1;border-radius:var(--r);padding:.5rem .9rem;font-size:.8rem;font-weight:500;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.3rem;border:1px solid var(--bd)}
+.mb2.p{background:var(--blue);border-color:var(--blue);color:#031329;font-weight:700}
+.mb2.p:hover{opacity:.85}.mb2.c{background:var(--s3);color:var(--t2)}.mb2.c:hover{color:var(--text)}
+
+/* priority select with label preview */
+.prio-row{display:flex;align-items:center;gap:.5rem}
+.prio-lbl-prev{font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;color:#031329;flex-shrink:0;white-space:nowrap}
+.prio-row select{flex:1}
+
+/* dev/pub autocomplete */
+.ac-wrap{position:relative}
+.ac-dd{position:absolute;top:100%;left:0;right:0;background:var(--s1);border:1px solid var(--bd2);
+  border-radius:var(--r);z-index:50;max-height:140px;overflow-y:auto;display:none;margin-top:2px}
+.ac-dd.on{display:block}
+.ac-opt{padding:.3rem .65rem;font-size:.76rem;color:var(--t2);cursor:pointer;transition:background .1s}
+.ac-opt:hover{background:var(--s3);color:var(--text)}
+
+/* platform checks */
+.pcks{display:flex;gap:.35rem;flex-wrap:wrap}
+.pck{display:flex;align-items:center;gap:.28rem;background:var(--base);border:1px solid var(--bd);
+  border-radius:var(--r);padding:.28rem .6rem;font-size:.76rem;color:var(--t2);cursor:pointer;transition:all .15s;user-select:none}
+.pck:has(input:checked){background:var(--blue);border-color:var(--blue);color:#031329;font-weight:500}
+.pck input{display:none}
+
+/* chip input — same visual height as a standard .fr input */
+.ciw{display:flex;flex-wrap:wrap;gap:.25rem;align-items:center;background:var(--base);
+  border:1px solid var(--bd);border-radius:var(--r);
+  padding:0 .4rem;cursor:text;min-height:34px;transition:border-color .15s}
+.ciw:focus-within{border-color:var(--blue)}
+.ciw:focus-within{border-color:var(--blue)}
+.cich{background:var(--s3);border:1px solid var(--bd2);color:var(--blue);border-radius:4px;
+  padding:2px 6px;font-size:.66rem;font-weight:500;display:flex;align-items:center;gap:.18rem}
+.cich button{background:none;border:none;color:var(--t3);cursor:pointer;padding:0;font-size:.7rem;line-height:1}
+.cich button:hover{color:var(--pink)}
+.cir{background:transparent;border:none;outline:none;color:var(--text);font-size:.76rem;flex:1;min-width:60px;padding:0}
+
+/* genre suggestions dropdown */
+.genre-wrap{position:relative}
+.genre-dd{position:absolute;top:100%;left:0;right:0;background:var(--s1);border:1px solid var(--bd2);
+  border-radius:var(--r);z-index:50;max-height:160px;overflow-y:auto;display:none;margin-top:2px}
+.genre-dd.on{display:block}
+.genre-opt{padding:.35rem .65rem;font-size:.76rem;color:var(--t2);cursor:pointer;transition:background .1s}
+.genre-opt:hover{background:var(--s3);color:var(--text)}
+
+/* cover preview */
+.cprev{width:100%;height:85px;object-fit:cover;border-radius:var(--r);margin-top:.35rem;display:none;border:1px solid var(--bd)}
+.cover-hint{font-size:.62rem;color:var(--amber);margin-top:.3rem;display:none}
+
+/* date row — grid so UNRELEASED button never shifts */
+.date-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:.5rem}
+/* overlay wrapper: just relative positioning, tba row hides/shows */
+.date-overlay-wrap{position:relative}
+/* 3-column row for release / price / priority */
+.fg3{display:grid;grid-template-columns:2fr 1fr 1.2fr;gap:.6rem}
+@media(max-width:560px){.fg3{grid-template-columns:1fr}}
+.tba-btn{background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--t2);
+  padding:.3rem .7rem;font-size:.68rem;font-weight:700;letter-spacing:.06em;cursor:pointer;
+  white-space:nowrap;transition:all .15s;font-family:'Rajdhani',sans-serif}
+.tba-btn:hover{border-color:var(--blue);color:var(--blue)}
+.tba-btn.on{background:var(--blue);border-color:var(--blue);color:#031329}
+
+/* overlays */
+#riov,#rmov{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
+  z-index:300;align-items:center;justify-content:center;padding:1rem}
+#riov.on,#rmov.on{display:flex}
+
+
+/* notes system */
+.note-compose{display:grid;grid-template-columns:auto 1fr;gap:.4rem;align-items:start;margin-bottom:.35rem}
+.note-compose-date{background:var(--base);border:1px solid var(--bd);border-radius:var(--r);
+  padding:.42rem .5rem;color:var(--text);font-size:.72rem;outline:none;transition:border-color .15s;
+  width:120px;flex-shrink:0}
+.note-compose-date:focus{border-color:var(--blue)}
+.note-entry{background:var(--base);border:1px solid var(--bd);border-radius:var(--r);padding:.5rem .65rem;margin-bottom:.4rem}
+.note-date{font-size:.6rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:.25rem}
+.note-text{font-size:.78rem;color:var(--t2);line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.note-edit-area{width:100%;background:var(--s1);border:1px solid var(--blue);border-radius:5px;padding:.35rem .5rem;color:var(--text);font-size:.78rem;resize:vertical;min-height:50px;outline:none;font-family:inherit;display:none}
+.note-actions{display:flex;gap:.3rem;margin-top:.35rem;justify-content:flex-end}
+.note-btn{background:transparent;border:1px solid var(--bd);border-radius:5px;color:var(--t3);padding:.18rem .45rem;font-size:.62rem;cursor:pointer;transition:all .12s}
+.note-btn:hover{border-color:var(--blue);color:var(--blue)}
+.note-btn.save{border-color:var(--blue);color:var(--blue)}
+.note-btn.save:hover{background:var(--blue);color:#031329}
+.note-btn.del:hover{border-color:var(--pink);color:var(--pink)}
+.note-add{width:100%;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);padding:.42rem .6rem;color:var(--text);font-size:.78rem;resize:vertical;min-height:52px;outline:none;font-family:inherit;transition:border-color .15s;margin-bottom:.35rem}
+.note-add:focus{border-color:var(--blue)}
+.note-save-btn{width:100%;background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--t2);padding:.35rem;font-size:.72rem;font-weight:500;cursor:pointer;transition:all .15s}
+.note-save-btn:hover{border-color:var(--blue);color:var(--blue)}
+/* toast notification */
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(60px);
+  background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);padding:.5rem 1rem;
+  font-size:.76rem;color:var(--text);z-index:500;transition:transform .25s,opacity .25s;opacity:0;pointer-events:none;white-space:nowrap}
+#toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.warn{border-color:var(--amber);color:var(--amber)}
+#toast.err{border-color:var(--pink);color:var(--pink)}
+
+/* ── SYNC FLOATING PILL ── */
+/* Desktop: inline in header */
+.sync-hdr{font-size:.68rem;font-weight:500;color:var(--t3);white-space:nowrap;margin-left:.2rem}
+#syncPill{display:none} /* hidden on desktop */
+/* Mobile: floating pill bottom-left */
+@media(max-width:640px){
+  .sync-hdr{display:none}
+  #syncPill{
+    display:flex;align-items:center;gap:.32rem;
+    position:fixed;bottom:1.5rem;left:.85rem;z-index:490;
+    background:var(--s1);border:1px solid var(--bd);border-radius:99px;
+    padding:.3rem .65rem .3rem .5rem;font-size:.68rem;font-weight:500;color:var(--t3);
+    box-shadow:0 2px 12px rgba(0,0,0,.25);
+    transition:opacity .3s,transform .3s;
+    cursor:pointer;user-select:none;-webkit-user-select:none;
+  }
+  #syncPill.hidden{opacity:0;transform:translateY(6px);pointer-events:none}
+  #syncPill .sp-dot{
+    width:7px;height:7px;border-radius:50%;background:var(--t3);flex-shrink:0;
+    transition:background .3s;
+  }
+  #syncPill.sp-syncing .sp-dot{background:var(--amber);animation:sp-pulse 1s ease-in-out infinite}
+  #syncPill.sp-ok .sp-dot{background:var(--green)}
+  #syncPill.sp-err .sp-dot{background:var(--pink)}
+  #syncPill.sp-offline .sp-dot{background:var(--t3)}
+  @keyframes sp-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+}
+
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) saturate(3) hue-rotate(175deg);cursor:pointer}
+
+/* ── TILT CARD EFFECT ── */
+.gc{transform-style:preserve-3d;will-change:transform}
+.gc-shine{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:10;
+  opacity:0;transition:opacity .25s;
+  background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.18) 0%,rgba(255,255,255,.04) 40%,transparent 70%)}
+.gc.tilt-active .gc-shine{opacity:1}
+.gg.lv .gc{transform-style:flat;transform:none!important}
+.gg.lv .gc-shine{display:none}
+
+/* ── MOBILE HEADER ── */
+@media(max-width:640px){
+  #hdr{flex-wrap:nowrap;padding:0 .65rem;gap:.35rem;overflow:hidden}
+  .logo-full{display:none!important}
+  .logo-short{display:inline-flex!important}
+  .hs{max-width:unset;flex:1;min-width:0}
+  .hr{gap:.2rem;flex-shrink:0}
+  .hb-label{display:none}
+  .hb{padding:0 .4rem}
+}
+@media(min-width:641px){
+  .logo-full{display:inline!important}
+  .logo-short{display:none!important}
+}
+@media(max-width:560px){
+  :root{--pw:100vw}.fg{grid-template-columns:1fr}.gg{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
+  .sc{display:none}
+}
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <!-- Full logo (desktop) -->
+  <svg class="logo-svg logo-full" viewBox="0 0 220 28" height="28" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <text y="22" font-family="Rajdhani,sans-serif" font-weight="700" font-size="20" letter-spacing=".4">
+      <tspan fill="#02b3fc">Building </tspan><tspan fill="#e8f4ff">the </tspan><tspan fill="#ff00aa">Backlog</tspan>
+    </text>
+  </svg>
+  <!-- Short logo (mobile) -->
+  <svg class="logo-svg logo-short" viewBox="0 0 52 28" height="28" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <text y="22" font-family="Rajdhani,sans-serif" font-weight="700" font-size="21" letter-spacing=".5">
+      <tspan fill="#02b3fc">B</tspan><tspan fill="#e8f4ff">t</tspan><tspan fill="#ff00aa">B</tspan>
+    </text>
+  </svg>
+  <div class="hs">
+    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search…" autocomplete="off">
+  </div>
+  <span id="syncStatus" class="sync-hdr"></span>
+  <div class="hr">
+    <button class="hb" id="themeBtn">☀️</button>
+    <button class="hb" id="expBtn" title="Export">⬇<span class="hb-label"> Export</span></button>
+    <button class="hb" id="impBtn" title="Import">⬆<span class="hb-label"> Import</span></button>
+    <button class="hb p" id="addBtn">＋<span class="hb-label"> Add game</span></button>
+  </div>
+</header>
+
+<div id="tb">
+  <div style="display:flex;gap:.35rem;flex-wrap:wrap" id="ftabs">
+    <button class="ft on" data-f="all">All</button>
+    <button class="ft" data-f="wishlist">Wishlist</button>
+    <button class="ft" data-f="bought">Bought</button>
+    <button class="ft" data-f="removed">Removed</button>
+    <button class="ft" data-f="review">To Review</button>
+    <button class="ft" data-f="unreleased">Unreleased</button>
+  </div>
+  <div class="tsep"></div>
+  <select class="ts" id="sortSel">
+    <option value="hotness">Hotness</option>
+    <option value="title">Title A–Z</option>
+    <option value="price-asc">Price ↑</option>
+    <option value="price-desc">Price ↓</option>
+    <option value="added">Date added</option>
+  </select>
+  <select class="ts" id="groupSel">
+    <option value="none">No grouping</option>
+    <option value="genre">By genre</option>
+    <option value="platform">By platform</option>
+    <option value="developer">By developer</option>
+    <option value="publisher">By publisher</option>
+    <option value="year">By year</option>
+  </select>
+  <div class="vt">
+    <button class="vtb on" id="gridBtn" title="Grid">⊞</button>
+    <button class="vtb" id="listBtn" title="List">☰</button>
+  </div>
+  <div class="sc" id="statChips"></div>
+</div>
+
+<div id="main"><div id="content"><div id="gc"></div></div></div>
+
+<div id="pov"></div>
+<div id="toast"></div>
+<div id="syncPill" class="hidden" title="Sync status — tap to retry"><span class="sp-dot"></span><span id="syncPillTxt"></span></div>
+
+<!-- SIDE PANEL -->
+<div id="panel">
+  <div class="pcov">
+    <div class="pcph" id="pph">🎮</div>
+    <img id="pimg" src="" alt="" style="display:none">
+    <div class="pcg"></div>
+    <button class="pcl" id="pclose">✕</button>
+  </div>
+  <div class="pb2" id="pbody"></div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div id="mov">
+  <div class="modal">
+    <div class="mt" id="modalTitle">Add game</div>
+    <!-- Row 1: Store link full-width -->
+    <div class="fr">
+      <label>Store link <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— paste Steam URL to auto-fill Title &amp; App ID</span></label>
+      <input type="url" id="fStore" placeholder="https://store.steampowered.com/app/…">
+    </div>
+    <!-- Row 2: Title + App ID -->
+    <div class="fg">
+      <div class="fr"><label>Title *</label><input type="text" id="fTitle" placeholder="Game title"></div>
+      <div class="fr">
+        <label>Steam App ID</label>
+        <input type="text" id="fAppId" placeholder="e.g. 2239770" inputmode="numeric">
+        <div class="ferr" id="appIdErr">Already in your list.</div>
+      </div>
+    </div>
+    <!-- Row 3: Cover preview + URL -->
+    <img id="cprev" class="cprev" alt="Cover preview">
+    <div class="cover-hint" id="coverHint">⚠ CDN image not found — paste the correct URL below</div>
+    <div class="fr" style="margin-top:.35rem">
+      <label>Cover URL <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">(auto-filled from App ID · or paste your own)</span></label>
+      <input type="url" id="fCover" placeholder="https://…">
+    </div>
+    <!-- Row 4: Platform + Genre side by side -->
+    <div class="fg">
+      <div class="fr">
+        <label>Platform</label>
+        <div class="pcks" id="pcks">
+          <label class="pck"><input type="checkbox" value="PC" checked> PC</label>
+          <label class="pck"><input type="checkbox" value="PlayStation"> PS</label>
+          <label class="pck"><input type="checkbox" value="Xbox"> Xbox</label>
+          <label class="pck"><input type="checkbox" value="Nintendo"> Nintendo</label>
+        </div>
+      </div>
+      <div class="fr">
+        <label>Genre <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
+        <div class="genre-wrap">
+          <div class="ciw" id="genreWrap"><input type="text" class="cir" id="genreInput" placeholder="Start typing…" autocomplete="off"></div>
+          <div class="genre-dd" id="genreDd"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Row 5: Dev + Publisher -->
+    <div class="fg">
+      <div class="fr">
+        <label>Developer</label>
+        <div class="ac-wrap"><input type="text" id="fDev" placeholder="Studio name" autocomplete="off"><div class="ac-dd" id="devDd"></div></div>
+      </div>
+      <div class="fr">
+        <label>Publisher</label>
+        <div class="ac-wrap"><input type="text" id="fPub" placeholder="Publisher name" autocomplete="off"><div class="ac-dd" id="pubDd"></div></div>
+      </div>
+    </div>
+    <!-- Row 6: Release date + Price + Priority -->
+    <div class="fg3">
+      <div class="fr">
+        <label>Release date</label>
+        <!-- Overlay container: date and tba text occupy same space -->
+        <div class="date-overlay-wrap">
+          <div class="date-row" id="dateRow">
+            <input type="date" id="fDate">
+            <button type="button" class="tba-btn" id="tbaBtn">UNRELEASED</button>
+          </div>
+          <div class="date-row" id="tbaTxtRow" style="display:none">
+            <input type="text" id="fTbaText" placeholder="e.g. Q4 2026 · Coming Soon">
+            <button type="button" class="tba-btn on" id="tbaBtnOff">UNRELEASED</button>
+          </div>
+        </div>
+      </div>
+      <div class="fr"><label>Price (€)</label><input type="number" id="fPrice" placeholder="29.99" step="0.01" min="0"></div>
+      <div class="fr">
+        <label>Priority</label>
+        <div class="prio-row">
+          <span class="prio-lbl-prev" id="prioLblPrev" style="background:var(--magenta)">Medium</span>
+          <select id="fPriority">
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <!-- Row 7: Hotness + Tags -->
+    <div class="fg">
+      <div class="fr">
+        <label>Hotness <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">1–100 · blank = to review</span></label>
+        <input type="number" id="fHotness" placeholder="blank = to review" min="1" max="100">
+      </div>
+      <div class="fr">
+        <label>Tags <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
+        <div class="ciw" id="tagsWrap"><input type="text" class="cir" id="tagsInput" placeholder="co-op, birthday gift…"></div>
+      </div>
+    </div>
+    <!-- Notes in modal -->
+    <div class="fr">
+      <label>Notes <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— optional, saved with today's date</span></label>
+      <div class="note-compose">
+        <input type="date" id="fNoteDate" class="note-compose-date">
+        <textarea class="note-add" id="fNoteTxt" placeholder="Add a note…" style="margin-bottom:0;min-height:36px;resize:none"></textarea>
+      </div>
+    </div>
+    <div class="ma">
+      <button class="mb2 c" id="mcancel">Cancel</button>
+      <button class="mb2 p" id="msave">💾 Save game</button>
+    </div>
+  </div>
+</div>
+
+<!-- REMOVE MODAL -->
+<div id="rmov">
+  <div class="modal" style="max-width:400px">
+    <div class="mt" style="color:var(--pink)">Remove from list</div>
+    <div class="fr"><label>Why are you removing this game?</label>
+      <textarea class="rta" id="rmNote" style="min-height:70px" placeholder="Not interested anymore, already bought elsewhere…"></textarea>
+    </div>
+    <div class="ma">
+      <button class="mb2 c" id="rmCancel">Cancel</button>
+      <button class="mb2" style="flex:1;background:#ff00aa22;border-color:#ff00aa66;color:var(--pink);font-weight:700" id="rmConfirm">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- REINSTATE MODAL -->
+<div id="riov">
+  <div class="modal" style="max-width:380px">
+    <div class="mt" style="color:var(--green)">Reinstate game</div>
+    <div class="fr"><label>Restore to which list?</label></div>
+    <div class="ma">
+      <button class="mb2 c" id="riCancel">Cancel</button>
+      <button class="mb2" style="flex:1;background:#9cff0022;border-color:#9cff0066;color:var(--green);font-weight:700" id="riWl">Wishlist</button>
+      <button class="mb2" style="flex:1;background:#02b3fc22;border-color:#02b3fc66;color:var(--blue);font-weight:700" id="riBt">Bought</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  SEED DATA
+// ══════════════════════════════════════════
+const SEED=[];
+
+// ══════════════════════════════════════════
+//  STRINGS
+// ══════════════════════════════════════════
+const S={
+  secRev:'To Review',secWl:'Wishlist',secRm:'Removed',secBacklog:'Your Backlog',
+  bdgBt:'✓ Bought',bdgRm:'Removed',bdgRev:'To Review',
+  pHi:'High',pMe:'Medium',pLo:'Low',
+  stTot:'total',stWl:'wishlist',stBt:'bought',stRm:'removed',stVal:'total value',
+  pHotness:'Hotness',pDetails:'Details',pDev:'Developer',pPub:'Publisher',pRel:'Release',
+  pGenre:'Genre',pPlatform:'Platform',pPrice:'Price',pTags:'Tags',pNotes:'Notes',
+  pLinks:'Links',pSteam:'Steam',pGG:'gg.deals',pSDB:'SteamDB',pPriority:'Priority',
+  pActions:'Actions',pEdit:'Edit',pMarkBt:'Mark Bought',pMarkWl:'Back to Wishlist',pRemove:'Remove',pReinstate:'Reinstate',
+  pReview:'My Review',pSaveRev:'Save review',pRmNote:'Removed — reason:',
+  noGames:'No games here yet.',noHint:'Press + Add game to start!',
+  mBt:'Mark Bought',mWl:'Back to Wishlist'
+};
+const t=k=>S[k]||k;
+
+// ══════════════════════════════════════════
+//  THEME
+// ══════════════════════════════════════════
+let theme=localStorage.getItem('btb_theme')||'dark';
+function applyTheme(){document.documentElement.setAttribute('data-theme',theme);document.getElementById('themeBtn').textContent=theme==='dark'?'☀️':'🌙'}
+applyTheme();
+document.getElementById('themeBtn').onclick=()=>{theme=theme==='dark'?'light':'dark';localStorage.setItem('btb_theme',theme);applyTheme()};
+
+// ══════════════════════════════════════════
+//  ⚙️  GOOGLE SHEETS CONFIG
+//  Paste your Apps Script Web App URL below.
+//  Leave empty to use offline mode (localStorage).
+// ══════════════════════════════════════════
+const SHEET_URL = '';   // ← paste your Web App URL here
+
+// ══════════════════════════════════════════
+//  SYNC STATUS UI
+// ══════════════════════════════════════════
+function setSyncStatus(state, msg){
+  // ── Desktop header span ──
+  const hdr = document.getElementById('syncStatus');
+  if(hdr){
+    const icons = {idle:'', syncing:'⟳', ok:'✓', err:'⚠', offline:'⊘'};
+    const colors = {idle:'var(--t3)', syncing:'var(--amber)', ok:'var(--green)', err:'var(--pink)', offline:'var(--t3)'};
+    hdr.textContent = (icons[state]||'') + (msg?' '+msg:'');
+    hdr.style.color = colors[state]||'var(--t3)';
+  }
+  // ── Mobile floating pill ──
+  const pill = document.getElementById('syncPill');
+  const pillTxt = document.getElementById('syncPillTxt');
+  if(pill && pillTxt){
+    const labels = {idle:'', syncing:'Saving…', ok:'Saved', err:'Sync failed', offline:'Offline'};
+    pillTxt.textContent = msg || labels[state] || '';
+    pill.className = state==='idle' ? 'hidden' : 'sp-'+state;
+    // Auto-hide after success
+    if(state==='ok'){
+      clearTimeout(setSyncStatus._hideTimer);
+      setSyncStatus._hideTimer = setTimeout(()=>{ pill.className='hidden'; },2500);
+    }
+    // Keep error visible until next action
+  }
+  // ── Desktop auto-clear ──
+  if(state==='ok' && hdr){
+    setTimeout(()=>{ if(hdr.textContent.startsWith('✓')) hdr.textContent=''; },2500);
+  }
+}
+
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+const KEY='btb_v4';
+const OFFLINE = !SHEET_URL;
+
+function normalise(g){
+  if(!g.genres)g.genres=g.genre?g.genre.split(',').map(s=>s.trim()).filter(Boolean):[];
+  if(!g.platforms)g.platforms=g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[];
+  if(!g.status)g.status='wishlist';
+  if(!g.id)g.id=gid();
+  if(!g.added)g.added=Date.now();
+  return g;
+}
+let games=[];
+function gid(){return Date.now()+Math.random().toString(36).slice(2,6)}
+function nid(){return'n'+Date.now()+Math.random().toString(36).slice(2,5)}
+function todayStr(){const d=new Date();return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`}
+
+// ── OFFLINE FALLBACK ──────────────────────
+function loadOffline(){
+  const stored=localStorage.getItem(KEY);
+  if(stored){try{return JSON.parse(stored).map(g=>normalise(g))}catch(e){}}
+  return SEED.map(g=>normalise(g));
+}
+function saveOffline(){localStorage.setItem(KEY,JSON.stringify(games))}
+
+// ── DETECT ENVIRONMENT ───────────────────
+// On file:// JSONP is needed (desktop Chrome/Firefox allow it).
+// On http/https (served file, hosted, Android Chrome) fetch() + no-cors won't
+// return a body, but Apps Script with ?callback= still works as JSONP via
+// <script> injection — which works on ALL platforms including Android.
+// So we always use JSONP for load, and JSONP GET for save (Apps Script allows
+// large payloads via GET because it tunnels through a redirect).
+// The key fix: on Android the script.onerror was firing because the injected
+// script src was being blocked by the local file security policy — solved by
+// using no-cors fetch as a ping then falling back gracefully, and by always
+// using absolute https:// script src (which Android Chrome allows even from file://).
+
+function loadFromSheet(){
+  return new Promise((resolve, reject)=>{
+    const cbName='_btbLoad'+Date.now();
+    const script=document.createElement('script');
+    const timeout=setTimeout(()=>{
+      delete window[cbName];
+      try{document.head.removeChild(script)}catch(e){}
+      reject(new Error('timeout'));
+    },14000);
+    window[cbName]=function(data){
+      clearTimeout(timeout);
+      delete window[cbName];
+      try{document.head.removeChild(script)}catch(e){}
+      if(data && data.error) reject(new Error(data.error));
+      else resolve(Array.isArray(data)?data:[]);
+    };
+    // Always use JSONP via script tag — works on desktop AND Android Chrome
+    // even when opened as a local file, because the src is an https:// URL.
+    script.crossOrigin='anonymous';
+    script.src=SHEET_URL+'?action=getAll&callback='+cbName+'&_='+Date.now();
+    script.onerror=()=>{
+      clearTimeout(timeout);
+      delete window[cbName];
+      try{document.head.removeChild(script)}catch(e){}
+      reject(new Error('script load error — check SHEET_URL and deployment'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// ── SHEETS: SAVE ─────────────────────────
+let _saveQueue=[];
+let _saveFlushing=false;
+function save(){
+  if(OFFLINE){saveOffline();return}
+  // Always keep a local cache for instant UI + offline resilience
+  localStorage.setItem(KEY,JSON.stringify(games));
+  // Debounce: coalesce rapid saves into one write
+  clearTimeout(save._debounce);
+  save._debounce=setTimeout(flushSave,400);
+}
+function flushSave(){
+  if(_saveFlushing){_saveQueue.push(true);return}
+  _saveFlushing=true;
+  setSyncStatus('syncing','Saving…');
+  postToSheet({action:'setAll',data:JSON.stringify(games)})
+    .then(()=>{
+      _saveFlushing=false;
+      setSyncStatus('ok','Saved');
+      if(_saveQueue.length){_saveQueue=[];flushSave()}
+    })
+    .catch(err=>{
+      _saveFlushing=false;
+      setSyncStatus('err','Save failed — check console');
+      console.error('BTB save error:',err);
+    });
+}
+
+// JSONP GET for save — Apps Script accepts all params as query string.
+// This works from file:// on both desktop AND Android Chrome because
+// the request goes to an https:// URL (not a cross-origin XHR).
+function postToSheet(params){
+  return new Promise((resolve, reject)=>{
+    const cbName='_btbPost'+Date.now();
+    const script=document.createElement('script');
+    const timeout=setTimeout(()=>{
+      delete window[cbName];
+      try{document.head.removeChild(script)}catch(e){}
+      reject(new Error('timeout'));
+    },18000);
+    window[cbName]=function(resp){
+      clearTimeout(timeout);
+      delete window[cbName];
+      try{document.head.removeChild(script)}catch(e){}
+      if(resp&&resp.error) reject(new Error(resp.error));
+      else resolve(resp);
+    };
+    const qs=Object.entries(params).map(([k,v])=>encodeURIComponent(k)+'='+encodeURIComponent(v)).join('&');
+    script.crossOrigin='anonymous';
+    script.src=SHEET_URL+'?'+qs+'&callback='+cbName+'&_='+Date.now();
+    script.onerror=()=>{
+      clearTimeout(timeout);
+      delete window[cbName];
+      try{document.head.removeChild(script)}catch(e){}
+      reject(new Error('script load error'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// ── SYNC PILL TAP TO RETRY ───────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  const pill = document.getElementById('syncPill');
+  if(pill) pill.addEventListener('click',()=>{
+    if(!OFFLINE) initData();
+  });
+});
+
+// ── INIT: LOAD ON OPEN ────────────────────
+async function initData(){
+  if(OFFLINE){
+    games=loadOffline();
+    setSyncStatus('offline','Offline mode');
+    renderAll();
+    return;
+  }
+  setSyncStatus('syncing','Loading…');
+  try{
+    const data=await loadFromSheet();
+    games=data.map(g=>normalise(g));
+    // Also cache locally for resilience
+    localStorage.setItem(KEY,JSON.stringify(games));
+    setSyncStatus('ok','Loaded');
+    renderAll();
+  }catch(err){
+    console.warn('BTB: Could not load from Sheet, falling back to localStorage.',err);
+    games=loadOffline();
+    setSyncStatus('err','Sheet unavailable — using local cache');
+    renderAll();
+  }
+}
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let af='all',vm='grid',openId=null,editId=null,rmId=null,riId=null;
+let cGenres=[],cTags=[],cStars=0;
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+const esc=s=>s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):'';
+const nr=g=>g.hotness===''||g.hotness===null||g.hotness===undefined;
+const isUnreleased=g=>!!(g.tbaText||(g.status==='wishlist'&&!g.releaseDate&&!g.price));
+const sc=id=>`https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/header.jpg`;
+
+function prioColor(p){return p==='high'?'var(--cyan)':p==='low'?'var(--lime)':'var(--magenta)'}
+function prioLabel(p){return t(p==='high'?'pHi':p==='low'?'pLo':'pMe')}
+
+function fmtDate(d){
+  if(!d)return'';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(d)){const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`}
+  return d;
+}
+function parseDate(raw){
+  if(!raw)return'';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw;
+  const m=raw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2}|\d{4})$/);
+  if(m){let[,d,mo,y]=m;if(y.length===2)y=(parseInt(y)<50?'20':'19')+y;return`${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`}
+  return raw;
+}
+
+const FAV_STEAM='https://store.steampowered.com/favicon.ico';
+const FAV_GG='https://gg.deals/favicon.ico';
+const FAV_SDB="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231b2838'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='16' fill='%2366c0f4'%3EDB%3C/text%3E%3C/svg%3E";
+function favImg(src,alt){return`<img src="${src}" alt="${alt}" width="13" height="13" onerror="this.style.opacity='.3'">`}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+let toastTimer=null;
+function showToast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='on'+(type?' '+type:'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{el.className=''},3200);
+}
+
+// ══════════════════════════════════════════
+//  GENRE SUGGESTIONS
+// ══════════════════════════════════════════
+function allGenres(){
+  const set=new Set();
+  games.forEach(g=>(g.genres||[]).forEach(x=>{if(x)set.add(x)}));
+  return[...set].sort();
+}
+function allDevPub(field){
+  const set=new Set();
+  games.forEach(g=>{if(g[field])set.add(g[field])});
+  return[...set].sort();
+}
+
+// ══════════════════════════════════════════
+//  FILTER + SORT
+// ══════════════════════════════════════════
+function filtered(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  return games.filter(g=>{
+    if(q&&![g.title,...(g.genres||[]),g.platform||'',g.developer||'',g.publisher||''].some(s=>(s||'').toLowerCase().includes(q)))return false;
+    if(af==='wishlist')return g.status==='wishlist';
+    if(af==='bought')return g.status==='bought';
+    if(af==='removed')return g.status==='removed';
+    if(af==='review')return g.status==='wishlist'&&nr(g);
+    if(af==='unreleased')return (g.status==='wishlist'||g.status==='bought')&&isUnreleased(g);
+    return true;
+  });
+}
+function sorted(list){
+  const s=document.getElementById('sortSel').value;
+  return[...list].sort((a,b)=>{
+    if(s==='title')return a.title.localeCompare(b.title);
+    if(s==='price-asc')return(parseFloat(a.price)||0)-(parseFloat(b.price)||0);
+    if(s==='price-desc')return(parseFloat(b.price)||0)-(parseFloat(a.price)||0);
+    if(s==='added')return b.added-a.added;
+    const ha=nr(a)?null:parseInt(a.hotness)||0;
+    const hb=nr(b)?null:parseInt(b.hotness)||0;
+    if(ha===null&&hb===null)return b.added-a.added;
+    if(ha===null)return-1;if(hb===null)return 1;
+    return hb-ha;
+  });
+}
+
+// ══════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════
+function renderStats(){
+  const wl=games.filter(g=>g.status==='wishlist');
+  const bt=games.filter(g=>g.status==='bought');
+  const rm=games.filter(g=>g.status==='removed');
+  const tot=wl.filter(g=>g.price).reduce((s,g)=>s+parseFloat(g.price),0);
+  document.getElementById('statChips').innerHTML=`
+    <div class="chip"><b>${wl.length+bt.length}</b> ${t('stTot')}</div>
+    <div class="chip"><b>${wl.length}</b> ${t('stWl')}</div>
+    <div class="chip"><b>${bt.length}</b> ${t('stBt')}</div>
+    <div class="chip"><b>${rm.length}</b> ${t('stRm')}</div>
+    ${tot>0?`<div class="chip"><b>€${tot.toFixed(2)}</b> ${t('stVal')}</div>`:''}`;
+}
+
+// ══════════════════════════════════════════
+//  CARD
+// ══════════════════════════════════════════
+function cardHTML(g){
+  const isNR=nr(g);
+  const h=isNR?0:Math.min(100,Math.max(0,parseInt(g.hotness)||0));
+  const coverUrl=g.cover||(g.steamAppId?sc(g.steamAppId):'');
+  const cImg=coverUrl?`<img src="${esc(coverUrl)}" alt="${esc(g.title)}" onerror="this.style.display='none';this.previousElementSibling.style.display='flex'">`:'';
+  const phStyle=coverUrl?'style="display:none"':'';
+
+  // Left badge
+  let lBdg='';
+  if(g.status==='bought')       lBdg=`<span class="bdg b-bt">${t('bdgBt')}</span>`;
+  else if(g.status==='removed') lBdg=`<span class="bdg b-rm">${t('bdgRm')}</span>`;
+  else if(isNR)                 lBdg=`<span class="b-rev">${t('bdgRev')}</span>`;
+  else                          lBdg=`<span class="bdg b-hot">${h}</span>`;
+
+  // Priority label badge (right side of pill bar)
+  const prioLbl=`<span class="b-prio" style="background:${prioColor(g.priority)}">${prioLabel(g.priority)}</span>`;
+
+  // Price / unreleased
+  let priceEl;
+  if(g.price){
+    priceEl=`<span class="cprice">€${parseFloat(g.price).toFixed(2)}</span>`;
+  } else if(isUnreleased(g)){
+    priceEl=`<span class="b-unrel-card">Unreleased</span>`;
+  } else {
+    priceEl=`<span class="cprice" style="color:var(--t3)">—</span>`;
+  }
+
+  const ggUrl=g.steamAppId?`https://gg.deals/steam/app/${g.steamAppId}/`:`https://gg.deals/search/?title=${encodeURIComponent(g.title||'')}`;
+  const sdbUrl=g.steamAppId?`https://www.steamdb.info/app/${g.steamAppId}/`:`https://www.steamdb.info/search/?q=${encodeURIComponent(g.title||'')}`;
+  const stUrl=g.storeLink||(g.steamAppId?`https://store.steampowered.com/app/${g.steamAppId}/`:`https://store.steampowered.com/search/?term=${encodeURIComponent(g.title||'')}`);
+  const ba=g.status==='bought'?' ba':'';
+
+  // Remove/Reinstate button: removed→reinstate, bought→disabled, else→remove
+  let rmBtn='';
+  if(g.status==='removed'){
+    rmBtn=`<button class="qb qri" title="Reinstate" onclick="event.stopPropagation();startReinstate('${g.id}')">↩</button>`;
+  } else if(g.status!=='bought'){
+    rmBtn=`<button class="qb qr" title="Remove" onclick="event.stopPropagation();startRemove('${g.id}')">✕</button>`;
+  }
+
+  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}" data-id="${g.id}" tabindex="0" role="button" aria-label="${esc(g.title)}">
+    <div class="cc">
+      <div class="cph" ${phStyle}>🎮</div>${cImg}
+      <div class="cg"></div>
+      <div class="hb2"><div class="hf" style="width:${h}%"></div></div>
+    </div>
+    <div class="pb">${lBdg}<div class="pb-r">${prioLbl}</div></div>
+    <div class="cb">
+      <div class="ct">${esc(g.title)}</div>
+      <div class="cbot">
+        ${priceEl}
+        <div class="cq">
+          <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
+          <a href="${ggUrl}" class="qb" title="gg.deals" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_GG,'gg')}</a>
+          <a href="${sdbUrl}" class="qb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
+          <button class="qb${ba}" title="${t('mBt')}" onclick="event.stopPropagation();handleMarkBought('${g.id}')">✓</button>
+          <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${g.id}')">✏</button>
+          ${rmBtn}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════
+function renderAll(){
+  renderStats();
+  const gc=document.getElementById('gc');
+  const grp=document.getElementById('groupSel').value;
+  const list=filtered();
+  const lv=vm==='list';
+  const gcls=`gg${lv?' lv':''}`;
+
+  // Dedicated removed tab
+  if(af==='removed'){
+    if(!list.length){gc.innerHTML=`<div class="${gcls}"><div class="empty"><div class="ei">🗑️</div><p>${t('noGames')}</p></div></div>`;return}
+    gc.innerHTML=`<div class="sb"><div class="sl">${t('secRm')}</div><div class="${gcls}">${sorted(list).map(cardHTML).join('')}</div></div>`;
+    bindCards(gc);return;
+  }
+
+  if(!list.length){
+    gc.innerHTML=`<div class="${gcls}"><div class="empty"><div class="ei">🎮</div><p>${t('noGames')}<br>${t('noHint')}</p></div></div>`;
+    return;
+  }
+
+  let html='';
+  if(grp==='none'){
+    const sv=document.getElementById('sortSel').value;
+    if(sv==='hotness'||af==='all'){
+      // Sections: TO REVIEW → WISHLIST → REMOVED → YOUR BACKLOG (bought)
+      const wishlist=list.filter(g=>g.status==='wishlist');
+      const bought=list.filter(g=>g.status==='bought');
+      const removed=af==='all'?list.filter(g=>g.status==='removed'):[];
+      const rev=wishlist.filter(g=>nr(g));
+      const wlRest=sorted(wishlist.filter(g=>!nr(g)));
+      if(rev.length)     html+=`<div class="sb"><div class="sl">${t('secRev')}</div><div class="${gcls}">${rev.map(cardHTML).join('')}</div></div>`;
+      if(wlRest.length)  html+=`<div class="sb"><div class="sl">${t('secWl')}</div><div class="${gcls}">${wlRest.map(cardHTML).join('')}</div></div>`;
+      if(removed.length) html+=`<div class="sb"><div class="sl">${t('secRm')}</div><div class="${gcls}">${sorted(removed).map(cardHTML).join('')}</div></div>`;
+      if(bought.length)  html+=`<div class="sb"><div class="sl">${t('secBacklog')}</div><div class="${gcls}">${sorted(bought).map(cardHTML).join('')}</div></div>`;
+    } else {
+      html=`<div class="${gcls}">${sorted(list).map(cardHTML).join('')}</div>`;
+    }
+  } else {
+    const groups={};
+    sorted(list).forEach(g=>{
+      let keys=[];
+      if(grp==='genre')keys=g.genres&&g.genres.length?g.genres:[g.genre||'—'];
+      else if(grp==='platform')keys=(g.platforms&&g.platforms.length?g.platforms:[g.platform||'—']);
+      else if(grp==='developer')keys=[g.developer||'—'];
+      else if(grp==='publisher')keys=[g.publisher||'—'];
+      else if(grp==='year'){const yr=g.releaseDate?g.releaseDate.slice(0,4):g.tbaText?'TBA':'—';keys=[yr]}
+      keys.forEach(k=>{if(!groups[k])groups[k]=[];groups[k].push(g)});
+    });
+    Object.keys(groups).sort().forEach(k=>{
+      html+=`<div class="sb"><div class="sl">${esc(k)}</div><div class="${gcls}">${groups[k].map(cardHTML).join('')}</div></div>`;
+    });
+  }
+  gc.innerHTML=html;
+  bindCards(gc);
+}
+function bindCards(gc){
+  gc.querySelectorAll('.gc').forEach(c=>{
+    c.addEventListener('click',()=>openPanel(c.dataset.id));
+    c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openPanel(c.dataset.id)});
+    // Inject shine overlay if not already present
+    if(!c.querySelector('.gc-shine')){
+      const shine=document.createElement('div');
+      shine.className='gc-shine';
+      c.appendChild(shine);
+    }
+    bindTilt(c);
+  });
+}
+
+// ── TILT + SHINE ─────────────────────────
+function bindTilt(card){
+  const MAX=12; // max tilt degrees
+  function applyTilt(x,y){
+    const r=card.getBoundingClientRect();
+    const cx=(x-r.left)/r.width;   // 0..1
+    const cy=(y-r.top)/r.height;   // 0..1
+    const rx=(cy-0.5)*MAX*-1;      // rotate around X
+    const ry=(cx-0.5)*MAX;         // rotate around Y
+    const shine=card.querySelector('.gc-shine');
+    card.style.transform=`perspective(600px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.03)`;
+    card.style.boxShadow=`0 10px 32px rgba(2,179,252,.18), 0 2px 8px rgba(0,0,0,.3)`;
+    card.style.borderColor='var(--blue)';
+    card.classList.add('tilt-active');
+    if(shine){
+      // Move the radial highlight to follow the cursor
+      shine.style.background=`radial-gradient(circle at ${cx*100}% ${cy*100}%,rgba(255,255,255,.22) 0%,rgba(255,255,255,.05) 45%,transparent 70%)`;
+    }
+  }
+  function resetTilt(){
+    card.style.transform='';
+    card.style.boxShadow='';
+    card.style.borderColor='';
+    card.classList.remove('tilt-active');
+  }
+  // Mouse
+  card.addEventListener('mousemove',e=>{
+    // Skip if list view
+    if(card.closest('.gg.lv'))return;
+    applyTilt(e.clientX,e.clientY);
+  });
+  card.addEventListener('mouseleave',resetTilt);
+  // Touch (mobile)
+  card.addEventListener('touchmove',e=>{
+    if(card.closest('.gg.lv'))return;
+    const t=e.touches[0];
+    applyTilt(t.clientX,t.clientY);
+  },{passive:true});
+  card.addEventListener('touchend',resetTilt);
+  card.addEventListener('touchcancel',resetTilt);
+}
+
+// ══════════════════════════════════════════
+//  MARK BOUGHT — with unreleased warning
+// ══════════════════════════════════════════
+function handleMarkBought(id){
+  const g=games.find(x=>x.id===id);if(!g)return;
+  if(g.status==='bought'){
+    // Unmark bought → wishlist
+    g.status='wishlist';save();renderAll();if(openId===id)openPanel(id);return;
+  }
+  if(isUnreleased(g)){
+    const ok=confirm(`"${g.title}" is marked as Unreleased. Mark as Bought anyway?\n\nIt will still appear under the Unreleased filter.`);
+    if(!ok)return;
+  }
+  g.status='bought';save();renderAll();if(openId===id)openPanel(id);
+}
+
+// ══════════════════════════════════════════
+//  SIDE PANEL
+// ══════════════════════════════════════════
+function openPanel(id){
+  const g=games.find(x=>x.id===id);if(!g)return;
+  openId=id;cStars=g.myRating||0;
+  const cu=g.cover||(g.steamAppId?sc(g.steamAppId):'');
+  const pi=document.getElementById('pimg'),pp=document.getElementById('pph');
+  if(cu){pi.src=cu;pi.style.display='block';pp.style.display='none'}else{pi.style.display='none';pp.style.display='flex'}
+  const isNR=nr(g);const h=isNR?0:Math.min(100,parseInt(g.hotness)||0);
+  const sl=encodeURIComponent(g.title||'');
+  const ggUrl=g.steamAppId?`https://gg.deals/steam/app/${g.steamAppId}/`:`https://gg.deals/search/?title=${sl}`;
+  const sdbUrl=g.steamAppId?`https://www.steamdb.info/app/${g.steamAppId}/`:`https://www.steamdb.info/search/?q=${sl}`;
+  const stUrl=g.storeLink||(g.steamAppId?`https://store.steampowered.com/app/${g.steamAppId}/`:`https://store.steampowered.com/search/?term=${sl}`);
+  const sh=[1,2,3,4,5].map(i=>`<span class="star${cStars>=i?' on':''}" data-s="${i}">★</span>`).join('');
+  const platD=(g.platforms||[]).join(', ')||g.platform||'';
+  const genreD=(g.genres||[]).join(', ')||g.genre||'';
+  const dateD=g.tbaText||fmtDate(g.releaseDate)||'—';
+
+  let b=`<div class="pt">${esc(g.title)}</div>
+    <div class="pm">
+      ${g.status==='bought'?`<span class="bdg b-bt">${t('bdgBt')}</span>`:''}
+      ${g.status==='removed'?`<span class="bdg b-rm">${t('bdgRm')}</span>`:''}
+      ${isNR&&g.status==='wishlist'?`<span class="b-rev">${t('bdgRev')}</span>`:''}
+      <span class="bdg" style="background:${prioColor(g.priority)};color:#031329">${prioLabel(g.priority)}</span>
+      ${platD?`<span class="bdg" style="background:var(--s3);color:var(--t2)">${esc(platD)}</span>`:''}
+    </div>`;
+
+  b+=`<div class="ps"><div class="psl">${t('pHotness')}</div>`;
+  if(isNR)b+=`<div class="pv" style="color:var(--amber)">${t('bdgRev')}</div>`;
+  else b+=`<div class="hr2"><div class="ht"><div class="htf" style="width:${h}%"></div></div><div class="hn">${h}</div></div>`;
+  b+=`</div>`;
+
+  const det=[
+    `<div><span style="color:var(--t3)">${t('pDev')}: </span>${esc(g.developer||'—')}</div>`,
+    `<div><span style="color:var(--t3)">${t('pPub')}: </span>${esc(g.publisher||'—')}</div>`,
+    `<div><span style="color:var(--t3)">${t('pRel')}: </span>${esc(dateD)}</div>`,
+    `<div><span style="color:var(--t3)">${t('pGenre')}: </span>${esc(genreD||'—')}</div>`,
+    `<div><span style="color:var(--t3)">${t('pPlatform')}: </span>${esc(platD||'—')}</div>`,
+    `<div><span style="color:var(--t3)">${t('pPrice')}: </span>${g.price?`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>`:`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`}</div>`,
+  ];
+  b+=`<div class="ps"><div class="psl">${t('pDetails')}</div><div class="pv" style="display:grid;grid-template-columns:1fr 1fr;gap:.28rem .55rem">${det.join('')}</div></div>`;
+
+  if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich">${esc(x)}</span>`).join('')}</div></div>`;
+  // Notes — multi-note with add/edit/delete
+  const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
+  const todayIso=(()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`})();
+  b+=`<div class="ps"><div class="psl">Notes</div>
+    <div class="note-compose">
+      <input type="date" id="noteNewDate" class="note-compose-date" value="${todayIso}">
+      <textarea class="note-add" id="noteNewTxt" placeholder="Add a note…" style="margin-bottom:0;min-height:36px;resize:none"></textarea>
+    </div>
+    <button class="note-save-btn" id="noteAddBtn">＋ Save note</button>
+    <div id="noteList" style="margin-top:.45rem">
+    ${[...notes].reverse().map(n=>`
+      <div class="note-entry" data-nid="${esc(n.id)}">
+        <div class="note-date">${esc(n.date)}</div>
+        <div class="note-text">${esc(n.text)}</div>
+        <div class="note-edit-wrap" style="display:none">
+          <div class="note-compose" style="margin-bottom:.25rem">
+            <input type="date" class="note-compose-date note-edit-date">
+            <textarea class="note-edit-area" style="display:block;margin-bottom:0;min-height:50px">${esc(n.text)}</textarea>
+          </div>
+        </div>
+        <div class="note-actions">
+          <button class="note-btn edit-btn">Edit</button>
+          <button class="note-btn save save-btn" style="display:none">Save</button>
+          <button class="note-btn del-btn del">Delete</button>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+  if(g.status==='removed'&&g.removeNote)b+=`<div class="ps"><div class="psl" style="color:var(--pink)">${t('pRmNote')}</div><div class="pv" style="color:var(--muted)">${esc(g.removeNote)}</div></div>`;
+
+  b+=`<div class="ps"><div class="psl">${t('pLinks')}</div><div class="plks">
+    <a href="${stUrl}" class="plk" target="_blank">${favImg(FAV_STEAM,'steam')} ${t('pSteam')}</a>
+    <a href="${ggUrl}" class="plk" target="_blank">${favImg(FAV_GG,'gg')} ${t('pGG')}</a>
+    <a href="${sdbUrl}" class="plk" target="_blank">${favImg(FAV_SDB,'sdb')} ${t('pSDB')}</a>
+  </div></div>`;
+
+  if(g.status==='bought'){
+    b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
+      <div class="stars" id="pstars">${sh}</div>
+      <textarea class="rta" id="prevta" placeholder="Your thoughts…">${esc(g.myReview||'')}</textarea>
+      <button class="pa s" style="width:100%;margin-top:.35rem" id="psrv">💾 ${t('pSaveRev')}</button>
+    </div>`;
+  }
+
+  const bl=g.status==='bought'?t('pMarkWl'):t('pMarkBt');
+  // Bought games cannot be removed
+  const actionBtns=g.status==='removed'
+    ?`<button class="pa s" id="pri">↩ ${t('pReinstate')}</button>`
+    :g.status==='bought'
+      ?``  // no remove button for bought
+      :`<button class="pa d" id="prm">🗑 ${t('pRemove')}</button>`;
+
+  b+=`<div class="ps"><div class="psl">${t('pActions')}</div><div class="pac">
+    <button class="pa" id="ped">✏️ ${t('pEdit')}</button>
+    <button class="pa ${g.status==='bought'?'s':''}" id="pbt">${g.status==='bought'?'↩':'✓'} ${bl}</button>
+    ${actionBtns}
+  </div></div>`;
+
+  document.getElementById('pbody').innerHTML=b;
+
+  // Notes wiring
+  function getNotes(){const gg=games.find(x=>x.id===openId);return gg?(Array.isArray(gg.notes)?gg.notes:(gg.notes?[{id:nid(),date:todayStr(),text:gg.notes}]:[])):[]}
+  function saveNotes(arr){const gg=games.find(x=>x.id===openId);if(gg){gg.notes=arr;save()}}
+  document.getElementById('noteAddBtn').onclick=()=>{
+    const txt=document.getElementById('noteNewTxt').value.trim();if(!txt)return;
+    const ndVal=document.getElementById('noteNewDate').value;
+    const noteDate=ndVal?fmtDate(ndVal):todayStr();
+    const arr=getNotes();arr.push({id:nid(),date:noteDate,text:txt});
+    saveNotes(arr);openPanel(openId);
+  };
+  document.querySelectorAll('.note-entry').forEach(entry=>{
+    const nidVal=entry.dataset.nid;
+    const textEl=entry.querySelector('.note-text');
+    const dateEl=entry.querySelector('.note-date');
+    const editWrap=entry.querySelector('.note-edit-wrap');
+    const editArea=entry.querySelector('.note-edit-area');
+    const editDateInp=entry.querySelector('.note-edit-date');
+    const editBtn=entry.querySelector('.edit-btn');
+    const saveBtn=entry.querySelector('.save-btn');
+    const delBtn=entry.querySelector('.del-btn');
+    // Pre-fill edit date from displayed date (convert dd/mm/yyyy → yyyy-mm-dd)
+    const rawDate=dateEl.textContent.trim();
+    const dm=rawDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if(editDateInp&&dm)editDateInp.value=`${dm[3]}-${dm[2]}-${dm[1]}`;
+    editBtn.onclick=()=>{
+      textEl.style.display='none';editWrap.style.display='block';
+      editBtn.style.display='none';saveBtn.style.display='';
+    };
+    saveBtn.onclick=()=>{
+      const arr=getNotes();const i=arr.findIndex(n=>n.id===nidVal);
+      if(i>-1){
+        arr[i].text=editArea.value.trim();
+        if(editDateInp&&editDateInp.value)arr[i].date=fmtDate(editDateInp.value);
+        saveNotes(arr);
+      }
+      openPanel(openId);
+    };
+    delBtn.onclick=()=>{
+      if(!confirm('Delete this note?'))return;
+      const arr=getNotes().filter(n=>n.id!==nidVal);saveNotes(arr);openPanel(openId);
+    };
+  });
+  if(g.status==='bought'){
+    document.querySelectorAll('#pstars .star').forEach(s=>{
+      s.onclick=()=>{cStars=parseInt(s.dataset.s);document.querySelectorAll('#pstars .star').forEach((x,i)=>x.classList.toggle('on',i<cStars))};
+    });
+    document.getElementById('psrv').onclick=()=>{const gg=games.find(x=>x.id===openId);if(gg){gg.myRating=cStars;gg.myReview=document.getElementById('prevta').value;save()}};
+  }
+  document.getElementById('ped').onclick=()=>{closePanel();openEdit(id)};
+  document.getElementById('pbt').onclick=()=>handleMarkBought(id);
+  const prm=document.getElementById('prm');if(prm)prm.onclick=()=>startRemove(id);
+  const pri=document.getElementById('pri');if(pri)pri.onclick=()=>startReinstate(id);
+  document.getElementById('pov').classList.add('on');
+  document.getElementById('panel').classList.add('on');
+}
+function closePanel(){document.getElementById('pov').classList.remove('on');document.getElementById('panel').classList.remove('on');openId=null}
+document.getElementById('pclose').onclick=closePanel;
+document.getElementById('pov').onclick=closePanel;
+
+// ══════════════════════════════════════════
+//  REMOVE / REINSTATE
+// ══════════════════════════════════════════
+function startRemove(id){rmId=id;document.getElementById('rmNote').value='';document.getElementById('rmov').classList.add('on')}
+document.getElementById('rmCancel').onclick=()=>document.getElementById('rmov').classList.remove('on');
+document.getElementById('rmConfirm').onclick=()=>{
+  const g=games.find(x=>x.id===rmId);
+  if(g){g.status='removed';g.removeNote=document.getElementById('rmNote').value.trim();save()}
+  document.getElementById('rmov').classList.remove('on');closePanel();renderAll();
+};
+function startReinstate(id){riId=id;document.getElementById('riov').classList.add('on')}
+document.getElementById('riCancel').onclick=()=>document.getElementById('riov').classList.remove('on');
+function doReinstate(status){
+  const g=games.find(x=>x.id===riId);
+  if(g){g.status=status;delete g.removeNote;save()}
+  document.getElementById('riov').classList.remove('on');closePanel();renderAll();
+}
+document.getElementById('riWl').onclick=()=>doReinstate('wishlist');
+document.getElementById('riBt').onclick=()=>doReinstate('bought');
+
+// ══════════════════════════════════════════
+//  CHIP INPUT
+// ══════════════════════════════════════════
+function makeChip(wrapId,inputId,getA,setA,renderCb){
+  function render(){
+    const w=document.getElementById(wrapId),inp=document.getElementById(inputId);
+    w.querySelectorAll('.cich').forEach(e=>e.remove());
+    getA().forEach((v,i)=>{
+      const c=document.createElement('span');c.className='cich';
+      c.innerHTML=`${esc(v)}<button type="button" data-i="${i}">✕</button>`;
+      c.querySelector('button').onclick=e=>{const a=getA();a.splice(parseInt(e.target.dataset.i),1);setA(a);render();if(renderCb)renderCb()};
+      w.insertBefore(c,inp);
+    });
+  }
+  document.getElementById(inputId).addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===',')&&e.target.value.trim()){
+      e.preventDefault();const a=getA();a.push(e.target.value.trim());setA(a);e.target.value='';render();if(renderCb)renderCb();
+    }
+    if(e.key==='Backspace'&&!e.target.value&&getA().length){const a=getA();a.pop();setA(a);render();if(renderCb)renderCb()}
+  });
+  document.getElementById(wrapId).onclick=()=>document.getElementById(inputId).focus();
+  return render;
+}
+const renderGenres=makeChip('genreWrap','genreInput',()=>cGenres,v=>{cGenres=v},updateGenreDd);
+const renderTags=makeChip('tagsWrap','tagsInput',()=>cTags,v=>{cTags=v});
+
+function updateGenreDd(){
+  const dd=document.getElementById('genreDd');
+  const q=document.getElementById('genreInput').value.toLowerCase();
+  const opts=allGenres().filter(g=>!cGenres.includes(g)&&(q===''||g.toLowerCase().includes(q)));
+  if(!opts.length){dd.classList.remove('on');return}
+  dd.innerHTML=opts.map(g=>`<div class="genre-opt" data-g="${esc(g)}">${esc(g)}</div>`).join('');
+  dd.classList.add('on');
+  dd.querySelectorAll('.genre-opt').forEach(el=>{
+    el.onclick=()=>{cGenres.push(el.dataset.g);document.getElementById('genreInput').value='';renderGenres();dd.classList.remove('on')};
+  });
+}
+document.getElementById('genreInput').addEventListener('input',updateGenreDd);
+document.getElementById('genreInput').addEventListener('focus',updateGenreDd);
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.genre-wrap'))document.getElementById('genreDd').classList.remove('on');
+  if(!e.target.closest('#fDev')&&!e.target.closest('#devDd'))document.getElementById('devDd').classList.remove('on');
+  if(!e.target.closest('#fPub')&&!e.target.closest('#pubDd'))document.getElementById('pubDd').classList.remove('on');
+});
+
+// ══════════════════════════════════════════
+//  DEV / PUB AUTOCOMPLETE
+// ══════════════════════════════════════════
+function makeAcField(inputId,ddId,field){
+  const inp=document.getElementById(inputId);
+  const dd=document.getElementById(ddId);
+  function update(){
+    const q=inp.value.toLowerCase();
+    const opts=allDevPub(field).filter(v=>v.toLowerCase().includes(q)&&v!==inp.value);
+    if(!opts.length){dd.classList.remove('on');return}
+    dd.innerHTML=opts.map(v=>`<div class="ac-opt">${esc(v)}</div>`).join('');
+    dd.classList.add('on');
+    dd.querySelectorAll('.ac-opt').forEach(el=>{
+      el.onclick=()=>{inp.value=el.textContent;dd.classList.remove('on')};
+    });
+  }
+  inp.addEventListener('input',update);
+  inp.addEventListener('focus',update);
+}
+makeAcField('fDev','devDd','developer');
+makeAcField('fPub','pubDd','publisher');
+
+// ══════════════════════════════════════════
+//  COVER PREVIEW
+// ══════════════════════════════════════════
+function setCoverPreview(url){
+  const prev=document.getElementById('cprev');
+  const hint=document.getElementById('coverHint');
+  if(!url){prev.style.display='none';hint.style.display='none';return}
+  prev.src=url;
+  prev.onload=()=>{prev.style.display='block';hint.style.display='none'};
+  prev.onerror=()=>{prev.style.display='none';hint.style.display='block'};
+}
+function tryAutoFillCover(appId){
+  const fc=document.getElementById('fCover');
+  const isAutoUrl=!fc.value||
+    fc.value.startsWith('https://cdn.cloudflare.steamstatic.com/steam/apps/')||
+    fc.value.startsWith('https://shared.fastly.steamstatic.com/');
+  if(isAutoUrl){const url=sc(appId);fc.value=url;setCoverPreview(url)}
+  else setCoverPreview(fc.value);
+}
+
+// App ID duplicate check
+function checkAppIdDup(){
+  const id=document.getElementById('fAppId').value.trim();
+  const errEl=document.getElementById('appIdErr');
+  const inp=document.getElementById('fAppId');
+  if(!id){errEl.classList.remove('on');inp.classList.remove('err');return false}
+  const dup=games.find(g=>g.steamAppId===id&&g.id!==editId);
+  if(dup){
+    errEl.textContent=`"${dup.title}" already uses this App ID.`;
+    errEl.classList.add('on');inp.classList.add('err');return true;
+  }
+  errEl.classList.remove('on');inp.classList.remove('err');
+  return false;
+}
+document.getElementById('fAppId').addEventListener('blur',()=>{
+  const id=document.getElementById('fAppId').value.trim();
+  checkAppIdDup();
+  if(id)tryAutoFillCover(id);
+});
+document.getElementById('fCover').addEventListener('blur',()=>{
+  setCoverPreview(document.getElementById('fCover').value.trim());
+});
+
+// ══════════════════════════════════════════
+//  TBA TOGGLE — button stays put, just swaps input
+// ══════════════════════════════════════════
+function setTbaState(on){
+  document.getElementById('tbaBtn').classList.toggle('on',on);
+  document.getElementById('dateRow').style.display=on?'none':'grid';
+  document.getElementById('tbaTxtRow').style.display=on?'grid':'none';
+}
+document.getElementById('tbaBtn').addEventListener('click',()=>setTbaState(true));
+document.getElementById('tbaBtnOff').addEventListener('click',()=>setTbaState(false));
+
+// ══════════════════════════════════════════
+//  STEAM STORE LINK PARSER
+// ══════════════════════════════════════════
+function parseStoreLink(url){
+  const m=url.match(/store\.steampowered\.com\/app\/(\d+)\/([^\/\?#]*)/);
+  if(!m)return null;
+  const appId=m[1];
+  const title=decodeURIComponent(m[2]).replace(/_/g,' ').replace(/[^A-Za-z0-9\s']/g,' ').replace(/\s+/g,' ').trim();
+  return{appId,title};
+}
+document.getElementById('fStore').addEventListener('blur',()=>{
+  const url=document.getElementById('fStore').value.trim();if(!url)return;
+  const parsed=parseStoreLink(url);if(!parsed)return;
+  const titleEl=document.getElementById('fTitle');
+  const appIdEl=document.getElementById('fAppId');
+  if(!titleEl.value.trim())titleEl.value=parsed.title;
+  if(!appIdEl.value.trim()){appIdEl.value=parsed.appId;checkAppIdDup();tryAutoFillCover(parsed.appId)}
+});
+
+// ══════════════════════════════════════════
+//  PRIORITY LABEL PREVIEW IN MODAL
+// ══════════════════════════════════════════
+function updatePrioLbl(){
+  const v=document.getElementById('fPriority').value;
+  const el=document.getElementById('prioLblPrev');
+  el.style.background=prioColor(v);
+  el.textContent=prioLabel(v);
+}
+document.getElementById('fPriority').addEventListener('change',updatePrioLbl);
+
+// ══════════════════════════════════════════
+//  PLATFORM HELPERS
+// ══════════════════════════════════════════
+function setPlatforms(vals){
+  const arr=Array.isArray(vals)?vals:(vals||'').split(',').map(s=>s.trim()).filter(Boolean);
+  document.querySelectorAll('#pcks input').forEach(cb=>{cb.checked=arr.length===0?cb.value==='PC':arr.includes(cb.value)});
+}
+function getPlatforms(){return Array.from(document.querySelectorAll('#pcks input:checked')).map(cb=>cb.value)}
+
+// ══════════════════════════════════════════
+//  ADD / EDIT MODAL
+// ══════════════════════════════════════════
+function clearModal(){
+  ['fTitle','fAppId','fDev','fPub','fPrice','fStore','fCover','fDate','fTbaText','fNoteTxt'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  // Pre-fill note date with today
+  const nd=document.getElementById('fNoteDate');
+  if(nd){const n=new Date();nd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
+  document.getElementById('fHotness').value='';
+  document.getElementById('fPriority').value='medium';
+  document.getElementById('cprev').style.display='none';
+  document.getElementById('coverHint').style.display='none';
+  document.getElementById('appIdErr').classList.remove('on');
+  document.getElementById('fAppId').classList.remove('err');
+  setTbaState(false);
+  updatePrioLbl();
+  cGenres=[];cTags=[];renderGenres();renderTags();
+}
+function openAdd(){
+  editId=null;clearModal();setPlatforms(['PC']);
+  document.getElementById('modalTitle').textContent='Add game';
+  document.getElementById('mov').classList.add('on');
+}
+function openEdit(id){
+  const g=games.find(x=>x.id===id);if(!g)return;
+  editId=id;clearModal();
+  document.getElementById('modalTitle').textContent=`✏️ ${esc(g.title)}`;
+  document.getElementById('fTitle').value=g.title||'';
+  document.getElementById('fAppId').value=g.steamAppId||'';
+  document.getElementById('fDev').value=g.developer||'';
+  document.getElementById('fPub').value=g.publisher||'';
+  document.getElementById('fPrice').value=g.price||'';
+  document.getElementById('fPriority').value=g.priority||'medium';
+  document.getElementById('fHotness').value=(g.hotness===null||g.hotness===undefined)?'':g.hotness;
+  document.getElementById('fStore').value=g.storeLink||'';
+  document.getElementById('fNotes').value=g.notes||'';
+  if(g.tbaText){setTbaState(true);document.getElementById('fTbaText').value=g.tbaText}
+  else{document.getElementById('fDate').value=g.releaseDate||''}
+  const savedCover=g.cover||'';
+  document.getElementById('fCover').value=savedCover;
+  if(savedCover)setCoverPreview(savedCover);
+  else if(g.steamAppId)tryAutoFillCover(g.steamAppId);
+  cGenres=[...(g.genres||[])];cTags=[...(g.tags||[])];
+  setPlatforms(g.platforms||[g.platform||'PC']);
+  renderGenres();renderTags();updatePrioLbl();
+  document.getElementById('mov').classList.add('on');
+}
+function closeModal(){document.getElementById('mov').classList.remove('on')}
+document.getElementById('addBtn').onclick=openAdd;
+document.getElementById('mcancel').onclick=closeModal;
+document.getElementById('mov').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
+
+document.getElementById('msave').onclick=()=>{
+  const title=document.getElementById('fTitle').value.trim();
+  if(!title){alert('Please enter a title.');return}
+  if(checkAppIdDup()){showToast('Fix the duplicate App ID before saving.','err');return}
+  const hotRaw=document.getElementById('fHotness').value.trim();
+  const hotness=hotRaw===''?null:Math.min(100,Math.max(1,parseInt(hotRaw)||1));
+  const appId=document.getElementById('fAppId').value.trim()||null;
+  const platforms=getPlatforms();
+  const isTba=document.getElementById('tbaBtn').classList.contains('on');
+  const tbaText=isTba?document.getElementById('fTbaText').value.trim():'';
+  const rawDate=isTba?'':document.getElementById('fDate').value.trim();
+  const coverVal=document.getElementById('fCover').value.trim();
+  const data={
+    title,steamAppId:appId,
+    platforms,platform:platforms.join(', '),
+    genres:[...cGenres],genre:cGenres.join(', '),
+    developer:document.getElementById('fDev').value.trim(),
+    publisher:document.getElementById('fPub').value.trim(),
+    releaseDate:rawDate?parseDate(rawDate):'',
+    tbaText,
+    price:document.getElementById('fPrice').value.trim(),
+    priority:document.getElementById('fPriority').value,
+    hotness,
+    tags:[...cTags],
+    cover:coverVal,
+    storeLink:document.getElementById('fStore').value.trim(),
+  };
+  if(editId){const i=games.findIndex(x=>x.id===editId);if(i>-1)games[i]={...games[i],...data}}
+  else{
+    const newGame={...data,id:gid(),added:Date.now(),status:'wishlist',notes:[]};
+    // Attach modal note if any
+    const noteTxt=document.getElementById('fNoteTxt').value.trim();
+    if(noteTxt){
+      const nd=document.getElementById('fNoteDate').value;
+      const noteDate=nd?fmtDate(nd):todayStr();
+      newGame.notes=[{id:nid(),date:noteDate,text:noteTxt}];
+    }
+    games.push(newGame);
+  }
+  save();closeModal();renderAll();
+};
+
+// ══════════════════════════════════════════
+//  VIEW / FILTER / SORT
+// ══════════════════════════════════════════
+document.getElementById('gridBtn').onclick=()=>{vm='grid';document.getElementById('gridBtn').classList.add('on');document.getElementById('listBtn').classList.remove('on');renderAll()};
+document.getElementById('listBtn').onclick=()=>{vm='list';document.getElementById('listBtn').classList.add('on');document.getElementById('gridBtn').classList.remove('on');renderAll()};
+document.getElementById('ftabs').onclick=e=>{
+  const b=e.target.closest('.ft');if(!b)return;
+  af=b.dataset.f;document.querySelectorAll('.ft').forEach(x=>x.classList.toggle('on',x===b));renderAll();
+};
+document.getElementById('sortSel').onchange=renderAll;
+document.getElementById('groupSel').onchange=renderAll;
+document.getElementById('searchInput').oninput=renderAll;
+
+// ══════════════════════════════════════════
+//  EXPORT / IMPORT
+// ══════════════════════════════════════════
+document.getElementById('expBtn').onclick=()=>{
+  const b=new Blob([JSON.stringify(games,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  const now=new Date();
+  const ts=now.toISOString().slice(0,10)+'-'+now.toTimeString().slice(0,8).replace(/:/g,'');
+  a.download=`backlog-${ts}.json`;a.click();
+};
+document.getElementById('impBtn').onclick=()=>{
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        if(Array.isArray(data)){
+          const ex=new Set(games.map(g=>g.id));
+          let added=0;
+          data.forEach(g=>{if(!ex.has(g.id)){games.push(normalise({...g}));added++}});
+          save();renderAll();
+          showToast(`Imported ${added} new game${added!==1?'s':''} (${data.length-added} skipped).`);
+        }
+      }catch(err){showToast('Invalid JSON file.','err')}
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+};
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+initData();
+</script>
+</body>
+</html>
