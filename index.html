@@ -75,7 +75,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .sb{margin-bottom:1rem}
 
 /* GRID */
-.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.8rem}
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:.8rem;justify-content:start}
 .gg.lv{grid-template-columns:1fr;gap:.3rem}
 
 /* CARD */
@@ -105,6 +105,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .b-rev{background:var(--amber);color:#031329;font-size:.56rem;font-weight:700;letter-spacing:.04em;
   text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap}
 .b-bt{background:var(--green);color:#031329}
+.b-pre{background:var(--amber);color:#031329}
 .b-rm{background:var(--s3);color:var(--muted);border:1px solid #4a5560}
 /* priority label badge on card — same style as side panel pill */
 .b-prio{font-size:.55rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
@@ -113,7 +114,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 /* card body */
 .cb{padding:.5rem .65rem .55rem;flex:1;display:flex;flex-direction:column;gap:.3rem}
 .ct{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.9rem;line-height:1.25;color:var(--text);
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .cbot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-top:auto}
 .cprice{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);flex-shrink:0}
 .b-unrel-card{font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.04em;
@@ -135,9 +136,16 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .gg.lv .cc{width:52px;height:36px;aspect-ratio:unset;flex-shrink:0;border-radius:var(--r) 0 0 var(--r)}
 .gg.lv .pb,.gg.lv .cg,.gg.lv .hb2{display:none}
 .gg.lv .cb{flex-direction:row;align-items:center;padding:.4rem .65rem;gap:.5rem}
-.gg.lv .ct{font-size:.82rem;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;flex:1;min-width:0}
+.gg.lv .ct{font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .gg.lv .cbot{margin-top:0;flex-shrink:0;flex-wrap:nowrap}
 .gg.lv .cq{width:auto;flex-wrap:nowrap}
+/* Mobile list view: two-row layout so title always has full width */
+@media(max-width:640px){
+  .gg.lv .cb{flex-direction:column;align-items:flex-start;gap:.2rem;padding:.4rem .6rem}
+  .gg.lv .ct{-webkit-line-clamp:2;font-size:.84rem;width:100%}
+  .gg.lv .cbot{width:100%;justify-content:flex-start;flex-wrap:wrap}
+  .gg.lv .cq{width:auto}
+}
 
 /* empty */
 .empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--t3)}
@@ -243,7 +251,6 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   border:1px solid var(--bd);border-radius:var(--r);
   padding:0 .4rem;cursor:text;min-height:34px;transition:border-color .15s}
 .ciw:focus-within{border-color:var(--blue)}
-.ciw:focus-within{border-color:var(--blue)}
 .cich{background:var(--s3);border:1px solid var(--bd2);color:var(--blue);border-radius:4px;
   padding:2px 6px;font-size:.66rem;font-weight:500;display:flex;align-items:center;gap:.18rem}
 .cich button{background:none;border:none;color:var(--t3);cursor:pointer;padding:0;font-size:.7rem;line-height:1}
@@ -339,6 +346,97 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 
 input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) saturate(3) hue-rotate(175deg);cursor:pointer}
 
+/* ── HOTNESS RANGE SLIDER ── */
+.hrange{display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+.hrange-label{font-size:.67rem;color:var(--t3);white-space:nowrap}
+.hrange-val{font-size:.67rem;font-weight:600;color:var(--blue);min-width:2rem;text-align:center}
+.dual-range{position:relative;height:20px;width:120px;flex-shrink:0}
+.dual-range input[type=range]{position:absolute;width:100%;height:4px;top:50%;transform:translateY(-50%);
+  -webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;outline:none}
+.dual-range input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer;
+  pointer-events:all;border:2px solid var(--s1);transition:background .15s}
+.dual-range input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+  background:var(--blue);cursor:pointer;pointer-events:all;border:2px solid var(--s1)}
+.dual-range-track{position:absolute;top:50%;transform:translateY(-50%);
+  height:4px;background:var(--s3);border-radius:99px;width:100%;pointer-events:none}
+.dual-range-fill{position:absolute;height:4px;background:var(--blue);border-radius:99px;pointer-events:none}
+@media(max-width:560px){.dual-range{width:80px}}
+
+/* ── CALENDAR ── */
+#calOv.on{display:flex!important}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--t3);text-align:center;padding:.25rem 0;margin-bottom:2px}
+.cal-cell{background:var(--base);border:1px solid var(--bd);border-radius:6px;
+  min-height:72px;padding:.25rem .3rem;position:relative;vertical-align:top}
+.cal-cell.today{border-color:var(--blue);background:#02b3fc08}
+.cal-cell.past .cal-dn{opacity:.4}
+.cal-cell.other-month{opacity:.2;pointer-events:none}
+.cal-dn{font-size:.65rem;font-weight:600;color:var(--t3);margin-bottom:.3rem;text-align:center}
+.cal-cell.today .cal-dn{color:var(--blue);font-weight:700}
+/* count badge replaces inline chips */
+.cal-count{
+  display:flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--blue);color:#031329;
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;
+  margin:0 auto;cursor:pointer;transition:transform .12s,box-shadow .12s;
+  border:2px solid transparent;
+}
+.cal-count:hover{transform:scale(1.15);box-shadow:0 0 0 3px #02b3fc33}
+.cal-count.has-pre{background:var(--amber)}
+/* popover */
+.cal-pop{
+  display:none;position:absolute;z-index:400;
+  background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);
+  padding:.35rem;min-width:160px;max-width:220px;
+  box-shadow:0 6px 20px rgba(0,0,0,.45);
+  top:calc(100% + 4px);left:50%;transform:translateX(-50%);
+}
+.cal-cell:last-child .cal-pop,.cal-cell:nth-last-child(-n+2) .cal-pop{left:auto;right:0;transform:none}
+.cal-pop.open{display:block}
+.cal-pop-item{
+  display:block;padding:.28rem .45rem;border-radius:5px;font-size:.72rem;
+  color:var(--t2);cursor:pointer;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;transition:background .1s,color .1s;
+}
+.cal-pop-item:hover{background:var(--s3);color:var(--text)}
+.cal-pop-item.pre{color:var(--amber)}
+.cal-pop-item.pre:hover{background:#f7cd2622}
+/* keep old chip style for list view only */
+.cal-chip{font-size:.6rem;font-weight:500;background:var(--s3);border:1px solid var(--bd2);
+  border-radius:4px;padding:1px 4px;margin-bottom:2px;cursor:pointer;
+  color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:background .12s,color .12s;display:block;line-height:1.5}
+.cal-chip:hover{background:var(--blue);color:#031329}
+.cal-chip.pre{border-color:var(--amber);color:var(--amber)}
+.cal-chip.pre:hover{background:var(--amber);color:#031329}
+.cal-list-item{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;
+  border:1px solid var(--bd);border-radius:var(--r);margin-bottom:.3rem;cursor:pointer;
+  transition:border-color .15s}
+.cal-list-item:hover{border-color:var(--blue)}
+.cal-list-date{font-family:Rajdhani,sans-serif;font-weight:700;font-size:.78rem;
+  color:var(--blue);min-width:72px;flex-shrink:0}
+.cal-list-title{font-size:.78rem;color:var(--text);flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-tba-chip{font-size:.68rem;color:var(--t2);padding:.28rem .5rem;
+  border:1px solid var(--bd);border-radius:var(--r);margin-bottom:.3rem;
+  cursor:pointer;transition:border-color .15s;display:block;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-tba-chip:hover{border-color:var(--blue);color:var(--blue)}
+.cal-tba-toggle.on{background:var(--blue);border-color:var(--blue);color:#031329;font-weight:700}
+@media(max-width:640px){
+  #calTba{display:none}
+  #calViewToggle{display:none!important}
+  .cal-tba-toggle{display:flex!important}
+  .cal-chip{font-size:.55rem}
+  .cal-cell{min-height:52px;padding:.2rem}
+  /* Mobile calendar list: stack date above title */
+  .cal-list-item{flex-direction:column;align-items:flex-start;gap:.15rem}
+  .cal-list-date{min-width:unset}
+}
+
 /* ── TILT CARD EFFECT ── */
 .gc{transform-style:preserve-3d;will-change:transform}
 .gc-shine{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:10;
@@ -348,19 +446,47 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .gg.lv .gc{transform-style:flat;transform:none!important}
 .gg.lv .gc-shine{display:none}
 
+/* ── HAMBURGER MENU ── */
+#hmenu{
+  display:none;position:fixed;top:var(--hh);right:0;
+  background:var(--s1);border:1px solid var(--bd2);border-top:none;
+  border-radius:0 0 var(--rl) var(--rl);z-index:200;min-width:220px;
+  box-shadow:0 8px 24px rgba(0,0,0,.35)
+}
+#hmenu.on{display:block}
+.hm-search{position:relative;padding:.6rem .75rem .45rem}
+.hm-search input{
+  width:100%;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);
+  padding:.38rem .7rem .38rem 1.9rem;color:var(--text);font-size:.82rem;outline:none;
+  transition:border-color .15s
+}
+.hm-search input:focus{border-color:var(--blue)}
+.hmi{
+  display:block;width:100%;background:transparent;border:none;border-top:1px solid var(--bd);
+  color:var(--t2);padding:.65rem .75rem;font-size:.8rem;font-weight:500;cursor:pointer;
+  text-align:left;transition:background .12s,color .12s
+}
+.hmi:first-of-type{border-top:none}
+.hmi:hover{background:var(--s3);color:var(--text)}
+
 /* ── MOBILE HEADER ── */
 @media(max-width:640px){
-  #hdr{flex-wrap:nowrap;padding:0 .65rem;gap:.35rem;overflow:hidden}
+  #hdr{flex-wrap:nowrap;padding:0 .65rem;gap:.35rem;overflow:visible}
   .logo-full{display:none!important}
   .logo-short{display:inline-flex!important}
-  .hs{max-width:unset;flex:1;min-width:0}
-  .hr{gap:.2rem;flex-shrink:0}
+  .hs{display:none!important}
+  .sync-hdr{display:none}
+  .hr{gap:.2rem;flex-shrink:0;margin-left:auto}
   .hb-label{display:none}
   .hb{padding:0 .4rem}
+  .hb-desk{display:none!important}
+  .hb-mob{display:flex!important}
 }
 @media(min-width:641px){
   .logo-full{display:inline!important}
   .logo-short{display:none!important}
+  .hb-mob{display:none!important}
+  #hmenu{display:none!important}
 }
 @media(max-width:560px){
   :root{--pw:100vw}.fg{grid-template-columns:1fr}.gg{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
@@ -389,12 +515,27 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   </div>
   <span id="syncStatus" class="sync-hdr"></span>
   <div class="hr">
-    <button class="hb" id="themeBtn">☀️</button>
-    <button class="hb" id="expBtn" title="Export">⬇<span class="hb-label"> Export</span></button>
-    <button class="hb" id="impBtn" title="Import">⬆<span class="hb-label"> Import</span></button>
+    <button class="hb hb-desk" id="themeBtn">☀️</button>
+    <button class="hb hb-desk" id="calBtn" title="Release Calendar">📅<span class="hb-label"> Calendar</span></button>
+    <button class="hb hb-desk" id="expBtn" title="Export">⬇<span class="hb-label"> Export</span></button>
+    <button class="hb hb-desk" id="impBtn" title="Import">⬆<span class="hb-label"> Import</span></button>
     <button class="hb p" id="addBtn">＋<span class="hb-label"> Add game</span></button>
+    <button class="hb hb-mob" id="hamburgerBtn" style="font-size:1rem;padding:0 .5rem" title="Menu">☰</button>
   </div>
 </header>
+
+<!-- Mobile dropdown menu — outside header to avoid overflow:hidden clipping -->
+<div id="hmenu">
+  <div class="hm-search">
+    <svg viewBox="0 0 24 24" stroke-width="2" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--t3);fill:none;pointer-events:none"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="searchInputMob" placeholder="Search…" autocomplete="off">
+  </div>
+  <button class="hmi" id="hmCalBtn">📅 Release Calendar</button>
+  <button class="hmi" id="hmThemeBtn">☀️ Toggle theme</button>
+  <button class="hmi" id="hmExpBtn">⬇ Export</button>
+  <button class="hmi" id="hmImpBtn">⬆ Import</button>
+  <button class="hmi" id="hmResyncBtn" style="display:none">⟳ Re-sync</button>
+</div>
 
 <div id="tb">
   <div style="display:flex;gap:.35rem;flex-wrap:wrap" id="ftabs">
@@ -421,6 +562,17 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
     <option value="publisher">By publisher</option>
     <option value="year">By year</option>
   </select>
+  <div class="hrange" title="Filter by hotness range">
+    <span class="hrange-label">Hotness</span>
+    <span class="hrange-val" id="hrMin">0</span>
+    <div class="dual-range" id="dualRange">
+      <div class="dual-range-track"></div>
+      <div class="dual-range-fill" id="dualFill"></div>
+      <input type="range" id="hrMinInp" min="0" max="100" value="0">
+      <input type="range" id="hrMaxInp" min="0" max="100" value="100">
+    </div>
+    <span class="hrange-val" id="hrMax">100</span>
+  </div>
   <div class="vt">
     <button class="vtb on" id="gridBtn" title="Grid">⊞</button>
     <button class="vtb" id="listBtn" title="List">☰</button>
@@ -432,6 +584,38 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 
 <div id="pov"></div>
 <div id="toast"></div>
+
+<!-- RELEASE CALENDAR MODAL -->
+<div id="calOv" style="display:none;position:fixed;inset:0;background:rgba(3,19,41,.85);backdrop-filter:blur(4px);z-index:250;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);width:100%;max-width:900px;margin:0 auto">
+    <!-- Calendar header -->
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.85rem 1rem;border-bottom:1px solid var(--bd);flex-wrap:nowrap">
+      <span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:1.1rem;color:var(--text);flex-shrink:0">Release Calendar</span>
+      <div style="display:flex;align-items:center;gap:.35rem;flex:1;justify-content:center;flex-wrap:nowrap">
+        <button class="hb" id="calPrev">‹</button>
+        <select id="calMonthSel" class="ts" style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);min-width:100px"></select>
+        <select id="calYearSel" class="ts" style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);min-width:72px"></select>
+        <button class="hb" id="calNext">›</button>
+      </div>
+      <div id="calViewToggle" style="display:flex;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;flex-shrink:0">
+        <button class="vtb on" id="calGridBtn" title="Grid">⊞</button>
+        <button class="vtb" id="calListBtn" title="List">☰</button>
+      </div>
+      <button class="hb cal-tba-toggle" id="calTbaBtn" title="Date Unknown games" style="flex-shrink:0;display:none">TBA</button>
+      <button class="hb" id="calClose" style="flex-shrink:0">✕</button>
+    </div>
+    <!-- Calendar body -->
+    <div style="display:flex;gap:0;min-height:400px">
+      <!-- Main calendar area -->
+      <div id="calMain" style="flex:1;padding:.85rem 1rem;min-width:0"></div>
+      <!-- TBA sidebar (desktop) -->
+      <div id="calTba" style="width:200px;flex-shrink:0;border-left:1px solid var(--bd);padding:.85rem .75rem">
+        <div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.6rem">Date Unknown</div>
+        <div id="calTbaList"></div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="syncPill" class="hidden" title="Sync status — tap to retry"><span class="sp-dot"></span><span id="syncPillTxt"></span></div>
 
 <!-- SIDE PANEL -->
@@ -537,7 +721,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
       </div>
       <div class="fr">
         <label>Tags <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
-        <div class="ciw" id="tagsWrap"><input type="text" class="cir" id="tagsInput" placeholder="co-op, birthday gift…"></div>
+        <div class="genre-wrap">
+          <div class="ciw" id="tagsWrap"><input type="text" class="cir" id="tagsInput" placeholder="co-op, birthday gift…"></div>
+          <div class="genre-dd" id="tagsDd"></div>
+        </div>
       </div>
     </div>
     <!-- Notes in modal -->
@@ -612,14 +799,15 @@ const t=k=>S[k]||k;
 let theme=localStorage.getItem('btb_theme')||'dark';
 function applyTheme(){document.documentElement.setAttribute('data-theme',theme);document.getElementById('themeBtn').textContent=theme==='dark'?'☀️':'🌙'}
 applyTheme();
-document.getElementById('themeBtn').onclick=()=>{theme=theme==='dark'?'light':'dark';localStorage.setItem('btb_theme',theme);applyTheme()};
+function toggleTheme(){theme=theme==='dark'?'light':'dark';localStorage.setItem('btb_theme',theme);applyTheme()}
+document.getElementById('themeBtn').onclick=toggleTheme;
 
 // ══════════════════════════════════════════
 //  ⚙️  GOOGLE SHEETS CONFIG
 //  Paste your Apps Script Web App URL below.
 //  Leave empty to use offline mode (localStorage).
 // ══════════════════════════════════════════
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzzrAYNSYIutza7sOgSKdvz_UXla15gwfF1ZOQtCKlm_czSztSrZgxBAM6dZ12-KX1n/exec';   // ← paste your Web App URL here
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzzrAYNSYIutza7sOgSKdvz_UXla15gwfF1ZOQtCKlm_czSztSrZgxBAM6dZ12-KX1n/exec';
 
 // ══════════════════════════════════════════
 //  SYNC STATUS UI
@@ -632,6 +820,18 @@ function setSyncStatus(state, msg){
     const colors = {idle:'var(--t3)', syncing:'var(--amber)', ok:'var(--green)', err:'var(--pink)', offline:'var(--t3)'};
     hdr.textContent = (icons[state]||'') + (msg?' '+msg:'');
     hdr.style.color = colors[state]||'var(--t3)';
+    hdr.onclick = null;
+    hdr.style.cursor = '';
+    // After success/error, show re-sync button
+    if(state==='ok'||state==='err'){
+      clearTimeout(setSyncStatus._resyncTimer);
+      setSyncStatus._resyncTimer = setTimeout(()=>{
+        hdr.textContent = '⟳ Re-sync';
+        hdr.style.color = 'var(--t3)';
+        hdr.style.cursor = 'pointer';
+        hdr.onclick = ()=>resync();
+      }, state==='ok' ? 2500 : 0);
+    }
   }
   // ── Mobile floating pill ──
   const pill = document.getElementById('syncPill');
@@ -640,16 +840,47 @@ function setSyncStatus(state, msg){
     const labels = {idle:'', syncing:'Saving…', ok:'Saved', err:'Sync failed', offline:'Offline'};
     pillTxt.textContent = msg || labels[state] || '';
     pill.className = state==='idle' ? 'hidden' : 'sp-'+state;
-    // Auto-hide after success
     if(state==='ok'){
       clearTimeout(setSyncStatus._hideTimer);
       setSyncStatus._hideTimer = setTimeout(()=>{ pill.className='hidden'; },2500);
     }
-    // Keep error visible until next action
   }
-  // ── Desktop auto-clear ──
-  if(state==='ok' && hdr){
-    setTimeout(()=>{ if(hdr.textContent.startsWith('✓')) hdr.textContent=''; },2500);
+  // ── Mobile hamburger Re-sync button ──
+  const hmResync = document.getElementById('hmResyncBtn');
+  if(hmResync){
+    if(state==='ok'||state==='err'||state==='offline'){
+      hmResync.style.display='';
+      hmResync.textContent = state==='err' ? '⚠ Re-sync (failed)' : state==='offline' ? '⊘ Offline mode' : '⟳ Re-sync';
+      hmResync.style.color = state==='err' ? 'var(--pink)' : state==='offline' ? 'var(--t3)' : '';
+    } else if(state==='syncing'){
+      hmResync.textContent='⟳ Syncing…';
+      hmResync.style.display='';
+      hmResync.style.color='var(--amber)';
+    }
+  }
+}
+
+// Re-sync: fetch from Sheet, merge (Sheet wins), re-render
+async function resync(){
+  if(OFFLINE) return;
+  setSyncStatus('syncing','Syncing…');
+  try{
+    const data = await loadFromSheet();
+    const incoming = data.map(g=>normalise(g));
+    // Sheet wins: build map of incoming by id
+    const inMap = {};
+    incoming.forEach(g=>{ inMap[String(g.id)]=g; });
+    // Keep local games not in Sheet, overwrite rest with Sheet version
+    const localOnly = games.filter(g=>!inMap[String(g.id)]);
+    games = [...incoming, ...localOnly.filter(g=>!inMap[String(g.id)])];
+    // Actually: Sheet is source of truth — just replace entirely
+    games = incoming;
+    localStorage.setItem(KEY, JSON.stringify(games));
+    setSyncStatus('ok','Synced');
+    renderAll();
+  } catch(err){
+    setSyncStatus('err','Re-sync failed');
+    console.error('BTB resync error:', err);
   }
 }
 
@@ -663,8 +894,10 @@ function normalise(g){
   if(!g.genres)g.genres=g.genre?g.genre.split(',').map(s=>s.trim()).filter(Boolean):[];
   if(!g.platforms)g.platforms=g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[];
   if(!g.status)g.status='wishlist';
-  if(!g.id)g.id=gid();
+  g.id=g.id!==undefined&&g.id!==null&&g.id!==''?String(g.id):gid(); // always string, accept any value
   if(!g.added)g.added=Date.now();
+  // Normalise date formats from Google Sheets
+  if(g.releaseDate)g.releaseDate=normaliseDate(g.releaseDate);
   return g;
 }
 let games=[];
@@ -782,6 +1015,205 @@ function postToSheet(params){
   });
 }
 
+// ══════════════════════════════════════════
+//  RELEASE CALENDAR
+// ══════════════════════════════════════════
+let calYear=0,calMonth=0,calView='grid',calShowTba=false;
+
+function openCalendar(){
+  const now=new Date();
+  calYear=now.getFullYear();
+  calMonth=now.getMonth();
+  calShowTba=false;
+  // Force list view on mobile
+  if(window.innerWidth<=640){
+    calView='list';
+    document.getElementById('calGridBtn').classList.remove('on');
+    document.getElementById('calListBtn').classList.add('on');
+  }
+  document.getElementById('calOv').classList.add('on');
+  document.getElementById('calOv').style.display='flex';
+  populateCalSelects();
+  renderCalendar();
+}
+function closeCalendar(){
+  document.getElementById('calOv').classList.remove('on');
+  document.getElementById('calOv').style.display='none';
+  calShowTba=false;
+}
+
+function populateCalSelects(){
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const mSel=document.getElementById('calMonthSel');
+  const ySel=document.getElementById('calYearSel');
+  if(!mSel||!ySel)return;
+  mSel.innerHTML=MONTHS.map((m,i)=>`<option value="${i}"${i===calMonth?' selected':''}>${m}</option>`).join('');
+  const curY=new Date().getFullYear();
+  let yHTML='';
+  for(let y=curY-10;y<=curY+10;y++) yHTML+=`<option value="${y}"${y===calYear?' selected':''}>${y}</option>`;
+  ySel.innerHTML=yHTML;
+}
+
+function calendarGames(){
+  return games.filter(g=>g.title&&(g.releaseDate||g.tbaText));
+}
+
+function renderCalendar(){
+  // Keep selects in sync
+  const mSel=document.getElementById('calMonthSel');
+  const ySel=document.getElementById('calYearSel');
+  if(mSel)mSel.value=calMonth;
+  if(ySel)ySel.value=calYear;
+
+  const allCal=calendarGames();
+  const tbaGames=allCal.filter(g=>!g.releaseDate&&g.tbaText);
+  const datedGames=allCal.filter(g=>g.releaseDate);
+
+  // TBA list (sidebar desktop / panel mobile)
+  const tbaList=document.getElementById('calTbaList');
+  if(tbaGames.length===0){
+    tbaList.innerHTML=`<div style="font-size:.68rem;color:var(--t3)">None</div>`;
+  } else {
+    tbaList.innerHTML=tbaGames.map(g=>`
+      <div class="cal-tba-chip" title="${esc(g.tbaText)}" onclick="closeCalendar();openPanel('${g.id}')">${esc(g.title)}<br><span style="color:var(--t3);font-size:.6rem">${esc(g.tbaText)}</span></div>
+    `).join('');
+  }
+
+  // Update TBA button badge on mobile
+  const tbaBtn=document.getElementById('calTbaBtn');
+  if(tbaBtn){
+    tbaBtn.textContent=tbaGames.length?`TBA (${tbaGames.length})`:'TBA';
+    tbaBtn.classList.toggle('on',calShowTba);
+  }
+
+  const main=document.getElementById('calMain');
+  const calTbaEl=document.getElementById('calTba');
+  const isMobile=window.innerWidth<=640;
+
+  // Mobile TBA panel toggle
+  if(isMobile&&calShowTba){
+    calTbaEl.style.cssText='display:block;width:100%;border-left:none;padding:.85rem 1rem';
+    main.style.display='none';
+    return;
+  } else {
+    if(isMobile){calTbaEl.style.display='none';}
+    else{calTbaEl.style.cssText='';}
+    main.style.display='';
+  }
+
+  const effectiveView=isMobile?'list':calView;
+
+  if(effectiveView==='list'){
+    const monthGames=datedGames
+      .filter(g=>{const d=normaliseDate(g.releaseDate);return d.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`)})
+      .sort((a,b)=>normaliseDate(a.releaseDate).localeCompare(normaliseDate(b.releaseDate)));
+    if(monthGames.length===0){
+      main.innerHTML=`<div style="color:var(--t3);font-size:.8rem;padding:1rem 0">No releases this month.</div>`;
+    } else {
+      main.innerHTML=monthGames.map(g=>`
+        <div class="cal-list-item${isPreOrder(g)?' pre':''}" onclick="closeCalendar();openPanel('${g.id}')">
+          <div class="cal-list-date">${fmtDate(g.releaseDate)}</div>
+          <div class="cal-list-title">${esc(g.title)}</div>
+          ${isPreOrder(g)?'<span style="font-size:.6rem;background:var(--amber);color:#031329;border-radius:4px;padding:1px 5px;font-weight:700;flex-shrink:0">PRE</span>':''}
+        </div>`).join('');
+    }
+    return;
+  }
+
+  // Grid view (desktop)
+  const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const todayStr=todayISO();
+  const firstDow=(new Date(calYear,calMonth,1).getDay()+6)%7;
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const daysInPrev=new Date(calYear,calMonth,0).getDate();
+  const byDate={};
+  datedGames.forEach(g=>{
+    const d=normaliseDate(g.releaseDate);
+    if(!byDate[d])byDate[d]=[];
+    byDate[d].push(g);
+  });
+  let html=`<div class="cal-grid">`;
+  DAYS.forEach(d=>html+=`<div class="cal-dow">${d}</div>`);
+  for(let i=0;i<firstDow;i++){
+    const day=daysInPrev-firstDow+1+i;
+    html+=`<div class="cal-cell other-month"><div class="cal-dn">${day}</div></div>`;
+  }
+  for(let day=1;day<=daysInMonth;day++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday=dateStr===todayStr;
+    const isPast=dateStr<todayStr;
+    const cellGames=byDate[dateStr]||[];
+    const hasPre=cellGames.some(g=>isPreOrder(g));
+    const countBadge=cellGames.length>0
+      ?`<div class="cal-count${hasPre?' has-pre':''}" data-date="${dateStr}">${cellGames.length}</div>
+        <div class="cal-pop" id="pop-${dateStr}">
+          ${cellGames.map(g=>`<div class="cal-pop-item${isPreOrder(g)?' pre':''}" onclick="closeCalendar();openPanel('${g.id}')">${esc(g.title)}</div>`).join('')}
+        </div>`
+      :'';
+    html+=`<div class="cal-cell${isToday?' today':''}${isPast?' past':''}">
+      <div class="cal-dn">${day}</div>
+      ${countBadge}
+    </div>`;
+  }
+  const totalCells=firstDow+daysInMonth;
+  const remaining=(7-totalCells%7)%7;
+  for(let i=1;i<=remaining;i++){
+    html+=`<div class="cal-cell other-month"><div class="cal-dn">${i}</div></div>`;
+  }
+  html+=`</div>`;
+  main.innerHTML=html;
+
+  // Wire count badge clicks to toggle popover
+  main.querySelectorAll('.cal-count').forEach(badge=>{
+    badge.addEventListener('click',function(e){
+      e.stopPropagation();
+      const dateStr=this.dataset.date;
+      const pop=document.getElementById('pop-'+dateStr);
+      // Close any other open popovers
+      main.querySelectorAll('.cal-pop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
+      pop.classList.toggle('open');
+    });
+  });
+}
+
+// Calendar controls
+document.getElementById('calClose').addEventListener('click',closeCalendar);
+document.getElementById('calOv').addEventListener('click',e=>{if(e.target===document.getElementById('calOv'))closeCalendar()});
+document.getElementById('calPrev').addEventListener('click',()=>{
+  calMonth--;if(calMonth<0){calMonth=11;calYear--}populateCalSelects();renderCalendar();
+});
+document.getElementById('calNext').addEventListener('click',()=>{
+  calMonth++;if(calMonth>11){calMonth=0;calYear++}populateCalSelects();renderCalendar();
+});
+document.getElementById('calMonthSel').addEventListener('change',function(){
+  calMonth=parseInt(this.value);renderCalendar();
+});
+document.getElementById('calYearSel').addEventListener('change',function(){
+  calYear=parseInt(this.value);renderCalendar();
+});
+document.getElementById('calGridBtn').addEventListener('click',()=>{
+  calView='grid';
+  document.getElementById('calGridBtn').classList.add('on');
+  document.getElementById('calListBtn').classList.remove('on');
+  renderCalendar();
+});
+document.getElementById('calListBtn').addEventListener('click',()=>{
+  calView='list';
+  document.getElementById('calListBtn').classList.add('on');
+  document.getElementById('calGridBtn').classList.remove('on');
+  renderCalendar();
+});
+document.getElementById('calTbaBtn').addEventListener('click',()=>{
+  calShowTba=!calShowTba;
+  renderCalendar();
+});
+// Close calendar popovers when clicking outside — single listener, never accumulates
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.cal-count')&&!e.target.closest('.cal-pop')){
+    document.querySelectorAll('.cal-pop.open').forEach(p=>p.classList.remove('open'));
+  }
+});
+
 // ── SYNC PILL TAP TO RETRY ───────────────
 document.addEventListener('DOMContentLoaded',()=>{
   const pill = document.getElementById('syncPill');
@@ -818,6 +1250,7 @@ async function initData(){
 //  STATE
 // ══════════════════════════════════════════
 let af='all',vm='grid',openId=null,editId=null,rmId=null,riId=null;
+let hrMinVal=0,hrMaxVal=100;
 let cGenres=[],cTags=[],cStars=0;
 
 // ══════════════════════════════════════════
@@ -825,23 +1258,45 @@ let cGenres=[],cTags=[],cStars=0;
 // ══════════════════════════════════════════
 const esc=s=>s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):'';
 const nr=g=>g.hotness===''||g.hotness===null||g.hotness===undefined;
-const isUnreleased=g=>!!(g.tbaText||(g.status==='wishlist'&&!g.releaseDate&&!g.price));
+const isUnreleased=g=>isGameUnreleased(g); // alias
 const sc=id=>`https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/header.jpg`;
 
 function prioColor(p){return p==='high'?'var(--cyan)':p==='low'?'var(--lime)':'var(--magenta)'}
 function prioLabel(p){return t(p==='high'?'pHi':p==='low'?'pLo':'pMe')}
 
+// ── DATE HELPERS ─────────────────────────
+// Normalise any date format to YYYY-MM-DD string
+function normaliseDate(raw){
+  if(!raw)return'';
+  // Already YYYY-MM-DD
+  if(/^\d{4}-\d{2}-\d{2}$/.test(String(raw)))return raw;
+  // ISO 8601 full: 2024-11-11T23:00:00.000Z
+  if(/^\d{4}-\d{2}-\d{2}T/.test(String(raw)))return String(raw).slice(0,10);
+  // dd/mm/yyyy or dd-mm-yyyy
+  const m=String(raw).match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2}|\d{4})$/);
+  if(m){let[,d,mo,y]=m;if(y.length===2)y=(parseInt(y)<50?'20':'19')+y;return`${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`}
+  return String(raw);
+}
 function fmtDate(d){
   if(!d)return'';
-  if(/^\d{4}-\d{2}-\d{2}$/.test(d)){const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`}
+  const n=normaliseDate(d);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(n)){const[y,mo,dd]=n.split('-');return`${dd}/${mo}/${y}`}
   return d;
 }
-function parseDate(raw){
-  if(!raw)return'';
-  if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw;
-  const m=raw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2}|\d{4})$/);
-  if(m){let[,d,mo,y]=m;if(y.length===2)y=(parseInt(y)<50?'20':'19')+y;return`${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`}
-  return raw;
+function parseDate(raw){return normaliseDate(raw)}
+function todayISO(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function isFutureDate(raw){
+  const n=normaliseDate(raw);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(n))return false;
+  return n>todayISO();
+}
+// A game is "unreleased" if it has tbaText OR a future releaseDate
+function isGameUnreleased(g){
+  return !!(g.tbaText||isFutureDate(g.releaseDate));
+}
+// A game is a pre-order if: status=bought AND future releaseDate
+function isPreOrder(g){
+  return g.status==='bought'&&isGameUnreleased(g);
 }
 
 const FAV_STEAM='https://store.steampowered.com/favicon.ico';
@@ -873,6 +1328,11 @@ function allDevPub(field){
   games.forEach(g=>{if(g[field])set.add(g[field])});
   return[...set].sort();
 }
+function allTagsSorted(){
+  const freq={};
+  games.forEach(g=>(g.tags||[]).forEach(t=>{if(t)freq[t]=(freq[t]||0)+1}));
+  return Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b));
+}
 
 // ══════════════════════════════════════════
 //  FILTER + SORT
@@ -885,7 +1345,14 @@ function filtered(){
     if(af==='bought')return g.status==='bought';
     if(af==='removed')return g.status==='removed';
     if(af==='review')return g.status==='wishlist'&&nr(g);
-    if(af==='unreleased')return (g.status==='wishlist'||g.status==='bought')&&isUnreleased(g);
+    if(af==='unreleased')return (g.status==='wishlist'||g.status==='bought')&&isGameUnreleased(g);
+    // Hotness range filter — NR games (no hotness set) always visible
+    if(hrMinVal>0||hrMaxVal<100){
+      if(!nr(g)){
+        const h=parseInt(g.hotness)||0;
+        if(h<hrMinVal||h>hrMaxVal) return false;
+      }
+    }
     return true;
   });
 }
@@ -930,9 +1397,10 @@ function cardHTML(g){
   const cImg=coverUrl?`<img src="${esc(coverUrl)}" alt="${esc(g.title)}" onerror="this.style.display='none';this.previousElementSibling.style.display='flex'">`:'';
   const phStyle=coverUrl?'style="display:none"':'';
 
-  // Left badge
+  // Left badge — pre-order replaces bought badge
   let lBdg='';
-  if(g.status==='bought')       lBdg=`<span class="bdg b-bt">${t('bdgBt')}</span>`;
+  if(isPreOrder(g))             lBdg=`<span class="bdg b-pre">PRE-ORDER</span>`;
+  else if(g.status==='bought')  lBdg=`<span class="bdg b-bt">${t('bdgBt')}</span>`;
   else if(g.status==='removed') lBdg=`<span class="bdg b-rm">${t('bdgRm')}</span>`;
   else if(isNR)                 lBdg=`<span class="b-rev">${t('bdgRev')}</span>`;
   else                          lBdg=`<span class="bdg b-hot">${h}</span>`;
@@ -940,12 +1408,14 @@ function cardHTML(g){
   // Priority label badge (right side of pill bar)
   const prioLbl=`<span class="b-prio" style="background:${prioColor(g.priority)}">${prioLabel(g.priority)}</span>`;
 
-  // Price / unreleased
+  // Price / date / unreleased display
   let priceEl;
-  if(g.price){
+  if(isFutureDate(g.releaseDate)){
+    priceEl=`<span class="b-unrel-card">${fmtDate(g.releaseDate)}</span>`;
+  } else if(g.tbaText){
+    priceEl=`<span class="b-unrel-card">${esc(g.tbaText)}</span>`;
+  } else if(g.price){
     priceEl=`<span class="cprice">€${parseFloat(g.price).toFixed(2)}</span>`;
-  } else if(isUnreleased(g)){
-    priceEl=`<span class="b-unrel-card">Unreleased</span>`;
   } else {
     priceEl=`<span class="cprice" style="color:var(--t3)">—</span>`;
   }
@@ -955,15 +1425,16 @@ function cardHTML(g){
   const stUrl=g.storeLink||(g.steamAppId?`https://store.steampowered.com/app/${g.steamAppId}/`:`https://store.steampowered.com/search/?term=${encodeURIComponent(g.title||'')}`);
   const ba=g.status==='bought'?' ba':'';
 
+  const gid_s=String(g.id);
+
   // Remove/Reinstate button: removed→reinstate, bought→disabled, else→remove
   let rmBtn='';
   if(g.status==='removed'){
-    rmBtn=`<button class="qb qri" title="Reinstate" onclick="event.stopPropagation();startReinstate('${g.id}')">↩</button>`;
+    rmBtn=`<button class="qb qri" title="Reinstate" onclick="event.stopPropagation();startReinstate('${gid_s}')">↩</button>`;
   } else if(g.status!=='bought'){
-    rmBtn=`<button class="qb qr" title="Remove" onclick="event.stopPropagation();startRemove('${g.id}')">✕</button>`;
+    rmBtn=`<button class="qb qr" title="Remove" onclick="event.stopPropagation();startRemove('${gid_s}')">✕</button>`;
   }
-
-  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}" data-id="${g.id}" tabindex="0" role="button" aria-label="${esc(g.title)}">
+  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}">
     <div class="cc">
       <div class="cph" ${phStyle}>🎮</div>${cImg}
       <div class="cg"></div>
@@ -978,8 +1449,8 @@ function cardHTML(g){
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
           <a href="${ggUrl}" class="qb" title="gg.deals" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_GG,'gg')}</a>
           <a href="${sdbUrl}" class="qb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
-          <button class="qb${ba}" title="${t('mBt')}" onclick="event.stopPropagation();handleMarkBought('${g.id}')">✓</button>
-          <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${g.id}')">✏</button>
+          <button class="qb${ba}" title="${t('mBt')}" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">✓</button>
+          <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">✏</button>
           ${rmBtn}
         </div>
       </div>
@@ -1056,7 +1527,21 @@ function bindCards(gc){
       c.appendChild(shine);
     }
     bindTilt(c);
+    // Scale down title font if it overflows the card width
+    scaleTitleFont(c);
   });
+}
+
+function scaleTitleFont(card){
+  const ct=card.querySelector('.ct');
+  if(!ct||card.closest('.gg.lv'))return; // skip list view
+  ct.style.fontSize='';
+  // Step down from default until it fits or hits floor
+  const sizes=['.9rem','.82rem','.74rem','.67rem','.62rem'];
+  for(const sz of sizes){
+    ct.style.fontSize=sz;
+    if(ct.scrollWidth<=ct.clientWidth+2) break;
+  }
 }
 
 // ── TILT + SHINE ─────────────────────────
@@ -1110,8 +1595,8 @@ function handleMarkBought(id){
     // Unmark bought → wishlist
     g.status='wishlist';save();renderAll();if(openId===id)openPanel(id);return;
   }
-  if(isUnreleased(g)){
-    const ok=confirm(`"${g.title}" is marked as Unreleased. Mark as Bought anyway?\n\nIt will still appear under the Unreleased filter.`);
+  if(isGameUnreleased(g)){
+    const ok=confirm(`"${g.title}" hasn't been released yet.\n\nMark as Bought? It will show as PRE-ORDER until the release date.`);
     if(!ok)return;
   }
   g.status='bought';save();renderAll();if(openId===id)openPanel(id);
@@ -1138,7 +1623,7 @@ function openPanel(id){
 
   let b=`<div class="pt">${esc(g.title)}</div>
     <div class="pm">
-      ${g.status==='bought'?`<span class="bdg b-bt">${t('bdgBt')}</span>`:''}
+      ${isPreOrder(g)?`<span class="bdg b-pre">PRE-ORDER</span>`:g.status==='bought'?`<span class="bdg b-bt">${t('bdgBt')}</span>`:''}
       ${g.status==='removed'?`<span class="bdg b-rm">${t('bdgRm')}</span>`:''}
       ${isNR&&g.status==='wishlist'?`<span class="b-rev">${t('bdgRev')}</span>`:''}
       <span class="bdg" style="background:${prioColor(g.priority)};color:#031329">${prioLabel(g.priority)}</span>
@@ -1339,6 +1824,54 @@ function updateGenreDd(){
 }
 document.getElementById('genreInput').addEventListener('input',updateGenreDd);
 document.getElementById('genreInput').addEventListener('focus',updateGenreDd);
+
+// ── Tags dropdown (sorted by most-used) ──
+function updateTagsDd(){
+  const dd=document.getElementById('tagsDd');
+  const q=(document.getElementById('tagsInput').value||'').toLowerCase().trim();
+  const current=getA_tags();
+  const all=allTagsSorted().filter(t=>!current.includes(t)&&(!q||t.toLowerCase().includes(q)));
+  if(!all.length){dd.classList.remove('on');return}
+  dd.innerHTML=all.map(t=>`<div class="genre-opt" data-t="${esc(t)}">${esc(t)}</div>`).join('');
+  dd.classList.add('on');
+  dd.querySelectorAll('.genre-opt').forEach(el=>{
+    el.onclick=()=>{
+      const a=getA_tags();a.push(el.dataset.t);setA_tags(a);
+      document.getElementById('tagsInput').value='';
+      renderTagChips();
+      dd.classList.remove('on');
+    };
+  });
+}
+// Helper to get/set tags array from the chip input
+function getA_tags(){
+  return [...document.getElementById('tagsWrap').querySelectorAll('.cich')].map(el=>el.dataset.v||el.childNodes[0].textContent.trim());
+}
+function setA_tags(arr){
+  // Use the existing chip system — trigger re-render
+  renderTagChips(arr);
+}
+function renderTagChips(arr){
+  if(arr===undefined){
+    arr=getA_tags();
+  }
+  const wrap=document.getElementById('tagsWrap');
+  const inp=document.getElementById('tagsInput');
+  // Remove existing chips
+  [...wrap.querySelectorAll('.cich')].forEach(el=>el.remove());
+  arr.forEach(v=>{
+    const chip=document.createElement('span');
+    chip.className='cich';chip.dataset.v=v;
+    chip.innerHTML=`${esc(v)}<button type="button" data-v="${esc(v)}">×</button>`;
+    chip.querySelector('button').onclick=e=>{
+      const cur=getA_tags().filter(x=>x!==v);
+      renderTagChips(cur);
+    };
+    wrap.insertBefore(chip,inp);
+  });
+}
+document.getElementById('tagsInput').addEventListener('input',updateTagsDd);
+document.getElementById('tagsInput').addEventListener('focus',updateTagsDd);
 document.addEventListener('click',e=>{
   if(!e.target.closest('.genre-wrap'))document.getElementById('genreDd').classList.remove('on');
   if(!e.target.closest('#fDev')&&!e.target.closest('#devDd'))document.getElementById('devDd').classList.remove('on');
@@ -1565,7 +2098,14 @@ document.getElementById('ftabs').onclick=e=>{
 };
 document.getElementById('sortSel').onchange=renderAll;
 document.getElementById('groupSel').onchange=renderAll;
-document.getElementById('searchInput').oninput=renderAll;
+document.getElementById('searchInput').oninput=function(){
+  document.getElementById('searchInputMob').value=this.value;
+  renderAll();
+};
+document.getElementById('searchInputMob').oninput=function(){
+  document.getElementById('searchInput').value=this.value;
+  renderAll();
+};
 
 // ══════════════════════════════════════════
 //  EXPORT / IMPORT
@@ -1598,6 +2138,60 @@ document.getElementById('impBtn').onclick=()=>{
   };
   inp.click();
 };
+
+// ══════════════════════════════════════════
+//  HAMBURGER MENU + CALENDAR BUTTON
+// ══════════════════════════════════════════
+(function(){
+  var btn=document.getElementById('hamburgerBtn');
+  var menu=document.getElementById('hmenu');
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    menu.classList.toggle('on');
+  });
+  document.addEventListener('click',function(e){
+    if(!menu.contains(e.target)&&e.target!==btn) menu.classList.remove('on');
+  });
+  function hm(fn){return function(){menu.classList.remove('on');fn();}}
+  document.getElementById('hmCalBtn').addEventListener('click',hm(openCalendar));
+  document.getElementById('hmThemeBtn').addEventListener('click',hm(toggleTheme));
+  document.getElementById('hmExpBtn').addEventListener('click',hm(function(){document.getElementById('expBtn').onclick();}));
+  document.getElementById('hmImpBtn').addEventListener('click',hm(function(){document.getElementById('impBtn').onclick();}));
+  document.getElementById('hmResyncBtn').addEventListener('click',hm(function(){if(!OFFLINE)resync();}));
+  document.getElementById('calBtn').addEventListener('click',openCalendar);
+})();
+
+// ══════════════════════════════════════════
+//  HOTNESS RANGE SLIDER
+// ══════════════════════════════════════════
+(function(){
+  const minInp=document.getElementById('hrMinInp');
+  const maxInp=document.getElementById('hrMaxInp');
+  const minLbl=document.getElementById('hrMin');
+  const maxLbl=document.getElementById('hrMax');
+  const fill=document.getElementById('dualFill');
+  function updateFill(){
+    const mn=parseInt(minInp.value),mx=parseInt(maxInp.value);
+    const pMin=(mn/100)*100,pMax=(mx/100)*100;
+    fill.style.left=pMin+'%';fill.style.width=(pMax-pMin)+'%';
+  }
+  function onChange(){
+    let mn=parseInt(minInp.value),mx=parseInt(maxInp.value);
+    if(mn>mx){
+      // swap both the values and the inputs
+      minInp.value=mx;maxInp.value=mn;
+      mn=mx;mx=parseInt(maxInp.value);
+    }
+    hrMinVal=mn;hrMaxVal=mx;
+    minLbl.textContent=mn===0?'0':mn;
+    maxLbl.textContent=mx;
+    updateFill();
+    renderAll();
+  }
+  minInp.addEventListener('input',onChange);
+  maxInp.addEventListener('input',onChange);
+  updateFill();
+})();
 
 // ══════════════════════════════════════════
 //  INIT
