@@ -519,6 +519,49 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   :root{--pw:100vw}.fg{grid-template-columns:1fr}.gg{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
   .sc{display:none}
 }
+
+/* ── TODAY'S RELEASES TICKER ───────────────────── */
+#todayTicker{
+  display:none;
+  background:var(--s1);
+  border-top:2px solid var(--pink);
+  border-bottom:2px solid var(--pink);
+  overflow:hidden;
+  white-space:nowrap;
+  position:relative;
+  height:32px;
+}
+#todayTicker.active{display:flex;align-items:center}
+.ticker-label{
+  flex-shrink:0;
+  background:var(--pink);
+  color:#fff;
+  font-family:'Rajdhani',sans-serif;
+  font-weight:700;
+  font-size:.72rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  padding:0 .75rem;
+  height:100%;
+  display:flex;align-items:center;
+  z-index:2;
+  white-space:nowrap;
+}
+.ticker-track{
+  flex:1;overflow:hidden;position:relative;height:100%;
+  display:flex;align-items:center;
+}
+.ticker-inner{
+  display:flex;align-items:center;gap:2.5rem;
+  padding-left:1.5rem;
+}
+.ticker-item{
+  font-size:.72rem;font-family:'Rajdhani',sans-serif;font-weight:600;
+  color:var(--t2);cursor:pointer;transition:color .15s;
+  white-space:nowrap;letter-spacing:.03em;
+}
+.ticker-item:hover{color:var(--pink)}
+.ticker-item::before{content:'▸ ';color:var(--pink);font-size:.6rem}
 </style>
 </head>
 <body>
@@ -551,6 +594,14 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   </div>
 </header>
 
+
+<!-- TODAY'S RELEASES TICKER -->
+<div id="todayTicker">
+  <div class="ticker-label">OUT TODAY</div>
+  <div class="ticker-track">
+    <div class="ticker-inner" id="tickerInner"></div>
+  </div>
+</div>
 <!-- Mobile dropdown menu — outside header to avoid overflow:hidden clipping -->
 <div id="hmenu">
   <div class="hm-search">
@@ -1016,35 +1067,30 @@ function flushSave(){
     });
 }
 
-// JSONP GET for save — Apps Script accepts all params as query string.
-// This works from file:// on both desktop AND Android Chrome because
-// the request goes to an https:// URL (not a cross-origin XHR).
+// POST via fetch — no URL length limit, works cross-origin because
+// Apps Script returns the CORS header Access-Control-Allow-Origin: *
 function postToSheet(params){
-  return new Promise((resolve, reject)=>{
-    const cbName='_btbPost'+Date.now();
-    const script=document.createElement('script');
-    const timeout=setTimeout(()=>{
-      delete window[cbName];
-      try{document.head.removeChild(script)}catch(e){}
-      reject(new Error('timeout'));
-    },18000);
-    window[cbName]=function(resp){
+  return new Promise((resolve,reject)=>{
+    const timeout=setTimeout(()=>reject(new Error('timeout')),18000);
+    const qs=Object.entries(params)
+      .filter(([k])=>k!=='data')
+      .map(([k,v])=>encodeURIComponent(k)+'='+encodeURIComponent(v))
+      .join('&');
+    const url=SHEET_URL+(qs?'?'+qs:'');
+    const body=params.data!==undefined?params.data:null;
+    fetch(url,{
+      method: body!==null?'POST':'GET',
+      mode:'cors',
+      headers:body!==null?{'Content-Type':'text/plain'}:{},
+      body:body!==null?body:undefined
+    })
+    .then(r=>r.json())
+    .then(resp=>{
       clearTimeout(timeout);
-      delete window[cbName];
-      try{document.head.removeChild(script)}catch(e){}
-      if(resp&&resp.error) reject(new Error(resp.error));
+      if(resp&&resp.error)reject(new Error(resp.error));
       else resolve(resp);
-    };
-    const qs=Object.entries(params).map(([k,v])=>encodeURIComponent(k)+'='+encodeURIComponent(v)).join('&');
-    script.crossOrigin='anonymous';
-    script.src=SHEET_URL+'?'+qs+'&callback='+cbName+'&_='+Date.now();
-    script.onerror=()=>{
-      clearTimeout(timeout);
-      delete window[cbName];
-      try{document.head.removeChild(script)}catch(e){}
-      reject(new Error('script load error'));
-    };
-    document.head.appendChild(script);
+    })
+    .catch(err=>{clearTimeout(timeout);reject(err)});
   });
 }
 
@@ -1301,15 +1347,17 @@ function prioLabel(p){return t(p==='high'?'pHi':p==='low'?'pLo':'pMe')}
 // Normalise any date format to YYYY-MM-DD string
 function normaliseDate(raw){
   if(!raw)return'';
-  // Already YYYY-MM-DD
   if(/^\d{4}-\d{2}-\d{2}$/.test(String(raw)))return raw;
-  // ISO 8601 full: 2024-11-11T23:00:00.000Z
-  if(/^\d{4}-\d{2}-\d{2}T/.test(String(raw)))return String(raw).slice(0,10);
-  // dd/mm/yyyy or dd-mm-yyyy
+  // ISO 8601 full — parse the full timestamp (respecting Z/UTC offset) then read local date
+  if(/^\d{4}-\d{2}-\d{2}T/.test(String(raw))){
+    const d=new Date(String(raw));
+    return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
   const m=String(raw).match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2}|\d{4})$/);
   if(m){let[,d,mo,y]=m;if(y.length===2)y=(parseInt(y)<50?'20':'19')+y;return`${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`}
   return String(raw);
 }
+function isTodayDate(raw){return normaliseDate(raw)===todayISO()}
 function fmtDate(d){
   if(!d)return'';
   const n=normaliseDate(d);
@@ -1371,19 +1419,21 @@ function allTagsSorted(){
 //  FILTER + SORT
 // ══════════════════════════════════════════
 function filtered(){
-  const q=document.getElementById('searchInput').value.toLowerCase();
+  const q=document.getElementById('searchInput').value.trim().toLowerCase();
   return games.filter(g=>{
-    if(q&&![g.title,...(g.genres||[]),g.platform||'',g.developer||'',g.publisher||''].some(s=>(s||'').toLowerCase().includes(q)))return false;
+    // Title-only search
+    if(q&&!(g.title||'').toLowerCase().includes(q))return false;
+    // Tab filter
     if(af==='wishlist')return g.status==='wishlist';
     if(af==='bought')return g.status==='bought';
     if(af==='removed')return g.status==='removed';
     if(af==='review')return g.status==='wishlist'&&nr(g);
-    if(af==='unreleased')return (g.status==='wishlist'||g.status==='bought')&&isGameUnreleased(g);
-    // Hotness range filter — NR games (no hotness set) always visible
+    if(af==='unreleased')return(g.status==='wishlist'||g.status==='bought')&&isGameUnreleased(g);
+    // Hotness range filter (all tab only) — NR games always visible
     if(hrMinVal>0||hrMaxVal<100){
       if(!nr(g)){
         const h=parseInt(g.hotness)||0;
-        if(h<hrMinVal||h>hrMaxVal) return false;
+        if(h<hrMinVal||h>hrMaxVal)return false;
       }
     }
     return true;
@@ -1494,8 +1544,23 @@ function cardHTML(g){
 // ══════════════════════════════════════════
 //  RENDER
 // ══════════════════════════════════════════
+
+// ══════════════════════════════════════════
+//  TODAY'S RELEASES TICKER
+// ══════════════════════════════════════════
+function renderTicker(){
+  const today=todayISO();
+  const hits=games.filter(g=>normaliseDate(g.releaseDate)===today&&g.title);
+  const ticker=document.getElementById('todayTicker');
+  const inner=document.getElementById('tickerInner');
+  if(!hits.length){ticker.classList.remove('active');return}
+  ticker.classList.add('active');
+  inner.innerHTML=hits.map(g=>`<span class="ticker-item" onclick="openPanel('${g.id}')">${g.title}</span>`).join('');
+}
+
 function renderAll(){
   renderStats();
+  renderTicker();
   const gc=document.getElementById('gc');
   const grp=document.getElementById('groupSel').value;
   const list=filtered();
