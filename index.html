@@ -83,6 +83,8 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;position:relative;display:flex;flex-direction:column}
 .gc:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 6px 20px #02b3fc12}
 .gc.st-removed{opacity:.45;filter:grayscale(.6)}.gc.sb2{border-color:#9cff0044}
+.gc.cancelled{opacity:.55;filter:grayscale(1);border-color:#ff00aa44}
+.b-cancelled{background:#ff00aa22;color:var(--pink);border:1px solid #ff00aa55;font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap}
 
 /* pill bar */
 .pb{position:absolute;top:0;left:0;right:0;height:var(--rl);display:flex;align-items:center;
@@ -102,32 +104,14 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .bdg{font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
   padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap}
 .b-hot{background:var(--pink);color:#031329}
-.b-rev{background:var(--amber);color:#031329}
+.b-rev{background:var(--amber);color:#031329;font-size:.56rem;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap}
 .b-bt{background:var(--green);color:#031329}
 .b-pre{background:var(--amber);color:#031329}
 .b-rm{background:var(--s3);color:var(--muted);border:1px solid #4a5560}
-/* CANCELLED card style */
-.gc.st-cancelled{background:#0a0a0a;border-color:#3a1a1a!important;opacity:.82}
-[data-theme=light] .gc.st-cancelled{background:#1a1a1a;border-color:#4a2020!important}
-.gc.st-cancelled .cc{filter:grayscale(1) brightness(.55)}
-.gc.st-cancelled .cg{background:linear-gradient(to top,#000000cc 0%,transparent 60%)}
-.b-cancelled{background:#1a0000;border:1px solid #ff00aa88;color:var(--pink);
-  font-family:'Rajdhani',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.1em;
-  text-transform:uppercase;padding:3px 7px;border-radius:4px;pointer-events:none;white-space:nowrap}
-.gc.st-cancelled .ct{color:#888;text-decoration:line-through;text-decoration-color:#ff00aa88}
 /* priority label badge on card — same style as side panel pill */
 .b-prio{font-size:.55rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
   padding:2px 5px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;color:#031329}
-/* Card added-date tooltip */
-.gc[data-added-tip]{position:relative}
-.gc[data-added-tip]:hover::after{
-  content:attr(data-added-tip);
-  position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
-  background:#031329ee;border:1px solid var(--bd2);color:var(--t2);
-  font-size:.6rem;font-weight:400;white-space:nowrap;
-  padding:3px 8px;border-radius:5px;z-index:20;pointer-events:none;
-  font-family:'Inter',sans-serif;letter-spacing:0;text-transform:none
-}
 
 /* card body */
 .cb{padding:.5rem .65rem .55rem;flex:1;display:flex;flex-direction:column;gap:.3rem}
@@ -368,99 +352,64 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .hrange{display:flex;align-items:center;gap:.35rem;flex-shrink:0}
 .hrange-label{font-size:.67rem;color:var(--t3);white-space:nowrap}
 .hrange-sep{font-size:.67rem;color:var(--t3)}
-/* Mobile: number inputs */
 .hrange-num{width:3rem;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);
   color:var(--text);font-size:.72rem;font-weight:600;text-align:center;padding:.28rem .3rem;outline:none;
   -moz-appearance:textfield;appearance:textfield;transition:border-color .15s}
 .hrange-num:focus{border-color:var(--blue)}
 .hrange-num::-webkit-outer-spin-button,.hrange-num::-webkit-inner-spin-button{-webkit-appearance:none}
-/* Desktop: dual-thumb slider — hide number inputs */
 @media(min-width:641px){
   .hrange-num,.hrange-sep{display:none}
   .hrange{gap:.45rem}
-  .hrange-slider-wrap{
-    position:relative;width:100px;height:20px;display:flex;align-items:center;flex-shrink:0
-  }
-  .hrange-track{
-    position:absolute;left:0;right:0;height:3px;border-radius:99px;background:var(--s3)
-  }
-  .hrange-fill{
-    position:absolute;height:3px;border-radius:99px;background:var(--blue);pointer-events:none
-  }
-  .hrange-thumb{
-    position:absolute;width:13px;height:13px;border-radius:50%;
-    background:var(--blue);border:2px solid var(--s1);
-    box-shadow:0 0 0 1px var(--blue);cursor:pointer;
-    transform:translateX(-50%);top:50%;margin-top:-6.5px;
-    transition:box-shadow .12s;z-index:2
-  }
+  .hrange-slider-wrap{position:relative;width:100px;height:20px;display:flex;align-items:center;flex-shrink:0}
+  .hrange-track{position:absolute;left:0;right:0;height:3px;border-radius:99px;background:var(--s3)}
+  .hrange-fill{position:absolute;height:3px;border-radius:99px;background:var(--blue);pointer-events:none}
+  .hrange-thumb{position:absolute;width:13px;height:13px;border-radius:50%;
+    background:var(--blue);border:2px solid var(--s1);box-shadow:0 0 0 1px var(--blue);cursor:pointer;
+    transform:translateX(-50%);top:50%;margin-top:-6.5px;transition:box-shadow .12s;z-index:2}
   .hrange-thumb:hover,.hrange-thumb.dragging{box-shadow:0 0 0 3px #02b3fc44}
   .hrange-vals{font-size:.67rem;font-weight:600;color:var(--t2);white-space:nowrap;min-width:52px}
 }
-@media(max-width:640px){
-  .hrange-slider-wrap,.hrange-vals{display:none}
+@media(max-width:640px){.hrange-slider-wrap,.hrange-vals{display:none}}
+/* Card added-date tooltip */
+.gc[data-added-tip]:hover::after{
+  content:attr(data-added-tip);
+  position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:#031329ee;border:1px solid var(--bd2);color:var(--t2);
+  font-size:.6rem;font-weight:400;white-space:nowrap;
+  padding:3px 8px;border-radius:5px;z-index:20;pointer-events:none;
+  font-family:'Inter',sans-serif;letter-spacing:0;text-transform:none
 }
-
-/* ── FILTER POPOVERS (Genre / Tag) ── */
-.fpop-btn{
-  background:transparent;border:1px solid var(--bd);color:var(--t2);border-radius:var(--r);
+/* ── FILTER POPOVERS ── */
+.fpop-btn{background:transparent;border:1px solid var(--bd);color:var(--t2);border-radius:var(--r);
   padding:.25rem .65rem;font-size:.7rem;font-weight:500;cursor:pointer;transition:all .15s;
-  white-space:nowrap;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:.3rem;
-  position:relative;
-}
+  white-space:nowrap;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:.3rem}
 .fpop-btn:hover{border-color:var(--blue);color:var(--blue)}
 .fpop-btn.active{background:var(--blue);border-color:var(--blue);color:#031329;font-weight:700}
 .fpop-btn.active:hover{opacity:.85}
-.fpop-badge{
-  background:#031329;color:var(--blue);border-radius:99px;
-  font-size:.58rem;font-weight:700;padding:1px 5px;line-height:1.4;
-}
+.fpop-badge{background:#031329;color:var(--blue);border-radius:99px;font-size:.58rem;font-weight:700;padding:1px 5px;line-height:1.4}
 .fpop-btn.active .fpop-badge{background:#031329aa;color:#fff}
 .fpop-wrap{position:relative;flex-shrink:0}
-.fpop{
-  display:none;position:absolute;top:calc(100% + 5px);left:0;
-  background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);
-  z-index:300;min-width:200px;max-width:260px;
-  box-shadow:0 8px 24px rgba(0,0,0,.4);
-  padding:.5rem;
-}
+.fpop{display:none;position:absolute;top:calc(100% + 5px);left:0;background:var(--s1);
+  border:1px solid var(--bd2);border-radius:var(--rl);z-index:300;min-width:200px;max-width:260px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);padding:.5rem}
 .fpop.open{display:block}
-.fpop-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:.1rem .15rem .4rem;border-bottom:1px solid var(--bd);margin-bottom:.35rem;gap:.4rem;
-}
-.fpop-title{
-  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;
-  letter-spacing:.06em;text-transform:uppercase;color:var(--t3);
-}
-.fpop-logic{
-  display:flex;border:1px solid var(--bd);border-radius:5px;overflow:hidden;flex-shrink:0;
-}
-.fpop-logic-btn{
-  background:transparent;border:none;color:var(--t3);
-  padding:.18rem .38rem;font-size:.62rem;font-weight:700;cursor:pointer;transition:all .12s;
-  font-family:'Inter',sans-serif;letter-spacing:.04em;
-}
+.fpop-header{display:flex;align-items:center;justify-content:space-between;
+  padding:.1rem .15rem .4rem;border-bottom:1px solid var(--bd);margin-bottom:.35rem;gap:.4rem}
+.fpop-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--t3)}
+.fpop-logic{display:flex;border:1px solid var(--bd);border-radius:5px;overflow:hidden;flex-shrink:0}
+.fpop-logic-btn{background:transparent;border:none;color:var(--t3);padding:.18rem .38rem;
+  font-size:.62rem;font-weight:700;cursor:pointer;transition:all .12s;font-family:'Inter',sans-serif}
 .fpop-logic-btn.on{background:var(--blue);color:#031329}
-.fpop-clear{
-  background:transparent;border:none;color:var(--t3);font-size:.62rem;cursor:pointer;
-  font-family:'Inter',sans-serif;padding:.15rem .25rem;border-radius:4px;transition:all .12s;
-  flex-shrink:0;
-}
+.fpop-clear{background:transparent;border:none;color:var(--t3);font-size:.62rem;cursor:pointer;
+  font-family:'Inter',sans-serif;padding:.15rem .25rem;border-radius:4px;transition:all .12s;flex-shrink:0}
 .fpop-clear:hover{color:var(--pink)}
-.fpop-list{
-  max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;
-}
-.fpop-opt{
-  display:flex;align-items:center;gap:.5rem;padding:.3rem .45rem;border-radius:6px;
-  cursor:pointer;transition:background .1s;user-select:none;
-}
+.fpop-list{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.fpop-opt{display:flex;align-items:center;gap:.5rem;padding:.3rem .45rem;border-radius:6px;
+  cursor:pointer;transition:background .1s;user-select:none}
 .fpop-opt:hover{background:var(--s3)}
-.fpop-opt input[type=checkbox]{
-  accent-color:var(--blue);width:13px;height:13px;flex-shrink:0;cursor:pointer;
-}
-.fpop-opt-label{font-size:.74rem;color:var(--t2);flex:1;min-width:0;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fpop-opt input[type=checkbox]{accent-color:var(--blue);width:13px;height:13px;flex-shrink:0;cursor:pointer}
+.fpop-opt-label{font-size:.74rem;color:var(--t2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fpop-opt-count{font-size:.62rem;color:var(--t3);flex-shrink:0}
 .fpop-opt:has(input:checked) .fpop-opt-label{color:var(--text);font-weight:500}
 .fpop-empty{font-size:.72rem;color:var(--t3);padding:.4rem .45rem;text-align:center}
@@ -721,6 +670,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   <div style="display:flex;gap:.35rem;flex-wrap:wrap" id="ftabs">
     <button class="ft on" data-f="all">All</button>
     <button class="ft" data-f="wishlist">Wishlist</button>
+    <button class="ft" data-f="cancelled">Cancelled</button>
     <button class="ft" data-f="bought">Bought</button>
     <button class="ft" data-f="removed">Removed</button>
     <button class="ft" data-f="review">To Review</button>
@@ -744,7 +694,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
     <option value="year">By year</option>
   </select>
   <!-- Genre filter -->
-  <div class="fpop-wrap" id="genreFilterWrap">
+  <div class="fpop-wrap">
     <button class="fpop-btn" id="genreFilterBtn">Genre <span class="fpop-badge" id="genreFilterBadge" style="display:none"></span></button>
     <div class="fpop" id="genreFilterPop">
       <div class="fpop-header">
@@ -759,7 +709,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
     </div>
   </div>
   <!-- Tag filter -->
-  <div class="fpop-wrap" id="tagFilterWrap">
+  <div class="fpop-wrap">
     <button class="fpop-btn" id="tagFilterBtn">Tags <span class="fpop-badge" id="tagFilterBadge" style="display:none"></span></button>
     <div class="fpop" id="tagFilterPop">
       <div class="fpop-header">
@@ -1112,6 +1062,7 @@ const OFFLINE = !SHEET_URL;
 function normalise(g){
   if(!g.genres)g.genres=g.genre?g.genre.split(',').map(s=>s.trim()).filter(Boolean):[];
   if(!g.platforms)g.platforms=g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[];
+  if(g.status)g.status=String(g.status).toLowerCase().trim();
   if(!g.status)g.status='wishlist';
   g.id=g.id!==undefined&&g.id!==null&&g.id!==''?String(g.id):gid(); // always string, accept any value
   if(!g.added)g.added=Date.now();
@@ -1177,14 +1128,13 @@ function loadFromSheet(){
 // ── SHEETS: SAVE ─────────────────────────
 let _saveQueue=[];
 let _saveFlushing=false;
-let _saveDebounce=null;
 function save(){
   if(OFFLINE){saveOffline();return}
   // Always keep a local cache for instant UI + offline resilience
   localStorage.setItem(KEY,JSON.stringify(games));
   // Debounce: coalesce rapid saves into one write
-  clearTimeout(_saveDebounce);
-  _saveDebounce=setTimeout(flushSave,400);
+  clearTimeout(save._debounce);
+  save._debounce=setTimeout(flushSave,400);
 }
 function flushSave(){
   if(_saveFlushing){_saveQueue.push(true);return}
@@ -1270,7 +1220,7 @@ function populateCalSelects(){
 }
 
 function calendarGames(){
-  return games.filter(g=>g.title&&(g.releaseDate||g.tbaText));
+  return games.filter(g=>g.title&&(g.releaseDate||g.tbaText)&&!isCancelled(g));
 }
 
 function renderCalendar(){
@@ -1467,7 +1417,6 @@ async function initData(){
 let af='all',vm='grid',openId=null,editId=null,rmId=null,riId=null;
 let hrMinVal=0,hrMaxVal=100;
 let cGenres=[],cTags=[],cStars=0;
-// Active filter state for genre/tag popovers
 let fGenres=new Set(),fTags=new Set();
 let fGenreLogic='or',fTagLogic='or';
 
@@ -1476,6 +1425,7 @@ let fGenreLogic='or',fTagLogic='or';
 // ══════════════════════════════════════════
 const esc=s=>s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):'';
 const nr=g=>g.hotness===''||g.hotness===null||g.hotness===undefined;
+const isUnreleased=g=>isGameUnreleased(g); // alias
 const sc=id=>`https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/header.jpg`;
 
 function prioColor(p){return p==='high'?'var(--cyan)':p==='low'?'var(--lime)':'var(--magenta)'}
@@ -1517,16 +1467,13 @@ function isGameUnreleased(g){
 function isPreOrder(g){
   return g.status==='bought'&&isGameUnreleased(g);
 }
-// A game is cancelled if tbaText is 'cancelled' (case-insensitive)
+// A game is cancelled if tbaText is "cancelled" (case-insensitive)
 function isCancelled(g){
-  return !!(g.tbaText&&g.tbaText.trim().toLowerCase()==='cancelled');
+  return typeof g.tbaText==='string'&&g.tbaText.trim().toLowerCase()==='cancelled';
 }
-// Days since added
 function daysAgo(ts){
   if(!ts)return null;
-  const diff=Date.now()-ts;
-  const d=Math.floor(diff/(1000*60*60*24));
-  return d;
+  return Math.floor((Date.now()-ts)/(1000*60*60*24));
 }
 function addedTip(g){
   const d=daysAgo(g.added);
@@ -1577,35 +1524,26 @@ function allTagsSorted(){
 function filtered(){
   const q=document.getElementById('searchInput').value.trim().toLowerCase();
   return games.filter(g=>{
-    // Title-only search
     if(q&&!(g.title||'').toLowerCase().includes(q))return false;
-    // Tab filter
-    if(af==='wishlist')return g.status==='wishlist';
-    if(af==='bought')return g.status==='bought';
-    if(af==='removed')return g.status==='removed';
-    if(af==='review')return g.status==='wishlist'&&nr(g);
-    if(af==='unreleased')return(g.status==='wishlist'||g.status==='bought')&&isGameUnreleased(g);
-    // Hotness range filter (all tab only) — NR games always visible
-    if(hrMinVal>0||hrMaxVal<100){
-      if(!nr(g)){
-        const h=parseInt(g.hotness)||0;
-        if(h<hrMinVal||h>hrMaxVal)return false;
+    if(af==='wishlist'){if(!(g.status==='wishlist'&&!isCancelled(g)))return false;}
+    else if(af==='cancelled'){if(!isCancelled(g))return false;}
+    else if(af==='bought'){if(g.status!=='bought')return false;}
+    else if(af==='removed'){if(g.status!=='removed')return false;}
+    else if(af==='review'){if(!(g.status==='wishlist'&&!isCancelled(g)&&nr(g)))return false;}
+    else if(af==='unreleased'){if(!((g.status==='wishlist'||g.status==='bought')&&isGameUnreleased(g)&&!isCancelled(g)))return false;}
+    else{
+      if(hrMinVal>0||hrMaxVal<100){
+        if(!nr(g)){const h=parseInt(g.hotness)||0;if(h<hrMinVal||h>hrMaxVal)return false}
       }
     }
-    // Genre filter
     if(fGenres.size>0){
-      const gGenres=g.genres&&g.genres.length?g.genres:(g.genre?[g.genre]:[]);
-      const match=fGenreLogic==='and'
-        ?[...fGenres].every(fg=>gGenres.includes(fg))
-        :[...fGenres].some(fg=>gGenres.includes(fg));
+      const gg=g.genres&&g.genres.length?g.genres:(g.genre?[g.genre]:[]);
+      const match=fGenreLogic==='and'?[...fGenres].every(x=>gg.includes(x)):[...fGenres].some(x=>gg.includes(x));
       if(!match)return false;
     }
-    // Tag filter
     if(fTags.size>0){
-      const gTags=g.tags||[];
-      const match=fTagLogic==='and'
-        ?[...fTags].every(ft=>gTags.includes(ft))
-        :[...fTags].some(ft=>gTags.includes(ft));
+      const gt=g.tags||[];
+      const match=fTagLogic==='and'?[...fTags].every(x=>gt.includes(x)):[...fTags].some(x=>gt.includes(x));
       if(!match)return false;
     }
     return true;
@@ -1621,8 +1559,7 @@ function sorted(list){
     if(s==='release-asc'){
       const da=normaliseDate(a.releaseDate)||'9999-99-99';
       const db=normaliseDate(b.releaseDate)||'9999-99-99';
-      if(da!==db)return da.localeCompare(db);
-      return a.title.localeCompare(b.title);
+      return da!==db?da.localeCompare(db):a.title.localeCompare(b.title);
     }
     const ha=nr(a)?null:parseInt(a.hotness)||0;
     const hb=nr(b)?null:parseInt(b.hotness)||0;
@@ -1636,14 +1573,16 @@ function sorted(list){
 //  STATS
 // ══════════════════════════════════════════
 function renderStats(){
-  const wl=games.filter(g=>g.status==='wishlist');
+  const wl=games.filter(g=>g.status==='wishlist'&&!isCancelled(g));
   const bt=games.filter(g=>g.status==='bought');
   const rm=games.filter(g=>g.status==='removed');
+  const ca=games.filter(g=>isCancelled(g));
   const tot=wl.filter(g=>g.price).reduce((s,g)=>s+parseFloat(g.price),0);
   document.getElementById('statChips').innerHTML=`
     <div class="chip"><b>${wl.length+bt.length}</b> ${t('stTot')}</div>
     <div class="chip"><b>${wl.length}</b> ${t('stWl')}</div>
     <div class="chip"><b>${bt.length}</b> ${t('stBt')}</div>
+    ${ca.length?`<div class="chip"><b>${ca.length}</b> cancelled</div>`:''}
     <div class="chip"><b>${rm.length}</b> ${t('stRm')}</div>
     ${tot>0?`<div class="chip"><b>€${tot.toFixed(2)}</b> ${t('stVal')}</div>`:''}`;
 }
@@ -1653,43 +1592,29 @@ function renderStats(){
 // ══════════════════════════════════════════
 function cardHTML(g){
   const isNR=nr(g);
-  const cancelled=isCancelled(g);
   const h=isNR?0:Math.min(100,Math.max(0,parseInt(g.hotness)||0));
   const coverUrl=g.cover||(g.steamAppId?sc(g.steamAppId):'');
   const cImg=coverUrl?`<img src="${esc(coverUrl)}" alt="${esc(g.title)}" onerror="this.style.display='none';this.previousElementSibling.style.display='flex'">`:'';
   const phStyle=coverUrl?'style="display:none"':'';
 
-  // Left badge — cancelled overrides all
+  // Left badge — pre-order replaces bought badge
   let lBdg='';
-  if(cancelled)                  lBdg=`<span class="b-cancelled">CANCELLED</span>`;
+  if(isCancelled(g))             lBdg=`<span class="b-cancelled">CANCELLED</span>`;
   else if(isPreOrder(g))         lBdg=`<span class="bdg b-pre">PRE-ORDER</span>`;
   else if(g.status==='bought')   lBdg=`<span class="bdg b-bt">${t('bdgBt')}</span>`;
   else if(g.status==='removed')  lBdg=`<span class="bdg b-rm">${t('bdgRm')}</span>`;
-  else if(isNR)                  lBdg=`<span class="bdg b-rev">${t('bdgRev')}</span>`;
+  else if(isNR)                  lBdg=`<span class="b-rev">${t('bdgRev')}</span>`;
   else                           lBdg=`<span class="bdg b-hot">${h}</span>`;
 
   // Priority label badge (right side of pill bar)
   const prioLbl=`<span class="b-prio" style="background:${prioColor(g.priority)}">${prioLabel(g.priority)}</span>`;
 
-  // Countdown for upcoming releases
-  function relCountdown(g){
-    if(!g.releaseDate)return null;
-    const n=normaliseDate(g.releaseDate);
-    if(!n||!isFutureDate(g.releaseDate))return null;
-    const diff=new Date(n)-new Date(todayISO());
-    const days=Math.ceil(diff/(1000*60*60*24));
-    if(days===1)return'tomorrow';
-    if(days<=30)return`in ${days}d`;
-    return null;
-  }
-
   // Price / date / unreleased display
   let priceEl;
-  const countdown=relCountdown(g);
-  if(cancelled){
-    priceEl=`<span class="b-unrel-card" style="color:var(--pink);text-decoration:line-through">—</span>`;
-  } else if(isFutureDate(g.releaseDate)){
-    const cdLabel=countdown?` <span style="color:var(--amber);font-size:.6rem;font-weight:700">${countdown}</span>`:'';
+  if(isFutureDate(g.releaseDate)){
+    const days=Math.ceil((new Date(normaliseDate(g.releaseDate))-new Date(todayISO()))/(1000*60*60*24));
+    const cd=days===1?'tomorrow':days<=30?`in ${days}d`:null;
+    const cdLabel=cd?` <span style="color:var(--amber);font-size:.6rem;font-weight:700">${cd}</span>`:'';
     priceEl=`<span class="b-unrel-card">${fmtDate(g.releaseDate)}${cdLabel}</span>`;
   } else if(g.tbaText){
     priceEl=`<span class="b-unrel-card">${esc(g.tbaText)}</span>`;
@@ -1714,13 +1639,11 @@ function cardHTML(g){
   } else if(g.status!=='bought'){
     rmBtn=`<button class="qb qr" title="Remove" onclick="event.stopPropagation();startRemove('${gid_s}')">✕</button>`;
   }
-
-  const cancelledClass=cancelled?' st-cancelled':'';
-  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}${cancelledClass}" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}"${tip?` data-added-tip="${esc(tip)}"`:''}>
+  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}${isCancelled(g)?' cancelled':''}" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}"${tip?` data-added-tip="${esc(tip)}"`:''}>
     <div class="cc">
       <div class="cph" ${phStyle}>🎮</div>${cImg}
       <div class="cg"></div>
-      <div class="hb2"><div class="hf" style="width:${cancelled?0:h}%"></div></div>
+      <div class="hb2"><div class="hf" style="width:${h}%"></div></div>
     </div>
     <div class="pb">${lBdg}<div class="pb-r">${prioLbl}</div></div>
     <div class="cb">
@@ -1772,9 +1695,15 @@ function renderAll(){
     gc.innerHTML=`<div class="sb"><div class="sl">${t('secRm')}</div><div class="${gcls}">${sorted(list).map(cardHTML).join('')}</div></div>`;
     bindCards(gc);return;
   }
+  // Dedicated cancelled tab
+  if(af==='cancelled'){
+    if(!list.length){gc.innerHTML=`<div class="${gcls}"><div class="empty"><div class="ei">🚫</div><p>No cancelled games</p></div></div>`;return}
+    gc.innerHTML=`<div class="sb"><div class="sl">CANCELLED</div><div class="${gcls}">${sorted(list).map(cardHTML).join('')}</div></div>`;
+    bindCards(gc);return;
+  }
 
   if(!list.length){
-    gc.innerHTML=`<div class="${gcls}"><div class="empty"><div class="ei">🎮</div><p>${t('noGames')}<br>${t('noHint')}</p><p style="margin-top:.8rem;font-size:.65rem;color:var(--t3);line-height:1.8">⌨ <b style="color:var(--t2)">A</b> add game &nbsp;·&nbsp; <b style="color:var(--t2)">/</b> search &nbsp;·&nbsp; <b style="color:var(--t2)">C</b> calendar &nbsp;·&nbsp; <b style="color:var(--t2)">G/L</b> grid/list &nbsp;·&nbsp; <b style="color:var(--t2)">Esc</b> close</p></div></div>`;
+    gc.innerHTML=`<div class="${gcls}"><div class="empty"><div class="ei">🎮</div><p>${t('noGames')}<br>${t('noHint')}</p></div></div>`;
     return;
   }
 
@@ -1783,13 +1712,15 @@ function renderAll(){
     const sv=document.getElementById('sortSel').value;
     if(sv==='hotness'||af==='all'){
       // Sections: TO REVIEW → WISHLIST → REMOVED → YOUR BACKLOG (bought)
-      const wishlist=list.filter(g=>g.status==='wishlist');
+      const wishlist=list.filter(g=>g.status==='wishlist'&&!isCancelled(g));
       const bought=list.filter(g=>g.status==='bought');
+      const cancelled=af==='all'?list.filter(g=>isCancelled(g)):[];
       const removed=af==='all'?list.filter(g=>g.status==='removed'):[];
       const rev=wishlist.filter(g=>nr(g));
       const wlRest=sorted(wishlist.filter(g=>!nr(g)));
       if(rev.length)     html+=`<div class="sb"><div class="sl">${t('secRev')}</div><div class="${gcls}">${rev.map(cardHTML).join('')}</div></div>`;
       if(wlRest.length)  html+=`<div class="sb"><div class="sl">${t('secWl')}</div><div class="${gcls}">${wlRest.map(cardHTML).join('')}</div></div>`;
+      if(cancelled.length) html+=`<div class="sb"><div class="sl">CANCELLED</div><div class="${gcls}">${sorted(cancelled).map(cardHTML).join('')}</div></div>`;
       if(removed.length) html+=`<div class="sb"><div class="sl">${t('secRm')}</div><div class="${gcls}">${sorted(removed).map(cardHTML).join('')}</div></div>`;
       if(bought.length)  html+=`<div class="sb"><div class="sl">${t('secBacklog')}</div><div class="${gcls}">${sorted(bought).map(cardHTML).join('')}</div></div>`;
     } else {
@@ -1920,11 +1851,10 @@ function openPanel(id){
 
   let b=`<div class="pt">${esc(g.title)}</div>
     <div class="pm">
-      ${isCancelled(g)?`<span class="b-cancelled">CANCELLED</span>`:''}
-      ${!isCancelled(g)&&isPreOrder(g)?`<span class="bdg b-pre">PRE-ORDER</span>`:''}
-      ${!isCancelled(g)&&g.status==='bought'&&!isPreOrder(g)?`<span class="bdg b-bt">${t('bdgBt')}</span>`:''}
+      ${isPreOrder(g)?`<span class="bdg b-pre">PRE-ORDER</span>`:g.status==='bought'?`<span class="bdg b-bt">${t('bdgBt')}</span>`:''}
       ${g.status==='removed'?`<span class="bdg b-rm">${t('bdgRm')}</span>`:''}
-      ${isNR&&g.status==='wishlist'?`<span class="bdg b-rev">${t('bdgRev')}</span>`:''}
+      ${isCancelled(g)?`<span class="b-cancelled">CANCELLED</span>`:''}
+      ${isNR&&g.status==='wishlist'&&!isCancelled(g)?`<span class="b-rev">${t('bdgRev')}</span>`:''}
       <span class="bdg" style="background:${prioColor(g.priority)};color:#031329">${prioLabel(g.priority)}</span>
       ${platD?`<span class="bdg" style="background:var(--s3);color:var(--t2)">${esc(platD)}</span>`:''}
     </div>`;
@@ -1934,7 +1864,6 @@ function openPanel(id){
   else b+=`<div class="hr2"><div class="ht"><div class="htf" style="width:${h}%"></div></div><div class="hn">${h}</div></div>`;
   b+=`</div>`;
 
-  const addedStr=(()=>{const d=daysAgo(g.added);if(d===null)return'—';if(d===0)return'Today';if(d===1)return'Yesterday';return`${d} days ago`})();
   const det=[
     `<div><span style="color:var(--t3)">${t('pDev')}: </span>${esc(g.developer||'—')}</div>`,
     `<div><span style="color:var(--t3)">${t('pPub')}: </span>${esc(g.publisher||'—')}</div>`,
@@ -1942,7 +1871,7 @@ function openPanel(id){
     `<div><span style="color:var(--t3)">${t('pGenre')}: </span>${esc(genreD||'—')}</div>`,
     `<div><span style="color:var(--t3)">${t('pPlatform')}: </span>${esc(platD||'—')}</div>`,
     `<div><span style="color:var(--t3)">${t('pPrice')}: </span>${g.price?`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>`:`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`}</div>`,
-    `<div><span style="color:var(--t3)">Added: </span><span style="color:var(--t2)">${addedStr}</span></div>`,
+    `<div><span style="color:var(--t3)">Added: </span><span style="color:var(--t2)">${(()=>{const d=daysAgo(g.added);return d===null?'—':d===0?'Today':d===1?'Yesterday':d+' days ago'})()}</span></div>`,
   ];
   b+=`<div class="ps"><div class="psl">${t('pDetails')}</div><div class="pv" style="display:grid;grid-template-columns:1fr 1fr;gap:.28rem .55rem">${det.join('')}</div></div>`;
 
@@ -2110,7 +2039,7 @@ function makeChip(wrapId,inputId,getA,setA,renderCb){
   return render;
 }
 const renderGenres=makeChip('genreWrap','genreInput',()=>cGenres,v=>{cGenres=v},updateGenreDd);
-const renderTags=makeChip('tagsWrap','tagsInput',()=>cTags,v=>{cTags=v},updateTagsDd);
+const renderTags=makeChip('tagsWrap','tagsInput',()=>cTags,v=>{cTags=v});
 
 function updateGenreDd(){
   const dd=document.getElementById('genreDd');
@@ -2130,12 +2059,45 @@ document.getElementById('genreInput').addEventListener('focus',updateGenreDd);
 function updateTagsDd(){
   const dd=document.getElementById('tagsDd');
   const q=(document.getElementById('tagsInput').value||'').toLowerCase().trim();
-  const all=allTagsSorted().filter(x=>!cTags.includes(x)&&(!q||x.toLowerCase().includes(q)));
+  const current=getA_tags();
+  const all=allTagsSorted().filter(t=>!current.includes(t)&&(!q||t.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
-  dd.innerHTML=all.map(x=>`<div class="genre-opt" data-t="${esc(x)}">${esc(x)}</div>`).join('');
+  dd.innerHTML=all.map(t=>`<div class="genre-opt" data-t="${esc(t)}">${esc(t)}</div>`).join('');
   dd.classList.add('on');
   dd.querySelectorAll('.genre-opt').forEach(el=>{
-    el.onclick=()=>{cTags.push(el.dataset.t);document.getElementById('tagsInput').value='';renderTags();dd.classList.remove('on')};
+    el.onclick=()=>{
+      const a=getA_tags();a.push(el.dataset.t);setA_tags(a);
+      document.getElementById('tagsInput').value='';
+      renderTagChips();
+      dd.classList.remove('on');
+    };
+  });
+}
+// Helper to get/set tags array from the chip input
+function getA_tags(){
+  return [...document.getElementById('tagsWrap').querySelectorAll('.cich')].map(el=>el.dataset.v||el.childNodes[0].textContent.trim());
+}
+function setA_tags(arr){
+  // Use the existing chip system — trigger re-render
+  renderTagChips(arr);
+}
+function renderTagChips(arr){
+  if(arr===undefined){
+    arr=getA_tags();
+  }
+  const wrap=document.getElementById('tagsWrap');
+  const inp=document.getElementById('tagsInput');
+  // Remove existing chips
+  [...wrap.querySelectorAll('.cich')].forEach(el=>el.remove());
+  arr.forEach(v=>{
+    const chip=document.createElement('span');
+    chip.className='cich';chip.dataset.v=v;
+    chip.innerHTML=`${esc(v)}<button type="button" data-v="${esc(v)}">×</button>`;
+    chip.querySelector('button').onclick=e=>{
+      const cur=getA_tags().filter(x=>x!==v);
+      renderTagChips(cur);
+    };
+    wrap.insertBefore(chip,inp);
   });
 }
 document.getElementById('tagsInput').addEventListener('input',updateTagsDd);
@@ -2482,126 +2444,6 @@ document.getElementById('searchInputMob').oninput=function(){
 };
 
 // ══════════════════════════════════════════
-//  GENRE & TAG FILTER POPOVERS
-// ══════════════════════════════════════════
-function makeFilterPopover({
-  btnId, popId, badgeId, clearId, listId, logicToggleId,
-  getSelected, setSelected, getLogic, setLogic,
-  getOptions, // ()=>[ {value, count} ]
-}){
-  const btn=document.getElementById(btnId);
-  const pop=document.getElementById(popId);
-  const badge=document.getElementById(badgeId);
-  const clearBtn=document.getElementById(clearId);
-  const list=document.getElementById(listId);
-  const logicWrap=document.getElementById(logicToggleId);
-
-  function updateBtn(){
-    const sel=getSelected();
-    const active=sel.size>0;
-    btn.classList.toggle('active',active);
-    if(active){
-      badge.textContent=sel.size;
-      badge.style.display='';
-    } else {
-      badge.style.display='none';
-    }
-  }
-
-  function renderList(){
-    const opts=getOptions();
-    const sel=getSelected();
-    if(!opts.length){
-      list.innerHTML=`<div class="fpop-empty">No options available</div>`;
-      return;
-    }
-    list.innerHTML=opts.map(({value,count})=>`
-      <label class="fpop-opt">
-        <input type="checkbox" value="${esc(value)}"${sel.has(value)?' checked':''}>
-        <span class="fpop-opt-label">${esc(value)}</span>
-        <span class="fpop-opt-count">${count}</span>
-      </label>`).join('');
-    list.querySelectorAll('input[type=checkbox]').forEach(cb=>{
-      cb.onchange=()=>{
-        const s=getSelected();
-        if(cb.checked)s.add(cb.value);else s.delete(cb.value);
-        setSelected(s);
-        updateBtn();
-        renderAll();
-      };
-    });
-  }
-
-  // Logic toggle (AND/OR)
-  logicWrap.addEventListener('click',e=>{
-    const b=e.target.closest('.fpop-logic-btn');if(!b)return;
-    const l=b.dataset.l;
-    setLogic(l);
-    logicWrap.querySelectorAll('.fpop-logic-btn').forEach(x=>x.classList.toggle('on',x.dataset.l===l));
-    if(getSelected().size>0)renderAll();
-  });
-
-  // Clear
-  clearBtn.onclick=()=>{
-    setSelected(new Set());
-    updateBtn();
-    renderList();
-    renderAll();
-  };
-
-  // Toggle popover open/close
-  btn.addEventListener('click',e=>{
-    e.stopPropagation();
-    // Close other popovers first
-    document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
-    const opening=!pop.classList.contains('open');
-    pop.classList.toggle('open',opening);
-    if(opening)renderList();
-  });
-
-  // Close on outside click
-  document.addEventListener('click',e=>{
-    if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open');
-  });
-
-  // Expose refresh so renderAll can keep counts current without reopening
-  return{updateBtn};
-}
-
-const genreFilterCtrl=makeFilterPopover({
-  btnId:'genreFilterBtn',popId:'genreFilterPop',badgeId:'genreFilterBadge',
-  clearId:'genreFilterClear',listId:'genreFilterList',logicToggleId:'genreLogicToggle',
-  getSelected:()=>fGenres,
-  setSelected:s=>{fGenres=s},
-  getLogic:()=>fGenreLogic,
-  setLogic:l=>{fGenreLogic=l},
-  getOptions:()=>{
-    const freq={};
-    games.forEach(g=>{
-      const gs=g.genres&&g.genres.length?g.genres:(g.genre?[g.genre]:[]);
-      gs.forEach(x=>{if(x)freq[x]=(freq[x]||0)+1});
-    });
-    return Object.keys(freq).sort().map(v=>({value:v,count:freq[v]}));
-  },
-});
-
-const tagFilterCtrl=makeFilterPopover({
-  btnId:'tagFilterBtn',popId:'tagFilterPop',badgeId:'tagFilterBadge',
-  clearId:'tagFilterClear',listId:'tagFilterList',logicToggleId:'tagLogicToggle',
-  getSelected:()=>fTags,
-  setSelected:s=>{fTags=s},
-  getLogic:()=>fTagLogic,
-  setLogic:l=>{fTagLogic=l},
-  getOptions:()=>{
-    const freq={};
-    games.forEach(g=>(g.tags||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1}));
-    return Object.keys(freq)
-      .sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b))
-      .map(v=>({value:v,count:freq[v]}));
-  },
-});
-
-// ══════════════════════════════════════════
 //  EXPORT / IMPORT
 // ══════════════════════════════════════════
 document.getElementById('expBtn').onclick=()=>{
@@ -2637,8 +2479,8 @@ document.getElementById('impBtn').onclick=()=>{
 //  HAMBURGER MENU + CALENDAR BUTTON
 // ══════════════════════════════════════════
 (function(){
-  const btn=document.getElementById('hamburgerBtn');
-  const menu=document.getElementById('hmenu');
+  var btn=document.getElementById('hamburgerBtn');
+  var menu=document.getElementById('hmenu');
   btn.addEventListener('click',function(e){
     e.stopPropagation();
     menu.classList.toggle('on');
@@ -2666,28 +2508,21 @@ document.getElementById('impBtn').onclick=()=>{
   const thumbMin=document.getElementById('hrThumbMin');
   const thumbMax=document.getElementById('hrThumbMax');
   const valsEl=document.getElementById('hrVals');
-
   function clamp(v,lo,hi){return Math.min(hi,Math.max(lo,v))}
-
   function updateSliderUI(){
-    if(!wrap)return;
-    const pMin=(hrMinVal/100)*100;
-    const pMax=(hrMaxVal/100)*100;
-    thumbMin.style.left=pMin+'%';
-    thumbMax.style.left=pMax+'%';
-    fill.style.left=pMin+'%';
-    fill.style.width=(pMax-pMin)+'%';
+    if(!wrap||!thumbMin||!thumbMax)return;
+    thumbMin.style.left=hrMinVal+'%';
+    thumbMax.style.left=hrMaxVal+'%';
+    fill.style.left=hrMinVal+'%';
+    fill.style.width=(hrMaxVal-hrMinVal)+'%';
     if(valsEl)valsEl.textContent=hrMinVal+'–'+hrMaxVal;
   }
-
   function applyValues(mn,mx){
     hrMinVal=mn;hrMaxVal=mx;
     minInp.value=mn;maxInp.value=mx;
     updateSliderUI();
     renderAll();
   }
-
-  // Mobile: number inputs
   function onNumChange(){
     let mn=clamp(parseInt(minInp.value)||0,0,100);
     let mx=clamp(parseInt(maxInp.value)||100,0,100);
@@ -2696,47 +2531,104 @@ document.getElementById('impBtn').onclick=()=>{
   }
   minInp.addEventListener('input',onNumChange);
   maxInp.addEventListener('input',onNumChange);
-
-  // Desktop: drag thumbs
   function makeDraggable(thumb,isMin){
     let dragging=false;
-    function startDrag(e){
-      dragging=true;thumb.classList.add('dragging');
-      e.preventDefault();
-    }
-    function onMove(clientX){
+    thumb.addEventListener('mousedown',e=>{dragging=true;thumb.classList.add('dragging');e.preventDefault()});
+    document.addEventListener('mousemove',e=>{
       if(!dragging)return;
       const rect=wrap.getBoundingClientRect();
-      let pct=clamp((clientX-rect.left)/rect.width,0,1);
-      let val=Math.round(pct*100);
-      if(isMin){val=clamp(val,0,hrMaxVal);applyValues(val,hrMaxVal)}
-      else{val=clamp(val,hrMinVal,100);applyValues(hrMinVal,val)}
-    }
-    function stopDrag(){dragging=false;thumb.classList.remove('dragging')}
-    thumb.addEventListener('mousedown',startDrag);
-    document.addEventListener('mousemove',e=>{if(dragging)onMove(e.clientX)});
-    document.addEventListener('mouseup',stopDrag);
+      const val=Math.round(clamp((e.clientX-rect.left)/rect.width,0,1)*100);
+      isMin?applyValues(clamp(val,0,hrMaxVal),hrMaxVal):applyValues(hrMinVal,clamp(val,hrMinVal,100));
+    });
+    document.addEventListener('mouseup',()=>{dragging=false;thumb.classList.remove('dragging')});
     thumb.addEventListener('touchstart',e=>{dragging=true;thumb.classList.add('dragging');e.preventDefault()},{passive:false});
-    document.addEventListener('touchmove',e=>{if(dragging)onMove(e.touches[0].clientX)},{passive:true});
-    document.addEventListener('touchend',stopDrag);
+    document.addEventListener('touchmove',e=>{
+      if(!dragging)return;
+      const rect=wrap.getBoundingClientRect();
+      const val=Math.round(clamp((e.touches[0].clientX-rect.left)/rect.width,0,1)*100);
+      isMin?applyValues(clamp(val,0,hrMaxVal),hrMaxVal):applyValues(hrMinVal,clamp(val,hrMinVal,100));
+    },{passive:true});
+    document.addEventListener('touchend',()=>{dragging=false;thumb.classList.remove('dragging')});
   }
   if(thumbMin)makeDraggable(thumbMin,true);
   if(thumbMax)makeDraggable(thumbMax,false);
-
   updateSliderUI();
 })();
+
+// ══════════════════════════════════════════
+//  GENRE & TAG FILTER POPOVERS
+// ══════════════════════════════════════════
+function makeFilterPopover({btnId,popId,badgeId,clearId,listId,logicToggleId,getSelected,setSelected,getLogic,setLogic,getOptions}){
+  const btn=document.getElementById(btnId);
+  const pop=document.getElementById(popId);
+  const badge=document.getElementById(badgeId);
+  const clearBtn=document.getElementById(clearId);
+  const list=document.getElementById(listId);
+  const logicWrap=document.getElementById(logicToggleId);
+  function updateBtn(){
+    const sel=getSelected();const active=sel.size>0;
+    btn.classList.toggle('active',active);
+    badge.textContent=sel.size;badge.style.display=active?'':'none';
+  }
+  function renderList(){
+    const opts=getOptions();const sel=getSelected();
+    if(!opts.length){list.innerHTML=`<div class="fpop-empty">No options available</div>`;return}
+    list.innerHTML=opts.map(({value,count})=>`
+      <label class="fpop-opt">
+        <input type="checkbox" value="${esc(value)}"${sel.has(value)?' checked':''}>
+        <span class="fpop-opt-label">${esc(value)}</span>
+        <span class="fpop-opt-count">${count}</span>
+      </label>`).join('');
+    list.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+      cb.onchange=()=>{const s=getSelected();cb.checked?s.add(cb.value):s.delete(cb.value);setSelected(s);updateBtn();renderAll()};
+    });
+  }
+  logicWrap.addEventListener('click',e=>{
+    const b=e.target.closest('.fpop-logic-btn');if(!b)return;
+    setLogic(b.dataset.l);
+    logicWrap.querySelectorAll('.fpop-logic-btn').forEach(x=>x.classList.toggle('on',x.dataset.l===b.dataset.l));
+    if(getSelected().size>0)renderAll();
+  });
+  clearBtn.onclick=()=>{setSelected(new Set());updateBtn();renderList();renderAll()};
+  btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
+    const opening=!pop.classList.contains('open');
+    pop.classList.toggle('open',opening);
+    if(opening)renderList();
+  });
+  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
+}
+makeFilterPopover({
+  btnId:'genreFilterBtn',popId:'genreFilterPop',badgeId:'genreFilterBadge',
+  clearId:'genreFilterClear',listId:'genreFilterList',logicToggleId:'genreLogicToggle',
+  getSelected:()=>fGenres,setSelected:s=>{fGenres=s},
+  getLogic:()=>fGenreLogic,setLogic:l=>{fGenreLogic=l},
+  getOptions:()=>{
+    const freq={};
+    games.forEach(g=>{const gs=g.genres&&g.genres.length?g.genres:(g.genre?[g.genre]:[]);gs.forEach(x=>{if(x)freq[x]=(freq[x]||0)+1})});
+    return Object.keys(freq).sort().map(v=>({value:v,count:freq[v]}));
+  },
+});
+makeFilterPopover({
+  btnId:'tagFilterBtn',popId:'tagFilterPop',badgeId:'tagFilterBadge',
+  clearId:'tagFilterClear',listId:'tagFilterList',logicToggleId:'tagLogicToggle',
+  getSelected:()=>fTags,setSelected:s=>{fTags=s},
+  getLogic:()=>fTagLogic,setLogic:l=>{fTagLogic=l},
+  getOptions:()=>{
+    const freq={};
+    games.forEach(g=>(g.tags||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1}));
+    return Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b)).map(v=>({value:v,count:freq[v]}));
+  },
+});
 
 // ══════════════════════════════════════════
 //  KEYBOARD SHORTCUTS
 // ══════════════════════════════════════════
 document.addEventListener('keydown',function(e){
-  // Skip if focus is inside an input, textarea, or select
   const tag=(e.target.tagName||'').toLowerCase();
   const inField=tag==='input'||tag==='textarea'||tag==='select'||e.target.isContentEditable;
-
-  // Escape — close any open overlay
   if(e.key==='Escape'){
-    // Close any open filter popovers first
     const openPop=document.querySelector('.fpop.open');
     if(openPop){openPop.classList.remove('open');return}
     if(document.getElementById('mov').classList.contains('on')){closeModal();return}
@@ -2746,31 +2638,12 @@ document.addEventListener('keydown',function(e){
     if(document.getElementById('panel').classList.contains('on')){closePanel();return}
     return;
   }
-
-  if(inField)return; // remaining shortcuts only outside fields
-
-  // / → focus search
-  if(e.key==='/'){
-    e.preventDefault();
-    const si=document.getElementById('searchInput');
-    if(si){si.focus();si.select()}
-    return;
-  }
-  // A or N → add game
-  if(e.key==='a'||e.key==='A'||e.key==='n'||e.key==='N'){
-    openAdd();return;
-  }
-  // C → open calendar
-  if(e.key==='c'||e.key==='C'){
-    openCalendar();return;
-  }
-  // G → grid view, L → list view
-  if(e.key==='g'||e.key==='G'){
-    vm='grid';document.getElementById('gridBtn').classList.add('on');document.getElementById('listBtn').classList.remove('on');renderAll();return;
-  }
-  if(e.key==='l'||e.key==='L'){
-    vm='list';document.getElementById('listBtn').classList.add('on');document.getElementById('gridBtn').classList.remove('on');renderAll();return;
-  }
+  if(inField)return;
+  if(e.key==='/'){e.preventDefault();const si=document.getElementById('searchInput');if(si){si.focus();si.select()}return}
+  if(e.key==='a'||e.key==='A'||e.key==='n'||e.key==='N'){openAdd();return}
+  if(e.key==='c'||e.key==='C'){openCalendar();return}
+  if(e.key==='g'||e.key==='G'){vm='grid';document.getElementById('gridBtn').classList.add('on');document.getElementById('listBtn').classList.remove('on');renderAll();return}
+  if(e.key==='l'||e.key==='L'){vm='list';document.getElementById('listBtn').classList.add('on');document.getElementById('gridBtn').classList.remove('on');renderAll();return}
 });
 
 // ══════════════════════════════════════════
