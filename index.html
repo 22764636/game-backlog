@@ -83,8 +83,8 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;position:relative;display:flex;flex-direction:column}
 .gc:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 6px 20px #02b3fc12}
 .gc.st-removed{opacity:.45;filter:grayscale(.6)}.gc.sb2{border-color:#9cff0044}
-.gc.cancelled{opacity:.55;filter:grayscale(1);border-color:#ff00aa44}
-.b-cancelled{background:#ff00aa22;color:var(--pink);border:1px solid #ff00aa55;font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap}
+.gc.cancelled{opacity:.55;filter:grayscale(1);border-color:#cc220044}
+.b-cancelled{background:#cc220022;color:#e03010;border:1px solid #cc220055;font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap}
 
 /* pill bar */
 .pb{position:absolute;top:0;left:0;right:0;height:var(--rl);display:flex;align-items:center;
@@ -368,6 +368,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
     transform:translateX(-50%);top:50%;margin-top:-6.5px;transition:box-shadow .12s;z-index:2}
   .hrange-thumb:hover,.hrange-thumb.dragging{box-shadow:0 0 0 3px #02b3fc44}
   .hrange-vals{font-size:.67rem;font-weight:600;color:var(--t2);white-space:nowrap;min-width:52px}
+  .hrange-reset{display:none;background:transparent;border:none;color:var(--t3);font-size:.9rem;cursor:pointer;padding:0 .1rem;line-height:1;transition:color .12s;flex-shrink:0}
+  .hrange-reset.visible{display:block}
+  .hrange-reset:hover{color:var(--pink)}
+  /* pad scrollbar away from counts */
+  .fpop-list{padding-right:2px}
 }
 @media(max-width:640px){.hrange-slider-wrap,.hrange-vals{display:none}}
 /* Card added-date tooltip */
@@ -392,6 +397,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .fpop{display:none;position:absolute;top:calc(100% + 5px);left:0;background:var(--s1);
   border:1px solid var(--bd2);border-radius:var(--rl);z-index:300;min-width:200px;max-width:260px;
   box-shadow:0 8px 24px rgba(0,0,0,.4);padding:.5rem}
+@media(max-width:640px){
+  .fpop{left:auto;right:0;max-width:calc(100vw - 1.2rem);min-width:180px}
+}
 .fpop.open{display:block}
 .fpop-header{display:flex;align-items:center;justify-content:space-between;
   padding:.1rem .15rem .4rem;border-bottom:1px solid var(--bd);margin-bottom:.35rem;gap:.4rem}
@@ -528,7 +536,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 #hmenu{
   display:none;position:fixed;top:var(--hh);right:0;
   background:var(--s1);border:1px solid var(--bd2);border-top:none;
-  border-radius:0 0 var(--rl) var(--rl);z-index:200;min-width:220px;
+  border-radius:0 0 var(--rl) var(--rl);z-index:350;min-width:220px;
   box-shadow:0 8px 24px rgba(0,0,0,.35)
 }
 #hmenu.on{display:block}
@@ -552,19 +560,23 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   #hdr{flex-wrap:nowrap;padding:0 .65rem;gap:.35rem;overflow:visible}
   .logo-full{display:none!important}
   .logo-short{display:inline-flex!important}
-  .hs{display:none!important}
+  .hs-desk{display:none!important}
+  .hs-mob{display:flex!important;flex:1;min-width:0}
   .sync-hdr{display:none}
-  .hr{gap:.2rem;flex-shrink:0;margin-left:auto}
+  .hr{gap:.2rem;flex-shrink:0;margin-left:0}
   .hb-label{display:none}
   .hb{padding:0 .4rem}
   .hb-desk{display:none!important}
   .hb-mob{display:flex!important}
 }
+@media(min-width:641px){.hs-mob{display:none!important}.hs-desk{display:flex!important}}
 @media(min-width:641px){
   .logo-full{display:inline!important}
   .logo-short{display:none!important}
   .hb-mob{display:none!important}
   #hmenu{display:none!important}
+  .hs-mob{display:none!important}
+  .hs-desk{display:flex!important}
 }
 @media(max-width:560px){
   :root{--pw:100vw}.fg{grid-template-columns:1fr}.gg{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
@@ -630,16 +642,20 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
       <tspan fill="#02b3fc">B</tspan><tspan fill="#e8f4ff">t</tspan><tspan fill="#ff00aa">B</tspan>
     </text>
   </svg>
-  <div class="hs">
+  <div class="hs hs-desk">
     <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
     <input type="text" id="searchInput" placeholder="Search…" autocomplete="off">
+  </div>
+  <div class="hs hs-mob">
+    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="searchInputMob" placeholder="Search…" autocomplete="off">
   </div>
   <span id="syncStatus" class="sync-hdr"></span>
   <div class="hr">
     <button class="hb hb-desk" id="themeBtn">☀️</button>
     <button class="hb hb-desk" id="calBtn" title="Release Calendar">📅<span class="hb-label"> Calendar</span></button>
-    <button class="hb hb-desk" id="expBtn" title="Export">⬇<span class="hb-label"> Export</span></button>
-    <button class="hb hb-desk" id="impBtn" title="Import">⬆<span class="hb-label"> Import</span></button>
+    <button class="hb hb-desk" id="expBtn" title="Export"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg><span class="hb-label"> Export</span></button>
+    <button class="hb hb-desk" id="impBtn" title="Import"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg><span class="hb-label"> Import</span></button>
     <button class="hb p" id="addBtn">＋<span class="hb-label"> Add game</span></button>
     <button class="hb hb-mob" id="hamburgerBtn" style="font-size:1rem;padding:0 .5rem" title="Menu">☰</button>
   </div>
@@ -655,14 +671,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 </div>
 <!-- Mobile dropdown menu — outside header to avoid overflow:hidden clipping -->
 <div id="hmenu">
-  <div class="hm-search">
-    <svg viewBox="0 0 24 24" stroke-width="2" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--t3);fill:none;pointer-events:none"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-    <input type="text" id="searchInputMob" placeholder="Search…" autocomplete="off">
-  </div>
   <button class="hmi" id="hmCalBtn">📅 Release Calendar</button>
   <button class="hmi" id="hmThemeBtn">☀️ Toggle theme</button>
-  <button class="hmi" id="hmExpBtn">⬇ Export</button>
-  <button class="hmi" id="hmImpBtn">⬆ Import</button>
+  <button class="hmi" id="hmExpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg> Export</button>
+  <button class="hmi" id="hmImpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg> Import</button>
   <button class="hmi" id="hmResyncBtn" style="display:none">⟳ Re-sync</button>
 </div>
 
@@ -735,6 +747,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
       <div class="hrange-thumb" id="hrThumbMax" title="Max hotness"></div>
     </div>
     <span class="hrange-vals" id="hrVals">0–100</span>
+    <button class="hrange-reset" id="hrReset" title="Reset hotness filter">×</button>
   </div>
   <div class="vt">
     <button class="vtb on" id="gridBtn" title="Grid">⊞</button>
@@ -897,12 +910,14 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
       </div>
     </div>
     <!-- Notes in modal -->
-    <div class="fr">
-      <label>Notes <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— optional, saved with today's date</span></label>
+    <div class="fr" id="modalNotesSection">
+      <label>Notes</label>
       <div class="note-compose">
         <input type="date" id="fNoteDate" class="note-compose-date">
         <textarea class="note-add" id="fNoteTxt" placeholder="Add a note…" style="margin-bottom:0;min-height:36px;resize:none"></textarea>
       </div>
+      <button class="note-save-btn" id="fNoteSaveBtn" style="margin-top:.3rem">＋ Save note</button>
+      <div id="fNoteList" style="margin-top:.45rem"></div>
     </div>
     <div class="ma">
       <button class="mb2 c" id="mcancel">Cancel</button>
@@ -1522,7 +1537,8 @@ function allTagsSorted(){
 //  FILTER + SORT
 // ══════════════════════════════════════════
 function filtered(){
-  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  const _si=document.getElementById('searchInput');const _sm=document.getElementById('searchInputMob');
+  const q=((_si&&_si.value)||(_sm&&_sm.value)||'').trim().toLowerCase();
   return games.filter(g=>{
     if(q&&!(g.title||'').toLowerCase().includes(q))return false;
     if(af==='wishlist'){if(!(g.status==='wishlist'&&!isCancelled(g)))return false;}
@@ -1867,7 +1883,15 @@ function openPanel(id){
   const det=[
     `<div><span style="color:var(--t3)">${t('pDev')}: </span>${esc(g.developer||'—')}</div>`,
     `<div><span style="color:var(--t3)">${t('pPub')}: </span>${esc(g.publisher||'—')}</div>`,
-    `<div><span style="color:var(--t3)">${t('pRel')}: </span>${esc(dateD)}</div>`,
+    (()=>{
+      let relStr=esc(dateD);
+      if(isFutureDate(g.releaseDate)){
+        const dys=Math.ceil((new Date(normaliseDate(g.releaseDate))-new Date(todayISO()))/(1000*60*60*24));
+        const lbl=dys===1?'tomorrow':dys<=30?`in ${dys}d`:dys<=365?`in ${Math.ceil(dys/7)}w`:null;
+        if(lbl)relStr+=` <span style="color:var(--amber);font-size:.65rem;font-weight:700">${lbl}</span>`;
+      }
+      return `<div><span style="color:var(--t3)">${t('pRel')}: </span>${relStr}</div>`;
+    })(),
     `<div><span style="color:var(--t3)">${t('pGenre')}: </span>${esc(genreD||'—')}</div>`,
     `<div><span style="color:var(--t3)">${t('pPlatform')}: </span>${esc(platD||'—')}</div>`,
     `<div><span style="color:var(--t3)">${t('pPrice')}: </span>${g.price?`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>`:`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`}</div>`,
@@ -2059,45 +2083,17 @@ document.getElementById('genreInput').addEventListener('focus',updateGenreDd);
 function updateTagsDd(){
   const dd=document.getElementById('tagsDd');
   const q=(document.getElementById('tagsInput').value||'').toLowerCase().trim();
-  const current=getA_tags();
-  const all=allTagsSorted().filter(t=>!current.includes(t)&&(!q||t.toLowerCase().includes(q)));
+  const all=allTagsSorted().filter(t=>!cTags.includes(t)&&(!q||t.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
   dd.innerHTML=all.map(t=>`<div class="genre-opt" data-t="${esc(t)}">${esc(t)}</div>`).join('');
   dd.classList.add('on');
   dd.querySelectorAll('.genre-opt').forEach(el=>{
     el.onclick=()=>{
-      const a=getA_tags();a.push(el.dataset.t);setA_tags(a);
+      cTags.push(el.dataset.t);
       document.getElementById('tagsInput').value='';
-      renderTagChips();
+      renderTags();
       dd.classList.remove('on');
     };
-  });
-}
-// Helper to get/set tags array from the chip input
-function getA_tags(){
-  return [...document.getElementById('tagsWrap').querySelectorAll('.cich')].map(el=>el.dataset.v||el.childNodes[0].textContent.trim());
-}
-function setA_tags(arr){
-  // Use the existing chip system — trigger re-render
-  renderTagChips(arr);
-}
-function renderTagChips(arr){
-  if(arr===undefined){
-    arr=getA_tags();
-  }
-  const wrap=document.getElementById('tagsWrap');
-  const inp=document.getElementById('tagsInput');
-  // Remove existing chips
-  [...wrap.querySelectorAll('.cich')].forEach(el=>el.remove());
-  arr.forEach(v=>{
-    const chip=document.createElement('span');
-    chip.className='cich';chip.dataset.v=v;
-    chip.innerHTML=`${esc(v)}<button type="button" data-v="${esc(v)}">×</button>`;
-    chip.querySelector('button').onclick=e=>{
-      const cur=getA_tags().filter(x=>x!==v);
-      renderTagChips(cur);
-    };
-    wrap.insertBefore(chip,inp);
   });
 }
 document.getElementById('tagsInput').addEventListener('input',updateTagsDd);
@@ -2347,6 +2343,8 @@ function clearModal(){
   setTbaState(false);
   updatePrioLbl();
   cGenres=[];cTags=[];renderGenres();renderTags();
+  const _mn=document.getElementById('modalNotesSection');if(_mn)_mn.style.display='none';
+  const _mnl=document.getElementById('fNoteList');if(_mnl)_mnl.innerHTML='';
 }
 function openAdd(){
   editId=null;clearModal();setPlatforms(['PC']);
@@ -2374,9 +2372,83 @@ function openEdit(id){
   cGenres=[...(g.genres||[])];cTags=[...(g.tags||[])];
   setPlatforms(g.platforms||[g.platform||'PC']);
   renderGenres();renderTags();updatePrioLbl();
+  // Notes section — only shown when editing
+  const mnSec=document.getElementById('modalNotesSection');
+  const mnList=document.getElementById('fNoteList');
+  if(mnSec)mnSec.style.display='';
+  renderModalNotes(g);
   document.getElementById('mov').classList.add('on');
 }
+function renderModalNotes(g){
+  const mnList=document.getElementById('fNoteList');
+  if(!mnList)return;
+  const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
+  if(!notes.length){mnList.innerHTML='';return}
+  mnList.innerHTML=[...notes].reverse().map(n=>`
+    <div class="note-entry" data-nid="${esc(n.id)}">
+      <div class="note-date">${esc(n.date)}</div>
+      <div class="note-text">${esc(n.text)}</div>
+      <div class="note-edit-wrap" style="display:none">
+        <div class="note-compose" style="margin-bottom:.25rem">
+          <input type="date" class="note-compose-date note-edit-date">
+          <textarea class="note-edit-area" style="display:block;margin-bottom:0;min-height:50px">${esc(n.text)}</textarea>
+        </div>
+      </div>
+      <div class="note-actions">
+        <button class="note-btn edit-btn">Edit</button>
+        <button class="note-btn save save-btn" style="display:none">Save</button>
+        <button class="note-btn del-btn del">Delete</button>
+      </div>
+    </div>`).join('');
+  // Wire edit/save/delete buttons
+  mnList.querySelectorAll('.note-entry').forEach(entry=>{
+    const nidVal=entry.dataset.nid;
+    const textEl=entry.querySelector('.note-text');
+    const editWrap=entry.querySelector('.note-edit-wrap');
+    const editArea=entry.querySelector('.note-edit-area');
+    const editDateInp=entry.querySelector('.note-edit-date');
+    const editBtn=entry.querySelector('.edit-btn');
+    const saveBtn=entry.querySelector('.save-btn');
+    const delBtn=entry.querySelector('.del-btn');
+    const dateEl=entry.querySelector('.note-date');
+    const dm=dateEl.textContent.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if(editDateInp&&dm)editDateInp.value=`${dm[3]}-${dm[2]}-${dm[1]}`;
+    editBtn.onclick=()=>{textEl.style.display='none';editWrap.style.display='block';editBtn.style.display='none';saveBtn.style.display=''};
+    saveBtn.onclick=()=>{
+      const g2=games.find(x=>x.id===editId);if(!g2)return;
+      const arr=Array.isArray(g2.notes)?[...g2.notes]:(g2.notes?[{id:nid(),date:todayStr(),text:g2.notes}]:[]);
+      const i=arr.findIndex(n=>n.id===nidVal);
+      if(i>-1){arr[i].text=editArea.value.trim();if(editDateInp&&editDateInp.value)arr[i].date=fmtDate(editDateInp.value);}
+      g2.notes=arr;renderModalNotes(g2);
+    };
+    delBtn.onclick=()=>{
+      if(!confirm('Delete this note?'))return;
+      const g2=games.find(x=>x.id===editId);if(!g2)return;
+      const arr=(Array.isArray(g2.notes)?g2.notes:(g2.notes?[{id:nid(),date:todayStr(),text:g2.notes}]:[])).filter(n=>n.id!==nidVal);
+      g2.notes=arr;renderModalNotes(g2);
+    };
+  });
+}
 function closeModal(){document.getElementById('mov').classList.remove('on');steamStatus('')}
+// Modal notes: Save note button (edit mode only)
+(function(){
+  const btn=document.getElementById('fNoteSaveBtn');
+  if(!btn)return;
+  btn.addEventListener('click',()=>{
+    if(!editId)return;
+    const txt=document.getElementById('fNoteTxt').value.trim();
+    if(!txt)return;
+    const nd=document.getElementById('fNoteDate').value;
+    const noteDate=nd?fmtDate(nd):todayStr();
+    const g=games.find(x=>x.id===editId);
+    if(!g)return;
+    const arr=Array.isArray(g.notes)?[...g.notes]:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
+    arr.push({id:nid(),date:noteDate,text:txt});
+    g.notes=arr;
+    document.getElementById('fNoteTxt').value='';
+    renderModalNotes(g);
+  });
+})();
 document.getElementById('addBtn').onclick=openAdd;
 document.getElementById('mcancel').onclick=closeModal;
 document.getElementById('mov').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
@@ -2408,7 +2480,7 @@ document.getElementById('msave').onclick=()=>{
     cover:coverVal,
     storeLink:document.getElementById('fStore').value.trim(),
   };
-  if(editId){const i=games.findIndex(x=>x.id===editId);if(i>-1)games[i]={...games[i],...data}}
+  if(editId){const i=games.findIndex(x=>x.id===editId);if(i>-1){const preserved={notes:games[i].notes,status:games[i].status,added:games[i].added,removeNote:games[i].removeNote,myRating:games[i].myRating,myReview:games[i].myReview};games[i]={...games[i],...data,...preserved}}}
   else{
     const newGame={...data,id:gid(),added:Date.now(),status:'wishlist',notes:[]};
     // Attach modal note if any
@@ -2435,13 +2507,17 @@ document.getElementById('ftabs').onclick=e=>{
 document.getElementById('sortSel').onchange=renderAll;
 document.getElementById('groupSel').onchange=renderAll;
 document.getElementById('searchInput').oninput=function(){
-  document.getElementById('searchInputMob').value=this.value;
+  const mob=document.getElementById('searchInputMob');
+  if(mob)mob.value=this.value;
   renderAll();
 };
-document.getElementById('searchInputMob').oninput=function(){
-  document.getElementById('searchInput').value=this.value;
-  renderAll();
-};
+(function(){
+  const mob=document.getElementById('searchInputMob');
+  if(mob)mob.addEventListener('input',function(){
+    document.getElementById('searchInput').value=this.value;
+    renderAll();
+  });
+})();
 
 // ══════════════════════════════════════════
 //  EXPORT / IMPORT
@@ -2483,6 +2559,8 @@ document.getElementById('impBtn').onclick=()=>{
   var menu=document.getElementById('hmenu');
   btn.addEventListener('click',function(e){
     e.stopPropagation();
+    // Close any open filter popovers first
+    document.querySelectorAll('.fpop.open').forEach(p=>p.classList.remove('open'));
     menu.classList.toggle('on');
   });
   document.addEventListener('click',function(e){
@@ -2508,6 +2586,7 @@ document.getElementById('impBtn').onclick=()=>{
   const thumbMin=document.getElementById('hrThumbMin');
   const thumbMax=document.getElementById('hrThumbMax');
   const valsEl=document.getElementById('hrVals');
+  const resetBtn=document.getElementById('hrReset');
   function clamp(v,lo,hi){return Math.min(hi,Math.max(lo,v))}
   function updateSliderUI(){
     if(!wrap||!thumbMin||!thumbMax)return;
@@ -2516,6 +2595,8 @@ document.getElementById('impBtn').onclick=()=>{
     fill.style.left=hrMinVal+'%';
     fill.style.width=(hrMaxVal-hrMinVal)+'%';
     if(valsEl)valsEl.textContent=hrMinVal+'–'+hrMaxVal;
+    // Show reset button only when filter is active
+    if(resetBtn)resetBtn.classList.toggle('visible',hrMinVal>0||hrMaxVal<100);
   }
   function applyValues(mn,mx){
     hrMinVal=mn;hrMaxVal=mx;
@@ -2531,21 +2612,36 @@ document.getElementById('impBtn').onclick=()=>{
   }
   minInp.addEventListener('input',onNumChange);
   maxInp.addEventListener('input',onNumChange);
+  if(resetBtn)resetBtn.addEventListener('click',()=>applyValues(0,100));
+
+  // Track click on the slider track — move nearest thumb
+  wrap.addEventListener('mousedown',e=>{
+    if(e.target===thumbMin||e.target===thumbMax)return;
+    const rect=wrap.getBoundingClientRect();
+    const val=Math.round(clamp((e.clientX-rect.left)/rect.width,0,1)*100);
+    const dMin=Math.abs(val-hrMinVal);
+    const dMax=Math.abs(val-hrMaxVal);
+    if(dMin<=dMax)applyValues(clamp(val,0,hrMaxVal),hrMaxVal);
+    else applyValues(hrMinVal,clamp(val,hrMinVal,100));
+  });
+
   function makeDraggable(thumb,isMin){
     let dragging=false;
-    thumb.addEventListener('mousedown',e=>{dragging=true;thumb.classList.add('dragging');e.preventDefault()});
+    function getVal(clientX){
+      const rect=wrap.getBoundingClientRect();
+      return Math.round(clamp((clientX-rect.left)/rect.width,0,1)*100);
+    }
+    thumb.addEventListener('mousedown',e=>{dragging=true;thumb.classList.add('dragging');e.preventDefault();e.stopPropagation()});
     document.addEventListener('mousemove',e=>{
       if(!dragging)return;
-      const rect=wrap.getBoundingClientRect();
-      const val=Math.round(clamp((e.clientX-rect.left)/rect.width,0,1)*100);
+      const val=getVal(e.clientX);
       isMin?applyValues(clamp(val,0,hrMaxVal),hrMaxVal):applyValues(hrMinVal,clamp(val,hrMinVal,100));
     });
     document.addEventListener('mouseup',()=>{dragging=false;thumb.classList.remove('dragging')});
-    thumb.addEventListener('touchstart',e=>{dragging=true;thumb.classList.add('dragging');e.preventDefault()},{passive:false});
+    thumb.addEventListener('touchstart',e=>{dragging=true;thumb.classList.add('dragging');e.preventDefault();e.stopPropagation()},{passive:false});
     document.addEventListener('touchmove',e=>{
       if(!dragging)return;
-      const rect=wrap.getBoundingClientRect();
-      const val=Math.round(clamp((e.touches[0].clientX-rect.left)/rect.width,0,1)*100);
+      const val=getVal(e.touches[0].clientX);
       isMin?applyValues(clamp(val,0,hrMaxVal),hrMaxVal):applyValues(hrMinVal,clamp(val,hrMinVal,100));
     },{passive:true});
     document.addEventListener('touchend',()=>{dragging=false;thumb.classList.remove('dragging')});
