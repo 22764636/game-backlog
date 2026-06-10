@@ -13,7 +13,7 @@
   --cyan:#02b3fc;--magenta:#ff00aa;--lime:#9cff00;
   --text:#e8f4ff;--t2:#8aabcc;--t3:#4a6280;
   --bd:#14528f44;--bd2:#02b3fc44;
-  --pw:430px;--hh:60px;--r:10px;--rl:16px;
+  --pw:600px;--hh:60px;--r:10px;--rl:16px;
 }
 [data-theme=light]{
   --base:#eef4fb;--s1:#fff;--s3:#c8daf0;--cbg:#fff;--cbr:#02b3fc44;
@@ -69,10 +69,16 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 
 /* MAIN */
 #main{flex:1;display:flex;overflow:hidden}
-#content{flex:1;overflow-y:auto;padding:1rem}
+#content{flex:1;overflow-y:auto;overflow-x:visible;padding:1rem}
 .sl{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.66rem;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--t3);margin-bottom:.5rem;display:flex;align-items:center;gap:.35rem}
+  text-transform:uppercase;color:var(--t3);margin-bottom:.5rem;display:flex;align-items:center;gap:.35rem;
+  cursor:pointer;user-select:none;-webkit-user-select:none}
 .sl::after{content:'';flex:1;height:1px;background:var(--bd)}
+.sl-toggle{font-size:.6rem;color:var(--t3);flex-shrink:0;transition:transform .2s;line-height:1;margin-left:.1rem}
+.sl.collapsed .sl-toggle{transform:rotate(-90deg)}
+.sb-body{overflow:hidden;transition:max-height .28s cubic-bezier(.4,0,.2,1)}
+.sb-body.expanded{overflow:visible}
+.sb.collapsed .sb-body{max-height:0!important;overflow:hidden}
 .sb{margin-bottom:1rem}
 
 /* GRID */
@@ -84,7 +90,38 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;position:relative;display:flex;flex-direction:column}
 .gc:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 6px 20px #02b3fc12}
 .gc.st-removed{opacity:.45;filter:grayscale(.6)}.gc.sb2{border-color:#9cff0044}
-.gc.cancelled{opacity:.6;border-color:#cc220044}.gc.cancelled .cc{filter:grayscale(1)}
+/* Meta tooltip */
+.meta-tip{position:relative;display:inline-flex;align-items:center}
+.meta-tip-icon{font-size:.62rem;color:var(--t3);cursor:help;line-height:1;margin-left:.25rem;flex-shrink:0;opacity:.7;transition:opacity .15s}
+.meta-tip-icon:hover{opacity:1;color:var(--blue)}
+.meta-tip-box{display:none;position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);
+  background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);
+  padding:.4rem .55rem;font-size:.68rem;color:var(--t2);line-height:1.45;
+  white-space:normal;width:180px;z-index:200;pointer-events:none;
+  box-shadow:0 4px 16px #00000044}
+.meta-tip-icon:hover + .meta-tip-box,
+.meta-tip-icon:focus + .meta-tip-box{display:block}
+/* Singleton fixed tooltip for clipped contexts */
+#metaFloatTip{position:fixed;background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);
+  padding:.4rem .55rem;font-size:.68rem;color:var(--t2);line-height:1.45;
+  white-space:normal;width:180px;z-index:9999;pointer-events:none;
+  box-shadow:0 4px 16px #00000055;display:none}
+.gc.st-bought.played{opacity:.6}.gc.st-bought.played .cc{filter:grayscale(.4)}
+.qb.q-played{color:var(--t3)}.qb.q-played.is-played{color:#a78bfa;border-color:#a78bfa55}
+.qb.q-played.is-played:hover{color:#c4b5fd}
+.played-toggle{display:flex;align-items:center;gap:.3rem;font-size:.68rem;color:var(--t3);
+  background:transparent;border:1px solid var(--bd);border-radius:var(--r);padding:.28rem .55rem;
+  cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.played-toggle.active{color:#a78bfa;border-color:#a78bfa55;background:#a78bfa11}
+.played-toggle:hover:not(.active){border-color:var(--blue);color:var(--t2)}
+.gc.cancelled{border-color:#cc220033}
+.gc.cancelled .cc,.gc.cancelled .cb,.gc.cancelled .ct,
+.gc.cancelled .cbot,.gc.cancelled .cq,.gc.cancelled .cprice,
+.gc.cancelled .b-unrel-card,.gc.cancelled .hb2,
+.gc.cancelled .b-hot,.gc.cancelled .b-pre,.gc.cancelled .b-bt,
+.gc.cancelled .b-rm,.gc.cancelled .b-rev,.gc.cancelled .b-prio,
+.gc.cancelled .qb{filter:grayscale(1);opacity:.5}
+.gc.cancelled .b-cancelled{filter:none!important;opacity:1!important}
 .b-cancelled{background:#cc220022;color:#e03010;border:1px solid #cc220055;font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap}
 
 /* pill bar */
@@ -161,6 +198,9 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   background:var(--s1);border-left:1px solid var(--bd2);z-index:90;display:flex;flex-direction:column;
   transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow:hidden}
 #panel.on{transform:translateX(0)}
+#panel-drag-handle{position:absolute;top:0;left:0;bottom:0;width:6px;cursor:ew-resize;z-index:10;
+  transition:background .15s}
+#panel-drag-handle:hover,#panel-drag-handle.dragging{background:#02b3fc33}
 .pcov{width:100%;height:195px;background:var(--s3);position:relative;flex-shrink:0;overflow:hidden}
 .pcov img{width:100%;height:100%;object-fit:cover;display:block}
 .pcg{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,var(--s1) 100%)}
@@ -396,26 +436,23 @@ body.bulk-mode .gc .bulk-check{display:block}
 body.bulk-mode .gc{cursor:default}
 body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #02b3fc44}
 
-/* ── PRICE DROP HINT ── */
-.price-drop-hint{display:inline-flex;align-items:center;gap:.3rem;
-  background:transparent;border:1px solid var(--amber);border-radius:var(--r);
-  color:var(--amber);font-size:.65rem;font-weight:600;padding:.22rem .5rem;
-  cursor:pointer;text-decoration:none;transition:all .15s;white-space:nowrap;margin-top:.25rem}
-.price-drop-hint:hover{background:#f7cd2622;border-color:var(--amber)}
-.price-drop-hint svg{flex-shrink:0}
-
 /* ── TBA PAGINATION ── */
 #calTba{display:flex;flex-direction:column}
 .tba-list-viewport{flex:1;overflow:hidden;position:relative;cursor:grab;user-select:none}
 .tba-list-viewport.dragging{cursor:grabbing}
 .tba-list-track{display:flex;transition:transform .3s cubic-bezier(.4,0,.2,1);will-change:transform}
 .tba-list-track.no-transition{transition:none}
-.tba-list-page{min-width:100%;flex-shrink:0}
+.tba-list-page{width:100%;min-width:100%;flex-shrink:0;overflow:hidden;box-sizing:border-box}
 .tba-pagination{display:flex;align-items:center;justify-content:center;
-  padding:.5rem 0 0;border-top:1px solid var(--bd);margin-top:.4rem;gap:.35rem;flex-shrink:0}
+  padding:.5rem 0 0;border-top:1px solid var(--bd);margin-top:.4rem;gap:.3rem;flex-shrink:0}
 .tba-page-dot{width:6px;height:6px;border-radius:50%;background:var(--s3);border:1px solid var(--bd);
   transition:background .2s,transform .2s;flex-shrink:0}
 .tba-page-dot.active{background:var(--blue);transform:scale(1.3)}
+.tba-page-btn{background:transparent;border:1px solid var(--bd);color:var(--t2);
+  border-radius:4px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:.75rem;line-height:1;transition:all .15s;padding:0}
+.tba-page-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
+.tba-page-btn:disabled{opacity:.25;cursor:default}
 .tba-page-info{font-size:.6rem;color:var(--t3);display:none}
 /* Mobile TBA carousel */
 @media(max-width:640px){
@@ -546,11 +583,13 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
   color:var(--blue);min-width:72px;flex-shrink:0}
 .cal-list-title{font-size:.78rem;color:var(--text);flex:1;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cal-tba-chip{font-size:.68rem;color:var(--t2);padding:.28rem .5rem;
+.cal-tba-chip{padding:.28rem .5rem;
   border:1px solid var(--bd);border-radius:var(--r);margin-bottom:.3rem;
-  cursor:pointer;transition:border-color .15s;display:block;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cal-tba-chip:hover{border-color:var(--blue);color:var(--blue)}
+  cursor:pointer;transition:border-color .15s,color .15s;display:block;overflow:hidden}
+.cal-tba-chip-title{font-size:.68rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.cal-tba-chip-sub{font-size:.6rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.cal-tba-chip:hover .cal-tba-chip-title{color:var(--blue)}
+.cal-tba-chip:hover .cal-tba-chip-sub{color:#02b3fc99}
 .cal-tba-toggle.on{background:var(--blue);border-color:var(--blue);color:#031329;font-weight:700}
 @media(max-width:640px){
   #calTba{display:none}
@@ -713,6 +752,7 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
   <span id="syncStatus" class="sync-hdr"></span>
   <div class="hr">
     <button class="hb hb-desk" id="themeBtn">☀️</button>
+    <button class="hb hb-desk" id="metaRefreshBtn" title="Refresh genre & tag descriptions">⟳ Meta</button>
     <button class="hb hb-desk" id="calBtn" title="Release Calendar">📅<span class="hb-label"> Calendar</span></button>
     <button class="hb hb-desk" id="expBtn" title="Export"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg><span class="hb-label"> Export</span></button>
     <button class="hb hb-desk" id="impBtn" title="Import"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg><span class="hb-label"> Import</span></button>
@@ -826,6 +866,7 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
     <button class="vtb" id="listBtn" title="List">☰</button>
   </div>
   <button class="ft" id="bulkToggleBtn" title="Multi-select games" style="flex-shrink:0">⊡ Select</button>
+  <button class="played-toggle" id="playedToggleBtn" title="Show/hide played games">🎮 Hide played</button>
   <div class="sc" id="statChips"></div>
 </div>
 
@@ -887,10 +928,12 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
     </div>
   </div>
 </div>
+<div id="metaFloatTip"></div>
 <div id="syncPill" class="hidden" title="Sync status — tap to retry"><span class="sp-dot"></span><span id="syncPillTxt"></span></div>
 
 <!-- SIDE PANEL -->
 <div id="panel">
+<div id="panel-drag-handle" title="Drag to resize"></div>
   <div class="pcov">
     <div class="pcph" id="pph">🎮</div>
     <img id="pimg" src="" alt="" style="display:none">
@@ -1075,6 +1118,12 @@ function applyTheme(){document.documentElement.setAttribute('data-theme',theme);
 applyTheme();
 function toggleTheme(){theme=theme==='dark'?'light':'dark';localStorage.setItem('btb_theme',theme);applyTheme()}
 document.getElementById('themeBtn').onclick=toggleTheme;
+document.getElementById('metaRefreshBtn').onclick=async function(){
+  this.textContent='⟳ …';this.disabled=true;
+  await fetchMeta(true);
+  this.textContent='⟳ Meta';this.disabled=false;
+  showToast('Metadata refreshed.');
+};
 
 // ══════════════════════════════════════════
 //  ⚙️  GOOGLE SHEETS CONFIG
@@ -1162,17 +1211,52 @@ async function resync(){
 //  DATA
 // ══════════════════════════════════════════
 const KEY='btb_v4';
+const META_KEY='btb_meta';
 const OFFLINE = !SHEET_URL;
+
+// ── METADATA (genres/tags descriptions) ─────────────────────
+let metaMap={}; // keyed by lowercase name
+function loadMetaCache(){
+  try{const s=localStorage.getItem(META_KEY);if(s)metaMap=JSON.parse(s);}catch(e){}
+}
+function saveMetaCache(){localStorage.setItem(META_KEY,JSON.stringify(metaMap));}
+function metaDesc(name){return metaMap[name.toLowerCase()]||null;}
+function fetchMeta(force){
+  if(!SHEET_URL)return;
+  return new Promise((resolve)=>{
+    const cbName='_btbMeta'+Date.now();
+    const script=document.createElement('script');
+    const timeout=setTimeout(()=>{
+      delete window[cbName];try{document.head.removeChild(script)}catch(e){}
+      resolve();
+    },12000);
+    window[cbName]=(data)=>{
+      clearTimeout(timeout);
+      delete window[cbName];try{document.head.removeChild(script)}catch(e){}
+      if(Array.isArray(data)){
+        metaMap={};
+        data.forEach(row=>{if(row.name)metaMap[String(row.name).toLowerCase()]={type:row.type||'',desc:row.description||''};});
+        saveMetaCache();
+        renderAll();
+      }
+      resolve();
+    };
+    script.src=SHEET_URL+'?action=getMeta&callback='+cbName+'&_='+Date.now();
+    script.onerror=()=>{clearTimeout(timeout);delete window[cbName];resolve();};
+    document.head.appendChild(script);
+  });
+}
+loadMetaCache();
 
 function normalise(g){
   if(!g.genres)g.genres=g.genre?g.genre.split(',').map(s=>s.trim()).filter(Boolean):[];
   if(!g.platforms)g.platforms=g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[];
   if(g.status)g.status=String(g.status).toLowerCase().trim();
   if(!g.status)g.status='wishlist';
-  g.id=g.id!==undefined&&g.id!==null&&g.id!==''?String(g.id):gid(); // always string, accept any value
+  g.id=g.id!==undefined&&g.id!==null&&g.id!==''?String(g.id):gid();
   if(!g.added)g.added=Date.now();
-  // Normalise date formats from Google Sheets
   if(g.releaseDate)g.releaseDate=normaliseDate(g.releaseDate);
+  if(g.played===undefined)g.played=false;
   return g;
 }
 let games=[];
@@ -1357,19 +1441,27 @@ function renderCalendar(){
     for (let p = 0; p < totalPages; p++) {
       const slice = tbaGames.slice(p * TBA_PAGE_SIZE, (p + 1) * TBA_PAGE_SIZE);
       pagesHTML += `<div class="tba-list-page">${slice.map(g => `
-        <div class="cal-tba-chip" title="${esc(g.tbaText)}" onclick="closeCalendar();openPanel('${g.id}')">${esc(g.title)}<br><span style="color:var(--t3);font-size:.6rem">${esc(g.tbaText)}</span></div>
+        <div class="cal-tba-chip" title="${esc(g.title)} — ${esc(g.tbaText)}" onclick="closeCalendar();openPanel('${g.id}')"><span class="cal-tba-chip-title">${esc(g.title)}</span><span class="cal-tba-chip-sub">${esc(g.tbaText)}</span></div>
       `).join('')}</div>`;
     }
     track.innerHTML = pagesHTML;
+    // Make track exactly N pages wide so each page's width:100% resolves to viewport width
+    const totalPagesN = Math.ceil(tbaGames.length / TBA_PAGE_SIZE);
+    track.style.width = (totalPagesN * 100) + '%';
+    // Each page must be 1/N of the track = viewport width
+    track.querySelectorAll('.tba-list-page').forEach(p => {
+      p.style.width = (100 / totalPagesN) + '%';
+      p.style.minWidth = (100 / totalPagesN) + '%';
+    });
     // Sync height to calMain
     const calMain = document.getElementById('calMain');
-    const viewport = document.getElementById('calTbaViewport');
-    if (viewport && calMain) {
+    const vp = document.getElementById('calTbaViewport');
+    if (vp && calMain) {
       const availH = Math.max(80, calMain.offsetHeight - 68);
-      viewport.style.height = availH + 'px';
-      viewport.style.overflow = 'hidden';
+      vp.style.height = availH + 'px';
+      vp.style.overflow = 'hidden';
     }
-    track.style.transform = `translateX(-${tbaPage * 100}%)`;
+    track.style.transform = `translateX(-${tbaPage * (100 / totalPagesN)}%)`;
   }
   renderTbaList();
   // Wire swipe/drag on the viewport
@@ -1387,7 +1479,7 @@ function renderCalendar(){
       tbaPage = Math.max(0, Math.min(total - 1, p));
       if (track) {
         track.classList.remove('no-transition');
-        track.style.transform = `translateX(-${tbaPage * 100}%)`;
+        track.style.transform = `translateX(-${tbaPage * (100 / total)}%)`;
       }
       renderTbaDots();
     }
@@ -1397,14 +1489,43 @@ function renderCalendar(){
       const total = getTotalPages();
       if (!pagination || total <= 1) { if(pagination) pagination.style.display='none'; return; }
       pagination.style.display = 'flex';
-      pagination.innerHTML = Array.from({length: total}, (_,i) =>
-        `<div class="tba-page-dot${i===tbaPage?' active':''}"></div>`
-      ).join('');
-      // Dots are also clickable
-      pagination.querySelectorAll('.tba-page-dot').forEach((dot, i) => {
-        dot.style.cursor = 'pointer';
-        dot.onclick = () => goToPage(i);
+
+      const MAX_DOTS = 5;
+      let html = '';
+
+      // Prev arrow
+      html += `<button class="tba-page-btn" id="tbaDotPrev" ${tbaPage===0?'disabled':''} style="flex-shrink:0">‹</button>`;
+
+      if (total <= MAX_DOTS) {
+        // Show all dots
+        for (let i = 0; i < total; i++) {
+          html += `<div class="tba-page-dot${i===tbaPage?' active':''}" data-p="${i}" style="cursor:pointer"></div>`;
+        }
+      } else {
+        // Sliding window of 5 centred on current page
+        let start = Math.max(0, Math.min(tbaPage - 2, total - MAX_DOTS));
+        let end = start + MAX_DOTS;
+        if (start > 0) html += `<div class="tba-page-dot" style="opacity:.3;cursor:default"></div>`;
+        for (let i = start; i < end; i++) {
+          html += `<div class="tba-page-dot${i===tbaPage?' active':''}" data-p="${i}" style="cursor:pointer"></div>`;
+        }
+        if (end < total) html += `<div class="tba-page-dot" style="opacity:.3;cursor:default"></div>`;
+      }
+
+      // Next arrow
+      html += `<button class="tba-page-btn" id="tbaDotNext" ${tbaPage===total-1?'disabled':''} style="flex-shrink:0">›</button>`;
+
+      pagination.innerHTML = html;
+
+      // Wire dot clicks
+      pagination.querySelectorAll('.tba-page-dot[data-p]').forEach(dot => {
+        dot.onclick = () => goToPage(parseInt(dot.dataset.p));
       });
+      // Wire arrow clicks
+      const prevBtn = document.getElementById('tbaDotPrev');
+      const nextBtn = document.getElementById('tbaDotNext');
+      if (prevBtn) prevBtn.onclick = () => goToPage(tbaPage - 1);
+      if (nextBtn) nextBtn.onclick = () => goToPage(tbaPage + 1);
     }
 
     // Mouse drag
@@ -1428,8 +1549,9 @@ function renderCalendar(){
       }
       const track = document.getElementById('calTbaTrack');
       if (!track) return;
-      const base = tbaPage * 100;
-      track.style.transform = `translateX(calc(-${base}% + ${liveOffset}px))`;
+      const total = getTotalPages();
+      const pct = (liveOffset / viewport.offsetWidth) * (100 / total);
+      track.style.transform = `translateX(calc(-${tbaPage * (100/total)}% + ${liveOffset}px))`;
     });
     document.addEventListener('mouseup', e => {
       if (!isDragging) return;
@@ -1460,8 +1582,8 @@ function renderCalendar(){
       const track = document.getElementById('calTbaTrack');
       if (!track) return;
       const dx = e.touches[0].clientX - touchStartX;
-      const base = tbaPage * 100;
-      track.style.transform = `translateX(calc(-${base}% + ${dx}px))`;
+      const tot = getTotalPages();
+      track.style.transform = `translateX(calc(-${tbaPage * (100/tot)}% + ${dx}px))`;
     }, {passive: true});
     viewport.addEventListener('touchend', e => {
       if (touchStartX === null) return;
@@ -1497,7 +1619,7 @@ function renderCalendar(){
     return;
   } else {
     if(isMobile){calTbaEl.style.display='none';}
-    else{calTbaEl.style.cssText='';}
+    else{calTbaEl.style.cssText='width:200px;flex-shrink:0;border-left:1px solid var(--bd);padding:.85rem .75rem;display:flex;flex-direction:column';}
     main.style.display='';
   }
 
@@ -1641,6 +1763,8 @@ async function initData(){
     localStorage.setItem(KEY,JSON.stringify(games));
     setSyncStatus('ok','Loaded');
     renderAll();
+    // Fetch metadata in background (non-blocking)
+    fetchMeta();
   }catch(err){
     console.warn('BTB: Could not load from Sheet, falling back to localStorage.',err);
     games=loadOffline();
@@ -1654,6 +1778,7 @@ async function initData(){
 // ══════════════════════════════════════════
 let af='all',vm='grid',openId=null,editId=null,rmId=null,riId=null;
 let hrMinVal=0,hrMaxVal=100;
+let hidePlayed=false;
 let cGenres=[],cTags=[],cStars=0;
 let fGenres=new Set(),fTags=new Set();
 let fGenreLogic='or',fTagLogic='or';
@@ -1785,6 +1910,7 @@ function filtered(){
       const match=fTagLogic==='and'?[...fTags].every(x=>gt.includes(x)):[...fTags].some(x=>gt.includes(x));
       if(!match)return false;
     }
+    if(hidePlayed&&g.status==='bought'&&g.played)return false;
     return true;
   });
 }
@@ -1840,6 +1966,41 @@ function renderStats(){
 // ══════════════════════════════════════════
 //  CARD
 // ══════════════════════════════════════════
+// ── FLOATING META TOOLTIP ────────────────────────────────────
+(function(){
+  const tip=document.getElementById('metaFloatTip');
+  if(!tip)return;
+  document.addEventListener('mouseover',e=>{
+    const icon=e.target.closest('.meta-tip-icon');
+    if(!icon)return;
+    const desc=icon.dataset.desc;
+    if(!desc)return;
+    tip.textContent=desc;
+    tip.style.display='block';
+    const r=icon.getBoundingClientRect();
+    const tw=180,th=tip.offsetHeight||60;
+    // Prefer above, fall back to below
+    let top=r.top-th-6;
+    if(top<6)top=r.bottom+6;
+    let left=r.left+r.width/2-tw/2;
+    if(left<6)left=6;
+    if(left+tw>window.innerWidth-6)left=window.innerWidth-tw-6;
+    tip.style.top=top+'px';
+    tip.style.left=left+'px';
+  });
+  document.addEventListener('mouseout',e=>{
+    if(e.target.closest('.meta-tip-icon'))tip.style.display='none';
+  });
+  document.addEventListener('scroll',()=>{tip.style.display='none';},{capture:true,passive:true});
+})();
+
+// Returns an ⓘ icon with tooltip if metadata exists for this name
+function metaTipHTML(name){
+  const m=metaDesc(name);
+  if(!m||!m.desc)return'';
+  return`<span class="meta-tip-icon" tabindex="0" data-desc="${esc(m.desc)}">ⓘ</span>`;
+}
+
 function cardHTML(g){
   const isNR=nr(g);
   const h=isNR?0:Math.min(100,Math.max(0,parseInt(g.hotness)||0));
@@ -1881,6 +2042,7 @@ function cardHTML(g){
 
   const gid_s=String(g.id);
   const tip=addedTip(g);
+  const playedClass=g.status==='bought'&&g.played?' played':'';
 
   // Remove/Reinstate button: removed→reinstate, bought→disabled, else→remove
   let rmBtn='';
@@ -1889,7 +2051,13 @@ function cardHTML(g){
   } else if(g.status!=='bought'){
     rmBtn=`<button class="qb qr" title="Remove" onclick="event.stopPropagation();startRemove('${gid_s}')">✕</button>`;
   }
-  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}${isCancelled(g)?' cancelled':''}" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}"${tip?` data-added-tip="${esc(tip)}"`:''}>
+
+  // Played button — only for bought games, fills the 6th slot
+  const playedBtn=g.status==='bought'
+    ?`<button class="qb q-played${g.played?' is-played':''}" title="${g.played?'Mark unplayed':'Mark as played'}" onclick="event.stopPropagation();togglePlayed('${gid_s}')">🎮</button>`
+    :'';
+
+  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}${isCancelled(g)?' cancelled':''}${playedClass}" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}"${tip?` data-added-tip="${esc(tip)}"`:''}>
     <div class="cc">
       <div class="cph" ${phStyle}>🎮</div>${cImg}
       <div class="cg"></div>
@@ -1906,7 +2074,7 @@ function cardHTML(g){
           <a href="${sdbUrl}" class="qb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
           <button class="qb${ba}" title="${t('mBt')}" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">✓</button>
           <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">✏</button>
-          ${rmBtn}
+          ${rmBtn}${playedBtn}
         </div>
       </div>
     </div>
@@ -1930,6 +2098,68 @@ function renderTicker(){
   inner.innerHTML=hits.map(g=>`<span class="ticker-item" onclick="openPanel('${g.id}')">${g.title}</span>`).join('');
 }
 
+// ══════════════════════════════════════════
+//  COLLAPSIBLE SECTIONS
+// ══════════════════════════════════════════
+const COLLAPSED_KEY='btb_collapsed';
+function getCollapsed(){try{return new Set(JSON.parse(localStorage.getItem(COLLAPSED_KEY))||[])}catch(e){return new Set()}}
+function setCollapsed(s){localStorage.setItem(COLLAPSED_KEY,JSON.stringify([...s]))}
+
+function makeSection(label,cards,gcls){
+  const collapsed=getCollapsed().has(label);
+  const bodyH=collapsed?'max-height:0':'';
+  const cardsHTML=cards.map(cardHTML).join('');
+  return`<div class="sb${collapsed?' collapsed':''}" data-section="${esc(label)}">
+    <div class="sl">
+      ${label}
+      <span class="sl-count" style="font-family:'Inter',sans-serif;font-size:.6rem;font-weight:400;letter-spacing:0;text-transform:none;color:var(--t3)">${cards.length}</span>
+      <span class="sl-toggle">▾</span>
+    </div>
+    <div class="sb-body" style="${bodyH}"><div class="${gcls}">${cardsHTML}</div></div>
+  </div>`;
+}
+
+function bindSections(container){
+  container.querySelectorAll('.sb[data-section]').forEach(sb=>{
+    const sl=sb.querySelector('.sl');
+    const body=sb.querySelector('.sb-body');
+    if(!sl||!body)return;
+    // Set initial max-height so transition works when expanding
+    if(!sb.classList.contains('collapsed')){
+      body.style.maxHeight=body.scrollHeight+'px';
+      // Already expanded — allow overflow so hover scale isn't clipped
+      body.classList.add('expanded');
+    }
+    sl.addEventListener('click',()=>{
+      const label=sb.dataset.section;
+      const col=getCollapsed();
+      const isNowCollapsed=!sb.classList.contains('collapsed');
+      if(isNowCollapsed){
+        // Collapse: remove expanded first so clip kicks in, then animate
+        body.classList.remove('expanded');
+        body.style.maxHeight=body.scrollHeight+'px';
+        requestAnimationFrame(()=>{
+          body.style.maxHeight='0';
+          sb.classList.add('collapsed');
+        });
+        col.add(label);
+      } else {
+        // Expand: animate from 0 to scrollHeight
+        sb.classList.remove('collapsed');
+        body.style.maxHeight=body.scrollHeight+'px';
+        body.addEventListener('transitionend',()=>{
+          if(!sb.classList.contains('collapsed')){
+            body.style.maxHeight='none';
+            body.classList.add('expanded');
+          }
+        },{once:true});
+        col.delete(label);
+      }
+      setCollapsed(col);
+    });
+  });
+}
+
 function renderAll(){
   renderTicker();
   const gc=document.getElementById('gc');
@@ -1942,14 +2172,14 @@ function renderAll(){
   // Dedicated removed tab
   if(af==='removed'){
     if(!list.length){gc.innerHTML=`<div class="${gcls}"><div class="empty"><div class="ei">🗑️</div><p>${t('noGames')}</p></div></div>`;return}
-    gc.innerHTML=`<div class="sb"><div class="sl">${t('secRm')}</div><div class="${gcls}">${sorted(list).map(cardHTML).join('')}</div></div>`;
-    bindCards(gc);return;
+    gc.innerHTML=makeSection(t('secRm'),sorted(list),gcls);
+    bindCards(gc);bindSections(gc);return;
   }
   // Dedicated cancelled tab
   if(af==='cancelled'){
     if(!list.length){gc.innerHTML=`<div class="${gcls}"><div class="empty"><div class="ei">🚫</div><p>No cancelled games</p></div></div>`;return}
-    gc.innerHTML=`<div class="sb"><div class="sl">CANCELLED</div><div class="${gcls}">${sorted(list).map(cardHTML).join('')}</div></div>`;
-    bindCards(gc);return;
+    gc.innerHTML=makeSection('CANCELLED',sorted(list),gcls);
+    bindCards(gc);bindSections(gc);return;
   }
 
   if(!list.length){
@@ -1967,11 +2197,11 @@ function renderAll(){
       const removed=list.filter(g=>g.status==='removed');
       const rev=wishlist.filter(g=>nr(g));
       const wlRest=sorted(wishlist.filter(g=>!nr(g)));
-      if(rev.length)     html+=`<div class="sb"><div class="sl">${t('secRev')}</div><div class="${gcls}">${rev.map(cardHTML).join('')}</div></div>`;
-      if(wlRest.length)  html+=`<div class="sb"><div class="sl">${t('secWl')}</div><div class="${gcls}">${wlRest.map(cardHTML).join('')}</div></div>`;
-      if(cancelled.length) html+=`<div class="sb"><div class="sl">CANCELLED</div><div class="${gcls}">${sorted(cancelled).map(cardHTML).join('')}</div></div>`;
-      if(removed.length) html+=`<div class="sb"><div class="sl">${t('secRm')}</div><div class="${gcls}">${sorted(removed).map(cardHTML).join('')}</div></div>`;
-      if(bought.length)  html+=`<div class="sb"><div class="sl">${t('secBacklog')}</div><div class="${gcls}">${sorted(bought).map(cardHTML).join('')}</div></div>`;
+      if(rev.length)     html+=makeSection(t('secRev'),rev,gcls);
+      if(wlRest.length)  html+=makeSection(t('secWl'),wlRest,gcls);
+      if(cancelled.length) html+=makeSection('CANCELLED',sorted(cancelled),gcls);
+      if(removed.length) html+=makeSection(t('secRm'),sorted(removed),gcls);
+      if(bought.length)  html+=makeSection(t('secBacklog'),sorted(bought),gcls);
     } else {
       html=`<div class="${gcls}">${sorted(list).map(cardHTML).join('')}</div>`;
     }
@@ -1987,11 +2217,12 @@ function renderAll(){
       keys.forEach(k=>{if(!groups[k])groups[k]=[];groups[k].push(g)});
     });
     Object.keys(groups).sort().forEach(k=>{
-      html+=`<div class="sb"><div class="sl">${esc(k)}</div><div class="${gcls}">${groups[k].map(cardHTML).join('')}</div></div>`;
+      html+=makeSection(esc(k),groups[k],gcls);
     });
   }
   gc.innerHTML=html;
   bindCards(gc);
+  bindSections(gc);
 }
 function bindCards(gc){
   gc.querySelectorAll('.gc').forEach(c=>{
@@ -2080,6 +2311,12 @@ function handleMarkBought(id){
   g.status='bought';save();renderAll();if(openId===id)openPanel(id);
 }
 
+function togglePlayed(id){
+  const g=games.find(x=>x.id===id);if(!g||g.status!=='bought')return;
+  g.played=!g.played;
+  save();renderAll();if(openId===id)openPanel(id);
+}
+
 // ══════════════════════════════════════════
 //  SIDE PANEL
 // ══════════════════════════════════════════
@@ -2126,14 +2363,14 @@ function openPanel(id){
       }
       return `<div><span style="color:var(--t3)">${t('pRel')}: </span>${relStr}</div>`;
     })(),
-    `<div><span style="color:var(--t3)">${t('pGenre')}: </span>${esc(genreD||'—')}</div>`,
+    `<div><span style="color:var(--t3)">${t('pGenre')}: </span>${genreD?genreD.split(',').map(s=>s.trim()).map(s=>`<span style="display:inline-flex;align-items:center;gap:.1rem">${esc(s)}${metaTipHTML(s)}</span>`).join(', '):'—'}</div>`,
     `<div><span style="color:var(--t3)">${t('pPlatform')}: </span>${esc(platD||'—')}</div>`,
     `<div><span style="color:var(--t3)">${t('pPrice')}: </span>${g.price?`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>`:`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`}</div>`,
     `<div><span style="color:var(--t3)">Added: </span><span style="color:var(--t2)">${(()=>{const d=daysAgo(g.added);return d===null?'—':d===0?'Today':d===1?'Yesterday':d+' days ago'})()}</span></div>`,
   ];
   b+=`<div class="ps"><div class="psl">${t('pDetails')}</div><div class="pv" style="display:grid;grid-template-columns:1fr 1fr;gap:.28rem .55rem">${det.join('')}</div></div>`;
 
-  if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich">${esc(x)}</span>`).join('')}</div></div>`;
+  if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich" style="display:inline-flex;align-items:center;gap:.15rem">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div></div>`;
   // Notes — multi-note with add/edit/delete
   const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
   const todayIso=(()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`})();
@@ -2164,18 +2401,19 @@ function openPanel(id){
   </div>`;
   if(g.status==='removed'&&g.removeNote)b+=`<div class="ps"><div class="psl" style="color:var(--pink)">${t('pRmNote')}</div><div class="pv" style="color:var(--muted)">${esc(g.removeNote)}</div></div>`;
 
-  // Price drop hint for wishlist games
-  const priceDropHint=(g.status==='wishlist'&&!isCancelled(g))
-    ?`<a href="${ggUrl}" class="price-drop-hint" target="_blank"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>${g.price?'Check for price drop':'Check price on gg.deals'}</a>`
-    :'';
-
   b+=`<div class="ps"><div class="psl">${t('pLinks')}</div><div class="plks">
     <a href="${stUrl}" class="plk" target="_blank">${favImg(FAV_STEAM,'steam')} ${t('pSteam')}</a>
     <a href="${ggUrl}" class="plk" target="_blank">${favImg(FAV_GG,'gg')} ${t('pGG')}</a>
     <a href="${sdbUrl}" class="plk" target="_blank">${favImg(FAV_SDB,'sdb')} ${t('pSDB')}</a>
-  </div>${priceDropHint}</div>`;
+  </div></div>`;
 
   if(g.status==='bought'){
+    b+=`<div class="ps"><div class="psl" style="margin-bottom:.5rem">Played</div>
+      <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.78rem;color:var(--t2)">
+        <input type="checkbox" id="pPlayedCb"${g.played?' checked':''} style="accent-color:#a78bfa;width:15px;height:15px;cursor:pointer">
+        <span>Mark as played</span>
+      </label>
+    </div>`;
     b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
       <div class="stars" id="pstars">${sh}</div>
       <textarea class="rta" id="prevta" placeholder="Your thoughts…">${esc(g.myReview||'')}</textarea>
@@ -2246,6 +2484,8 @@ function openPanel(id){
       s.onclick=()=>{cStars=parseInt(s.dataset.s);document.querySelectorAll('#pstars .star').forEach((x,i)=>x.classList.toggle('on',i<cStars))};
     });
     document.getElementById('psrv').onclick=()=>{const gg=games.find(x=>x.id===openId);if(gg){gg.myRating=cStars;gg.myReview=document.getElementById('prevta').value;save()}};
+    const pcb=document.getElementById('pPlayedCb');
+    if(pcb)pcb.onchange=()=>togglePlayed(openId);
   }
   document.getElementById('ped').onclick=()=>{closePanel();openEdit(id)};
   document.getElementById('pbt').onclick=()=>handleMarkBought(id);
@@ -2255,6 +2495,59 @@ function openPanel(id){
   document.getElementById('panel').classList.add('on');
 }
 function closePanel(){document.getElementById('pov').classList.remove('on');document.getElementById('panel').classList.remove('on');openId=null}
+
+// ── PANEL DRAG RESIZE (desktop only) ──────────────────────────
+(function(){
+  const PANEL_MIN=600, PANEL_MAX=900, STORAGE_KEY='btb_panel_w', DEFAULT_W=600;
+  const root=document.documentElement;
+  const handle=document.getElementById('panel-drag-handle');
+  if(!handle)return;
+
+  // Restore saved width
+  const saved=parseInt(localStorage.getItem(STORAGE_KEY));
+  if(saved>=PANEL_MIN&&saved<=PANEL_MAX) root.style.setProperty('--pw',saved+'px');
+
+  function setWidth(w){
+    const clamped=Math.max(PANEL_MIN,Math.min(PANEL_MAX,w));
+    root.style.setProperty('--pw',clamped+'px');
+    localStorage.setItem(STORAGE_KEY,clamped);
+  }
+
+  // Double-click resets to default
+  handle.addEventListener('dblclick',()=>{
+    setWidth(DEFAULT_W);
+  });
+
+  // Only wire drag on desktop
+  if(window.innerWidth<=640)return;
+
+  let dragging=false, startX=0, startW=0;
+
+  handle.addEventListener('mousedown',e=>{
+    dragging=true;
+    startX=e.clientX;
+    startW=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pw'))||DEFAULT_W;
+    handle.classList.add('dragging');
+    document.body.style.userSelect='none';
+    document.body.style.cursor='ew-resize';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    // Dragging left = panel grows (right-anchored panel)
+    const delta=startX-e.clientX;
+    setWidth(startW+delta);
+  });
+
+  document.addEventListener('mouseup',()=>{
+    if(!dragging)return;
+    dragging=false;
+    handle.classList.remove('dragging');
+    document.body.style.userSelect='';
+    document.body.style.cursor='';
+  });
+})();
 document.getElementById('pclose').onclick=closePanel;
 document.getElementById('pov').onclick=closePanel;
 
@@ -2797,6 +3090,12 @@ document.getElementById('bulkToggleBtn').onclick=()=>{
   if(bulkMode)exitBulkMode();else enterBulkMode();
 };
 document.getElementById('bulkClear').onclick=exitBulkMode;
+document.getElementById('playedToggleBtn').onclick=function(){
+  hidePlayed=!hidePlayed;
+  this.classList.toggle('active',hidePlayed);
+  this.textContent=hidePlayed?'🎮 Show played':'🎮 Hide played';
+  renderAll();
+};
 document.getElementById('bulkSelectAll').onclick=()=>{
   document.querySelectorAll('.gc').forEach(card=>{
     const id=card.dataset.id;
@@ -3010,7 +3309,7 @@ function makeFilterPopover({btnId,popId,badgeId,clearId,listId,logicToggleId,get
     list.innerHTML=opts.map(({value,count})=>`
       <label class="fpop-opt">
         <input type="checkbox" value="${esc(value)}"${sel.has(value)?' checked':''}>
-        <span class="fpop-opt-label">${esc(value)}</span>
+        <span class="fpop-opt-label">${esc(value)}${metaTipHTML(value)}</span>
         <span class="fpop-opt-count">${count}</span>
       </label>`).join('');
     list.querySelectorAll('input[type=checkbox]').forEach(cb=>{
