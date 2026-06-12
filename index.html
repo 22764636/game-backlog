@@ -517,14 +517,14 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
 /* ── CALENDAR 3-MONTH LAYOUT ── */
 /* ── CALENDAR 2-MONTH VERTICAL LAYOUT ── */
 .cal-2stack{display:flex;gap:0;min-height:0;height:100%}
-.cal-months-col{display:flex;flex-direction:column;flex:0 0 auto;min-width:0;overflow:hidden}
+.cal-months-col{display:flex;flex-direction:column;flex:0 0 334px;width:334px;overflow:hidden}
 .cal-month-block{padding:.55rem .75rem;border-bottom:1px solid var(--bd)}
 .cal-month-block:last-child{border-bottom:none}
 .cal-month-label{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;
   letter-spacing:.08em;text-transform:uppercase;color:var(--blue);text-align:center;
   margin-bottom:.3rem}
 .cal-month-label.is-current{color:var(--pink)}
-.cal-tba-wide{flex:1;min-width:0;border-left:1px solid var(--bd);
+.cal-tba-wide{flex:1 1 0;min-width:0;border-left:1px solid var(--bd);
   padding:.75rem .85rem;display:flex;flex-direction:column}
 .cal-tba-grid{display:grid;grid-template-columns:1fr 1fr;gap:.3rem}
 
@@ -551,11 +551,11 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
   color:var(--blue);min-width:72px
 }
 .cal-hdr-right{display:flex;align-items:center;gap:.35rem;flex-shrink:0}
-.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,46px);gap:2px}
 .cal-dow{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
   color:var(--t3);text-align:center;padding:.25rem 0;margin-bottom:2px}
 .cal-cell{background:var(--base);border:1px solid var(--bd);border-radius:6px;
-  min-height:46px;max-width:46px;padding:.2rem .25rem;position:relative;vertical-align:top}
+  width:46px;height:46px;padding:.2rem .25rem;position:relative;vertical-align:top}
 .cal-cell.today{border-color:var(--blue);background:#02b3fc08}
 .cal-cell.past .cal-dn{opacity:.4}
 .cal-cell.other-month{opacity:.2;pointer-events:none}
