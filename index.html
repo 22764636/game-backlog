@@ -116,11 +116,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .ac-opt:hover{background:var(--s3)}
 
 /* ── PANEL INLINE EDIT (item 6) ── */
-.played-panel-btn{width:100%;padding:.4rem .8rem;border-radius:var(--r);
-  font-size:.75rem;font-weight:500;cursor:pointer;transition:all .15s;
-  background:var(--s3);border:1px solid var(--bd);color:var(--t2)}
-.played-panel-btn:hover{border-color:#a78bfa;color:#a78bfa}
-.played-panel-btn.is-played{background:#1a0a3a;border-color:#a78bfa;color:#a78bfa;font-weight:700}
+.ps-inline-edit{margin-top:.5rem;display:flex;flex-direction:column;gap:.5rem}
 .ps-inline-edit{margin-top:.5rem;display:flex;flex-direction:column;gap:.5rem}
 .ps-inline-save{align-self:flex-end;background:var(--s3);border:1px solid var(--bd);
   color:var(--text);border-radius:var(--r);padding:.25rem .75rem;font-size:.72rem;
@@ -172,7 +168,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 /* ── COLLECTION MODE ── */
 #tb.col-hidden{display:none}
 #ctb{display:flex;flex-wrap:nowrap;gap:.4rem;align-items:center;padding:.45rem 1.1rem;
-  background:var(--s1);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:95;
+  background:var(--s1);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:10;
   overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0}
 @media(max-width:640px){#ctb{padding:.35rem .7rem;gap:.3rem}}
 
@@ -240,14 +236,6 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   padding:.4rem .55rem;font-size:.68rem;color:var(--t2);line-height:1.45;
   white-space:normal;width:180px;z-index:9999;pointer-events:none;
   box-shadow:0 4px 16px #00000055;display:none}
-.gc.st-bought.played{opacity:.6}.gc.st-bought.played .cc{filter:grayscale(.4)}
-.qb.q-played{color:var(--t3)}.qb.q-played.is-played{color:#a78bfa;border-color:#a78bfa55}
-.qb.q-played.is-played:hover{color:#c4b5fd}
-.played-toggle{display:flex;align-items:center;gap:.3rem;font-size:.68rem;color:var(--t3);
-  background:transparent;border:1px solid var(--bd);border-radius:var(--r);padding:.28rem .55rem;
-  cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
-.played-toggle.active{color:#a78bfa;border-color:#a78bfa55;background:#a78bfa11}
-.played-toggle:hover:not(.active){border-color:var(--blue);color:var(--t2)}
 .gc.cancelled{border-color:#cc220033}
 .gc.cancelled .cc,.gc.cancelled .cb,.gc.cancelled .ct,
 .gc.cancelled .cbot,.gc.cancelled .cq,.gc.cancelled .cprice,
@@ -552,23 +540,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 }
 @media(max-width:640px){.hrange-slider-wrap,.hrange-vals{display:none}.hrange-reset{display:none!important}.hrange{flex:0 0 auto}.hrange-label{display:none}}
 /* ── BULK ACTIONS BAR ── */
-#bulkBar{display:none;background:var(--s1);border-bottom:2px solid var(--blue);padding:.4rem 1.1rem;
-  align-items:center;gap:.55rem;flex-wrap:wrap;flex-shrink:0;z-index:40}
-#bulkBar.on{display:flex}
-.bulk-count{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.82rem;color:var(--blue);white-space:nowrap;margin-right:.1rem}
-.bulk-btn{background:transparent;border:1px solid var(--bd);color:var(--t2);border-radius:var(--r);
-  padding:.28rem .65rem;font-size:.72rem;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
-.bulk-btn:hover{border-color:var(--blue);color:var(--blue)}
-.bulk-btn.danger:hover{border-color:var(--pink);color:var(--pink)}
-.bulk-btn.confirm{background:var(--blue);border-color:var(--blue);color:#031329;font-weight:700}
-.bulk-btn.confirm:hover{opacity:.85}
-.bulk-sep{width:1px;height:16px;background:var(--bd);flex-shrink:0}
-/* Checkbox on cards during bulk mode */
-.gc .bulk-check{display:none;position:absolute;top:20px;left:8px;z-index:15;
-  width:17px;height:17px;accent-color:var(--blue);cursor:pointer}
-body.bulk-mode .gc .bulk-check{display:block}
-body.bulk-mode .gc{cursor:default}
-body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #02b3fc44}
+
+
 
 /* ── TBA PAGINATION ── */
 #calTba{display:flex;flex-direction:column}
@@ -903,7 +876,7 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
   <div class="hr">
     <button class="hb hb-desk" id="themeBtn">☀️</button>
     <button class="hb hb-desk" id="metaRefreshBtn" title="Refresh genre & tag descriptions">⟳ Meta</button>
-    <button class="hb hb-desk" id="calBtn" title="Release Calendar">📅<span class="hb-label"> Calendar</span></button>
+    <button class="hb hb-desk" id="calBtn" title="Release Calendar"><span class="hb-label">Calendar</span></button>
     <button class="hb hb-desk" id="expBtn" title="Export"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg><span class="hb-label"> Export</span></button>
     <button class="hb hb-desk" id="impBtn" title="Import"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg><span class="hb-label"> Import</span></button>
     <button class="hb hb-desk kb-help-btn" id="kbHelpBtn" title="Keyboard shortcuts">?</button>
@@ -934,7 +907,7 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
 </div>
 <!-- Mobile dropdown menu — outside header to avoid overflow:hidden clipping -->
 <div id="hmenu">
-  <button class="hmi" id="hmCalBtn">📅 Release Calendar</button>
+  <button class="hmi" id="hmCalBtn">Release Calendar</button>
   <button class="hmi" id="hmThemeBtn">☀️ Toggle theme</button>
   <button class="hmi" id="hmExpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg> Export</button>
   <button class="hmi" id="hmImpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg> Import</button>
@@ -1040,20 +1013,7 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
     <button class="vtb on" id="gridBtn" title="Grid">⊞</button>
     <button class="vtb" id="listBtn" title="List">☰</button>
   </div>
-  <button class="ft" id="bulkToggleBtn" title="Multi-select games" style="flex-shrink:0">⊡ Select</button>
   <div class="sc" id="statChips"></div>
-</div>
-
-<!-- BULK ACTIONS BAR -->
-<div id="bulkBar">
-  <span class="bulk-count" id="bulkCount">0 selected</span>
-  <div class="bulk-sep"></div>
-  <button class="bulk-btn confirm" id="bulkBought">✓ Mark Bought</button>
-  <button class="bulk-btn confirm" id="bulkWishlist">↩ Move to Wishlist</button>
-  <button class="bulk-btn danger" id="bulkRemove">🗑 Remove</button>
-  <div class="bulk-sep"></div>
-  <button class="bulk-btn" id="bulkSelectAll">Select all</button>
-  <button class="bulk-btn" id="bulkClear">✕ Cancel</button>
 </div>
 
 <!-- COLLECTION TOOLBAR (visible in collection mode only) -->
@@ -1094,7 +1054,6 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
     <button class="vtb on" id="cGridBtn" title="Grid">⊞</button>
     <button class="vtb" id="cListBtn" title="List">☰</button>
   </div>
-  <button class="played-toggle" id="playedToggleBtn" title="Show/hide played games" style="flex-shrink:0">Hide played</button>
   <div class="sc" id="cStatChips"></div>
 </div>
 
@@ -1364,16 +1323,8 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
       </div>
       <div class="fr" style="margin-bottom:.5rem">
         <label>Play status</label>
-        <select id="fColPlayStatus">
-          <option value="Unplayed" selected>Unplayed</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-          <option value="Superseded">Superseded</option>
-          <option value="Unfinishable">Unfinishable</option>
-          <option value="Played on Different Platform">Played on Different Platform</option>
-          <option value="Will Never Complete">Will Never Complete</option>
-          <option value="Will Never Play">Will Never Play</option>
-        </select>
+        <input type="hidden" id="fColPlayStatus" value="Unplayed">
+        <button type="button" id="fColPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
       </div>
       <div class="fr">
         <label>Steam Collection <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
@@ -1395,7 +1346,7 @@ body.bulk-mode .gc.bulk-selected{border-color:var(--blue);box-shadow:0 0 0 2px #
     </div>
     <div class="ma">
       <button class="mb2 c" id="mcancel">Cancel</button>
-      <button class="mb2 p" id="msave">💾 Save game</button>
+      <button class="mb2 p" id="msave">Save game</button>
     </div>
   </div>
 </div>
@@ -1597,7 +1548,7 @@ function normalise(g){
   g.id=g.id!==undefined&&g.id!==null&&g.id!==''?String(g.id):gid();
   if(!g.added)g.added=Date.now();
   if(g.releaseDate)g.releaseDate=normaliseDate(g.releaseDate);
-  if(g.played===undefined)g.played=false;
+
   // steamCollection: parse JSON array string or comma-separated from Sheet
   if(g.steamCollection&&typeof g.steamCollection==='string'){
     try{g.steamCollection=JSON.parse(g.steamCollection)}
@@ -2110,7 +2061,7 @@ let af='all',vm='grid',openId=null,editId=null,rmId=null,riId=null;
 let appMode='wishlist'; // 'wishlist' | 'collection'
 let cfPlayStatus=new Set(),cfSteamCol=new Set();
 let hrMinVal=0,hrMaxVal=100;
-let hidePlayed=false;
+
 let cGenres=[],cTags=[],cStars=0;
 let fGenres=new Set(),fTags=new Set(),fPrios=new Set();
 let fGenreLogic='or',fTagLogic='or';
@@ -2233,7 +2184,7 @@ function collectionFiltered(){
       const gc2=g.steamCollection||[];
       if(![...cfSteamCol].some(c=>gc2.includes(c)))return false;
     }
-    if(hidePlayed&&g.played)return false;
+
     if(fGenres.size>0){
       const gg=g.genres&&g.genres.length?g.genres:(g.genre?[g.genre]:[]);
       if(![...fGenres].some(x=>gg.includes(x)))return false;
@@ -2465,7 +2416,7 @@ function cardHTML(g){
 
   const gid_s=String(g.id);
   const tip=addedTip(g);
-  const playedClass=g.status==='bought'&&g.played?' played':'';
+
 
   // Remove/Reinstate button: removed→reinstate, bought→disabled, else→remove
   let rmBtn='';
@@ -2475,12 +2426,7 @@ function cardHTML(g){
     rmBtn=`<button class="qb qr" title="Remove" onclick="event.stopPropagation();startRemove('${gid_s}')">✕</button>`;
   }
 
-  // Played button — only for bought games, fills the 6th slot
-  const playedBtn=g.status==='bought'
-    ?`<button class="qb q-played${g.played?' is-played':''}" title="${g.played?'Mark unplayed':'Mark as played'}" onclick="event.stopPropagation();togglePlayed('${gid_s}')">🎮</button>`
-    :'';
-
-  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}${isCancelled(g)?' cancelled':''}${playedClass}" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}"${tip?` data-added-tip="${esc(tip)}"`:''}>
+  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}${isCancelled(g)?' cancelled':''}" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}"${tip?` data-added-tip="${esc(tip)}"`:''}>
     <div class="cc">
       <div class="cph" ${phStyle}>🎮</div>${cImg}
       <div class="cg"></div>
@@ -2497,7 +2443,7 @@ function cardHTML(g){
           <a href="${sdbUrl}" class="qb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
           <button class="qb${ba}" title="${t('mBt')}" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">✓</button>
           <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">✏</button>
-          ${rmBtn}${playedBtn}
+          ${rmBtn}
         </div>
       </div>
     </div>
@@ -2508,6 +2454,7 @@ function cardHTML(g){
 //  COLLECTION CARD + LIST ROW
 // ══════════════════════════════════════════
 
+function colLabel(s){return s?s.replace(/^\d+_/,''):s;}
 const PS_META={
   'Unplayed':       {code:'UP',  cls:'ps-UP'},
   'In Progress':    {code:'IP',  cls:'ps-IP'},
@@ -2568,7 +2515,7 @@ function colCardHTML(g){
     ?'<span class="cprice">€'+parseFloat(g.cost).toFixed(2)+'</span>'
     :'<span class="cprice" style="color:var(--t3)">—</span>';
   const cols=(g.steamCollection&&g.steamCollection.length)
-    ?g.steamCollection.slice(0,2).map(s=>`<span class="col-row-tag">${esc(s)}</span>`).join('')
+    ?g.steamCollection.slice(0,2).map(s=>`<span class="col-row-tag">${esc(colLabel(s))}</span>`).join('')
     :'';
 
   return`<div class="gc col-card st-bought" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}">
@@ -2585,7 +2532,6 @@ function colCardHTML(g){
         <div class="cq">
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
           <a href="${sdbUrl}" class="qb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
-          <button class="qb${g.played?' is-played':''}" title="${g.played?'Mark unplayed':'Mark as played'}" onclick="event.stopPropagation();togglePlayed('${gid_s}')">🎮</button>
           <button class="qb ba" title="Move back to Wishlist" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">↩</button>
           <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">✏</button>
         </div>
@@ -2601,7 +2547,7 @@ function colRowHTML(g){
     ?`<img class="col-row-thumb" src="${esc(coverUrl)}" alt="" onerror="this.style.display='none'">`
     :`<div class="col-row-thumb-ph">🎮</div>`;
   const tags=(g.steamCollection&&g.steamCollection.length)
-    ?g.steamCollection.slice(0,3).map(s=>`<span class="col-row-tag">${esc(s)}</span>`).join('')
+    ?g.steamCollection.slice(0,3).map(s=>`<span class="col-row-tag">${esc(colLabel(s))}</span>`).join('')
     :'';
   const ps=g.playStatus||'Unplayed';
   const isDlcRow=g.type==='dlc'&&findParentGame(g);
@@ -2722,13 +2668,12 @@ function bindNewCards(container,count){
   bindPsPickerCards(container);
   for(let i=start;i<all.length;i++){
     const c=all[i];
-    c.addEventListener('click',()=>{if(!bulkMode)openPanel(c.dataset.id)});
-    c.addEventListener('keydown',e=>{if(!bulkMode&&(e.key==='Enter'||e.key===' '))openPanel(c.dataset.id)});
+    c.addEventListener('click',()=>openPanel(c.dataset.id));
+    c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openPanel(c.dataset.id)});
     if(!c.querySelector('.gc-shine')){const sh=document.createElement('div');sh.className='gc-shine';c.appendChild(sh);}
     bindTilt(c);
     scaleTitleFont(c);
   }
-  if(bulkMode)bindBulkCards(container.parentElement);
 }
 
 function makeSection(label,cards,gcls){
@@ -2976,13 +2921,12 @@ ${t('noHint')}`);return}
 function bindCards(gc){
   // Legacy full-bind — used only when all cards are rendered at once (small sets)
   gc.querySelectorAll('.gc').forEach(c=>{
-    c.addEventListener('click',()=>{if(!bulkMode)openPanel(c.dataset.id)});
-    c.addEventListener('keydown',e=>{if(!bulkMode&&(e.key==='Enter'||e.key===' '))openPanel(c.dataset.id)});
+    c.addEventListener('click',()=>openPanel(c.dataset.id));
+    c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openPanel(c.dataset.id)});
     if(!c.querySelector('.gc-shine')){const shine=document.createElement('div');shine.className='gc-shine';c.appendChild(shine);}
     bindTilt(c);
     scaleTitleFont(c);
   });
-  if(bulkMode)bindBulkCards(gc);
 }
 
 function scaleTitleFont(card){
@@ -3129,6 +3073,55 @@ function openPsPicker(badge,gameId){
   picker.classList.add('on');
 }
 
+// Modal play status fancy picker
+function _syncModalPsBtn(val){
+  const btn=document.getElementById('fColPlayStatusBtn');if(!btn)return;
+  const m=PS_META[val]||{code:'UP',cls:'ps-UP'};
+  btn.className='col-ps-badge '+m.cls;
+  btn.style.cssText='font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start';
+  btn.innerHTML=m.code+'<span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">'+esc(val)+'</span>';
+}
+(function(){
+  function getModalPicker(){
+    let p=document.getElementById('modalPsPicker');
+    if(!p){
+      p=document.createElement('div');p.id='modalPsPicker';p.className='ps-picker';
+      document.body.appendChild(p);
+      document.addEventListener('click',e=>{
+        if(!e.target.closest('#modalPsPicker')&&!e.target.closest('#fColPlayStatusBtn'))
+          p.classList.remove('on');
+      });
+    }
+    return p;
+  }
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest('#fColPlayStatusBtn');if(!btn)return;
+    const picker=getModalPicker();
+    const cur=document.getElementById('fColPlayStatus').value||'Unplayed';
+    picker.innerHTML=Object.keys(PS_META).map(s=>{
+      const m=PS_META[s];
+      return'<div class="ps-pick-opt'+(s===cur?' active':'')+'" data-s="'+esc(s)+'">'+
+        '<span class="col-ps-badge '+m.cls+'" style="font-size:.52rem;padding:1px 5px;flex-shrink:0">'+m.code+'</span>'+
+        '<span class="ps-pick-label">'+esc(s)+'</span>'+
+      '</div>';
+    }).join('');
+    picker.querySelectorAll('.ps-pick-opt').forEach(opt=>{
+      opt.addEventListener('click',e2=>{
+        e2.stopPropagation();
+        const val=opt.dataset.s;
+        document.getElementById('fColPlayStatus').value=val;
+        _syncModalPsBtn(val);
+        picker.classList.remove('on');
+      });
+    });
+    const rect=btn.getBoundingClientRect();
+    picker.style.top=(rect.bottom+window.scrollY+4)+'px';
+    picker.style.left=Math.min(rect.left+window.scrollX,window.innerWidth-220)+'px';
+    picker.classList.toggle('on');
+    e.stopPropagation();
+  });
+})();
+
 // Wire picker on rendered cards (called from bindNewCards)
 function bindPsPickerCards(container,start){
   const badges=container.querySelectorAll('.ps-card-badge');
@@ -3165,12 +3158,6 @@ document.getElementById('btcConfirm').onclick=()=>{
   g.steamCollection=[...cBtcCol];
   save(btcId);closeCollectionModal();dispatchRender();if(openId===btcId)openPanel(btcId);
 };
-
-function togglePlayed(id){
-  const g=games.find(x=>x.id===id);if(!g||g.status!=='bought')return;
-  g.played=!g.played;
-  save(id);dispatchRender();if(openId===id)openPanel(id);
-}
 
 // ══════════════════════════════════════════
 //  SIDE PANEL
@@ -3263,7 +3250,7 @@ function openPanel(id){
         <button class="ps-inline-save" id="psInlineSave" style="display:none">Save</button>
       </div></div>`;
     // Inline editable: steam collection (chip input)
-    const colChips=(g.steamCollection||[]).map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff">${esc(s)}</span>`).join('');
+    const colChips=(g.steamCollection||[]).map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff">${esc(colLabel(s))}</span>`).join('');
     b+=`<div class="ps" id="colInlineWrap"><div class="psl">Steam Collections</div>
       <div style="display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.4rem" id="colInlineChips">${colChips}</div>
       <div class="genre-wrap">
@@ -3310,15 +3297,10 @@ function openPanel(id){
   </div></div>`;
 
   if(g.status==='bought'){
-    b+=`<div class="ps"><div class="psl" style="margin-bottom:.5rem">Played</div>
-      <button id="pPlayedCb" class="played-panel-btn${g.played?' is-played':''}" data-played="${g.played?'1':'0'}">
-        ${g.played?'✓ Played':'Mark as played'}
-      </button>
-    </div>`;
     b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
       <div class="stars" id="pstars">${sh}</div>
       <textarea class="rta" id="prevta" placeholder="Your thoughts…">${esc(g.myReview||'')}</textarea>
-      <button class="pa s" style="width:100%;margin-top:.35rem" id="psrv">💾 ${t('pSaveRev')}</button>
+      <button class="pa s" style="width:100%;margin-top:.35rem" id="psrv">${t('pSaveRev')}</button>
     </div>`;
   }
 
@@ -3328,10 +3310,10 @@ function openPanel(id){
     ?`<button class="pa s" id="pri">↩ ${t('pReinstate')}</button>`
     :g.status==='bought'
       ?``  // no remove button for bought
-      :`<button class="pa d" id="prm">🗑 ${t('pRemove')}</button>`;
+      :`<button class="pa d" id="prm">${t('pRemove')}</button>`;
 
   b+=`<div class="ps"><div class="psl">${t('pActions')}</div><div class="pac">
-    <button class="pa" id="ped">✏️ ${t('pEdit')}</button>
+    <button class="pa" id="ped">${t('pEdit')}</button>
     <button class="pa ${g.status==='bought'?'s':''}" id="pbt">${g.status==='bought'?'↩ ':''} ${bl}</button>
     ${actionBtns}
   </div></div>`;
@@ -3402,7 +3384,7 @@ function openPanel(id){
     let _panelCols=[...(g.steamCollection||[])];
     function renderPanelColChips(){
       const wrap=document.getElementById('colInlineChips');if(!wrap)return;
-      wrap.innerHTML=_panelCols.map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff;cursor:pointer" data-col="${esc(s)}">${esc(s)} <span style="opacity:.6;margin-left:2px">✕</span></span>`).join('');
+      wrap.innerHTML=_panelCols.map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff;cursor:pointer" data-col="${esc(s)}">${esc(colLabel(s))} <span style="opacity:.6;margin-left:2px">✕</span></span>`).join('');
       wrap.querySelectorAll('.cich').forEach(chip=>{
         chip.addEventListener('click',()=>{_panelCols=_panelCols.filter(x=>x!==chip.dataset.col);renderPanelColChips();updatePanelColDd();});
       });
@@ -3411,7 +3393,7 @@ function openPanel(id){
       const q=(colInlineInput.value||'').toLowerCase().trim();
       const opts=allSteamCollections().filter(s=>!_panelCols.includes(s)&&(!q||s.toLowerCase().includes(q)));
       if(!opts.length){colInlineDd.classList.remove('on');return}
-      colInlineDd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(s)}</div>`).join('');
+      colInlineDd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
       colInlineDd.querySelectorAll('.genre-opt').forEach(el=>{
         el.addEventListener('click',()=>{_panelCols.push(el.dataset.v);colInlineInput.value='';renderPanelColChips();colInlineDd.classList.remove('on');});
       });
@@ -3476,8 +3458,6 @@ function openPanel(id){
       s.onclick=()=>{cStars=parseInt(s.dataset.s);document.querySelectorAll('#pstars .star').forEach((x,i)=>x.classList.toggle('on',i<cStars))};
     });
     document.getElementById('psrv').onclick=()=>{const gg=games.find(x=>x.id===openId);if(gg){gg.myRating=cStars;gg.myReview=document.getElementById('prevta').value;save()}};
-    const pcb=document.getElementById('pPlayedCb');
-    if(pcb)pcb.addEventListener('click',()=>togglePlayed(openId));
   }
   document.getElementById('ped').onclick=()=>{closePanel();openEdit(id)};
   document.getElementById('pbt').onclick=()=>handleMarkBought(id);
@@ -3568,13 +3548,13 @@ document.getElementById('riBt').onclick=()=>doReinstate('bought');
 // ══════════════════════════════════════════
 //  CHIP INPUT
 // ══════════════════════════════════════════
-function makeChip(wrapId,inputId,getA,setA,renderCb){
+function makeChip(wrapId,inputId,getA,setA,renderCb,labelFn){
   function render(){
     const w=document.getElementById(wrapId),inp=document.getElementById(inputId);
     w.querySelectorAll('.cich').forEach(e=>e.remove());
     getA().forEach((v,i)=>{
       const c=document.createElement('span');c.className='cich';
-      c.innerHTML=`${esc(v)}<button type="button" data-i="${i}">✕</button>`;
+      c.innerHTML=`${esc(labelFn?labelFn(v):v)}<button type="button" data-i="${i}">✕</button>`;
       c.querySelector('button').onclick=e=>{const a=getA();a.splice(parseInt(e.target.dataset.i),1);setA(a);render();if(renderCb)renderCb()};
       w.insertBefore(c,inp);
     });
@@ -3590,15 +3570,15 @@ function makeChip(wrapId,inputId,getA,setA,renderCb){
 }
 const renderGenres=makeChip('genreWrap','genreInput',()=>cGenres,v=>{cGenres=v},updateGenreDd);
 const renderTags=makeChip('tagsWrap','tagsInput',()=>cTags,v=>{cTags=v});
-const renderBtcCol=makeChip('btcColWrap','btcColInput',()=>cBtcCol,v=>{cBtcCol=v},updateBtcColDd);
+const renderBtcCol=makeChip('btcColWrap','btcColInput',()=>cBtcCol,v=>{cBtcCol=v},updateBtcColDd,colLabel);
 let cModalCol=[];
-const renderModalCol=makeChip('fColColWrap','fColColInput',()=>cModalCol,v=>{cModalCol=v},updateModalColDd);
+const renderModalCol=makeChip('fColColWrap','fColColInput',()=>cModalCol,v=>{cModalCol=v},updateModalColDd,colLabel);
 function updateModalColDd(){
   const dd=document.getElementById('fColColDd');
   const q=(document.getElementById('fColColInput').value||'').toLowerCase().trim();
   const opts=allSteamCollections().filter(s=>!cModalCol.includes(s)&&(!q||s.toLowerCase().includes(q)));
   if(!opts.length){dd.classList.remove('on');return}
-  dd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(s)}</div>`).join('');
+  dd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
   dd.querySelectorAll('.genre-opt').forEach(el=>{
     el.onclick=()=>{cModalCol.push(el.dataset.v);document.getElementById('fColColInput').value='';renderModalCol();dd.classList.remove('on')};
   });
@@ -3612,7 +3592,7 @@ function updateBtcColDd(){
   const q=(document.getElementById('btcColInput').value||'').toLowerCase().trim();
   const opts=allSteamCollections().filter(s=>!cBtcCol.includes(s)&&(!q||s.toLowerCase().includes(q)));
   if(!opts.length){dd.classList.remove('on');return}
-  dd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(s)}</div>`).join('');
+  dd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
   dd.querySelectorAll('.genre-opt').forEach(el=>{
     el.onclick=()=>{cBtcCol.push(el.dataset.v);document.getElementById('btcColInput').value='';renderBtcCol();dd.classList.remove('on')};
   });
@@ -3970,14 +3950,14 @@ function clearModal(){
   const fcc=document.getElementById('fColCost');if(fcc)fcc.value='';
   const fcd=document.getElementById('fColDate');
   if(fcd){const n=new Date();fcd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
-  const fcp=document.getElementById('fColPlayStatus');if(fcp)fcp.value='Unplayed';
+  const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value='Unplayed';_syncModalPsBtn('Unplayed');}
   document.getElementById('modalColSection').style.display='none';
 }
 function openAdd(){
   editId=null;clearModal();setPlatforms(['PC']);
   const isCol=appMode==='collection';
   document.getElementById('modalTitle').textContent=isCol?'Add to Collection':'Add game';
-  document.getElementById('msave').textContent=isCol?'💾 Save to Collection':'💾 Save game';
+  document.getElementById('msave').textContent=isCol?'Save to Collection':'Save game';
   // Show collection fields when in collection mode
   const colSec=document.getElementById('modalColSection');
   if(colSec){
@@ -3996,7 +3976,7 @@ function openAdd(){
 function openEdit(id){
   const g=games.find(x=>x.id===id);if(!g)return;
   editId=id;clearModal();
-  document.getElementById('modalTitle').textContent=`✏️ ${esc(g.title)}`;
+  document.getElementById('modalTitle').textContent=`Edit: ${esc(g.title)}`;
   document.getElementById('fTitle').value=g.title||'';
   document.getElementById('fAppId').value=g.steamAppId||'';
   document.getElementById('fDev').value=g.developer||'';
@@ -4043,7 +4023,7 @@ function openEdit(id){
     const fcs=document.getElementById('fColStore');if(fcs)fcs.value=g.store||'Steam';
     const fcc=document.getElementById('fColCost');if(fcc)fcc.value=g.cost||'';
     const fcd=document.getElementById('fColDate');if(fcd)fcd.value=g.purchaseDate||'';
-    const fcp=document.getElementById('fColPlayStatus');if(fcp)fcp.value=g.playStatus||'Unplayed';
+    const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value=g.playStatus||'Unplayed';_syncModalPsBtn(g.playStatus||'Unplayed');}
     cModalCol=[...(g.steamCollection||[])];renderModalCol();
   }
   // Notes section — only shown when editing
@@ -4239,98 +4219,7 @@ document.getElementById('msave').onclick=()=>{
 // ══════════════════════════════════════════
 //  BULK ACTIONS
 // ══════════════════════════════════════════
-let bulkMode=false;
-let bulkSelected=new Set();
 
-function enterBulkMode(){
-  bulkMode=true;
-  bulkSelected.clear();
-  document.body.classList.add('bulk-mode');
-  document.getElementById('bulkBar').classList.add('on');
-  document.getElementById('bulkToggleBtn').classList.add('on');
-  renderAll();
-  updateBulkBar();
-}
-function exitBulkMode(){
-  bulkMode=false;
-  bulkSelected.clear();
-  document.body.classList.remove('bulk-mode');
-  document.getElementById('bulkBar').classList.remove('on');
-  document.getElementById('bulkToggleBtn').classList.remove('on');
-  renderAll();
-}
-function updateBulkBar(){
-  const n=bulkSelected.size;
-  document.getElementById('bulkCount').textContent=n===1?'1 selected':`${n} selected`;
-}
-function bindBulkCards(container){
-  container.querySelectorAll('.gc').forEach(card=>{
-    // Inject checkbox if not present
-    if(!card.querySelector('.bulk-check')){
-      const cb=document.createElement('input');
-      cb.type='checkbox';cb.className='bulk-check';
-      card.appendChild(cb);
-    }
-    const cb=card.querySelector('.bulk-check');
-    const id=card.dataset.id;
-    cb.checked=bulkSelected.has(id);
-    card.classList.toggle('bulk-selected',bulkSelected.has(id));
-    cb.addEventListener('change',e=>{
-      e.stopPropagation();
-      if(cb.checked)bulkSelected.add(id);else bulkSelected.delete(id);
-      card.classList.toggle('bulk-selected',cb.checked);
-      updateBulkBar();
-    });
-    // Override card click in bulk mode
-    card.addEventListener('click',e=>{
-      if(!bulkMode)return;
-      e.stopPropagation();
-      cb.checked=!cb.checked;
-      if(cb.checked)bulkSelected.add(id);else bulkSelected.delete(id);
-      card.classList.toggle('bulk-selected',cb.checked);
-      updateBulkBar();
-    });
-  });
-}
-
-document.getElementById('bulkToggleBtn').onclick=()=>{
-  if(bulkMode)exitBulkMode();else enterBulkMode();
-};
-document.getElementById('bulkClear').onclick=exitBulkMode;
-document.getElementById('playedToggleBtn').onclick=function(){
-  hidePlayed=!hidePlayed;
-  this.classList.toggle('active',hidePlayed);
-  this.textContent=hidePlayed?'Show played':'Hide played';
-  renderCollection();
-};
-document.getElementById('bulkSelectAll').onclick=()=>{
-  document.querySelectorAll('.gc').forEach(card=>{
-    const id=card.dataset.id;
-    if(id){bulkSelected.add(id);card.classList.add('bulk-selected');const cb=card.querySelector('.bulk-check');if(cb)cb.checked=true;}
-  });
-  updateBulkBar();
-};
-document.getElementById('bulkBought').onclick=()=>{
-  if(!bulkSelected.size)return;
-  const n=bulkSelected.size;
-  if(!confirm(`Mark ${n} game${n>1?'s':''} as Bought?`))return;
-  bulkSelected.forEach(id=>{const g=games.find(x=>x.id===id);if(g){g.status='bought';if(!g.playStatus)g.playStatus='Unplayed';}});
-  save();exitBulkMode();showToast(`${n} game${n>1?'s':''} marked as Bought.`);
-};
-document.getElementById('bulkWishlist').onclick=()=>{
-  if(!bulkSelected.size)return;
-  const n=bulkSelected.size;
-  if(!confirm(`Move ${n} game${n>1?'s':''} to Wishlist?`))return;
-  bulkSelected.forEach(id=>{const g=games.find(x=>x.id===id);if(g)g.status='wishlist';});
-  save();exitBulkMode();showToast(`${n} game${n>1?'s':''} moved to Wishlist.`);
-};
-document.getElementById('bulkRemove').onclick=()=>{
-  if(!bulkSelected.size)return;
-  const n=bulkSelected.size;
-  if(!confirm(`Remove ${n} game${n>1?'s':''} from your list?`))return;
-  bulkSelected.forEach(id=>{const g=games.find(x=>x.id===id);if(g){g.status='removed';g.removeNote='Bulk removed';}});
-  save();exitBulkMode();showToast(`${n} game${n>1?'s':''} removed.`);
-};
 
 // ── POPOVER POSITION HELPER ──────────────────────────────────────────────────
 function positionFpop(btn,pop){
@@ -4368,7 +4257,7 @@ function dispatchRender(){
 
 // Collection toggle buttons
 document.getElementById('collectionToggleBtn').onclick=()=>setAppMode(appMode==='collection'?'wishlist':'collection');
-document.getElementById('hmCollectionBtn').onclick=()=>setAppMode(appMode==='collection'?'wishlist':'collection');
+document.getElementById('hmCollectionBtn').onclick=()=>{document.getElementById('hmenu').classList.remove('on');setAppMode(appMode==='collection'?'wishlist':'collection');};
 
 // Collection view mode toggle (grid/list)
 document.getElementById('cGridBtn').onclick=()=>{
@@ -4433,7 +4322,7 @@ document.getElementById('cSortSel').onchange=renderCollection;
     listEl.innerHTML=cols.map(c=>`
       <label class="fpop-opt">
         <input type="checkbox" value="${esc(c)}"${cfSteamCol.has(c)?' checked':''}>
-        <span class="fpop-opt-label">${esc(c)}</span>
+        <span class="fpop-opt-label">${esc(colLabel(c))}</span>
       </label>`).join('');
     listEl.querySelectorAll('input').forEach(cb=>{
       cb.onchange=()=>{
