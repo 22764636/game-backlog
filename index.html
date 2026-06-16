@@ -579,7 +579,7 @@
 if('serviceWorker' in navigator){
   // Inline service worker as blob — works without a server
   const swCode = `
-    const CACHE='btb-v1';
+    const CACHE='btb-v2';
     const SHELL=self.location.href;
     self.addEventListener('install',e=>{
       e.waitUntil(
