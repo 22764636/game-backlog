@@ -705,10 +705,12 @@ function prioLabel(p){return t(p==='high'?'pHi':p==='low'?'pLo':'pMe')}
 function normaliseDate(raw){
   if(!raw)return'';
   if(/^\d{4}-\d{2}-\d{2}$/.test(String(raw)))return raw;
-  // ISO 8601 full — parse the full timestamp (respecting Z/UTC offset) then read local date
-  if(/^\d{4}-\d{2}-\d{2}T/.test(String(raw))){
-    const d=new Date(String(raw));
-    return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  // ISO 8601 full (T separator) or SQL datetime (space separator): "2024-04-25T..." / "2024-04-25 ..."
+  if(/^\d{4}-\d{2}-\d{2}[T ]/.test(String(raw))){
+    const s=String(raw).replace(' ','T');
+    const d=new Date(s);
+    if(!isNaN(d))return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return String(raw).slice(0,10);
   }
   // Numeric epoch: 10 digits = seconds, 13 digits = milliseconds
   if(/^\d{10,13}$/.test(String(raw))){
@@ -718,6 +720,12 @@ function normaliseDate(raw){
   }
   const m=String(raw).match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2}|\d{4})$/);
   if(m){let[,d,mo,y]=m;if(y.length===2)y=(parseInt(y)<50?'20':'19')+y;return`${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`}
+  // Google Visualization API date format: "Date(2024,3,25)" — month is 0-based
+  const gv=String(raw).match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
+  if(gv){const[,y,mo,d]=gv;return`${y}-${String(Number(mo)+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+  // Last resort: try native Date parsing (handles "Mon Apr 25 2024 ..." etc.)
+  const fd=new Date(String(raw));
+  if(!isNaN(fd)&&fd.getFullYear()>1900){return`${fd.getFullYear()}-${String(fd.getMonth()+1).padStart(2,'0')}-${String(fd.getDate()).padStart(2,'0')}`}
   return String(raw);
 }
 function isTodayDate(raw){return normaliseDate(raw)===todayISO()}
