@@ -23,14 +23,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Inject SHEET_URL into index.html
+      - name: Inject SHEET_URL
         env:
           SHEET_URL: ${{ secrets.SHEET_URL }}
         run: |
           if [ -n "$SHEET_URL" ]; then
             sed -i "s|window\.BTB_SHEET_URL = \"\";|window.BTB_SHEET_URL = \"$SHEET_URL\";|" index.html
-            echo "SHEET_URL injected into index.html."
+            printf 'window.BTB_SHEET_URL="%s";\n' "$SHEET_URL" > config.js
+            echo "SHEET_URL injected into index.html and config.js."
           else
+            printf '/* no SHEET_URL configured */\n' > config.js
             echo "No SHEET_URL secret — site will run in offline mode."
           fi
 
