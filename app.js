@@ -143,7 +143,7 @@ function _applyMeta(data){
     metaMap={};
     data.forEach(row=>{if(row.name)metaMap[String(row.name).toLowerCase()]={type:row.type||'',desc:row.description||''};});
     saveMetaCache();
-    renderAll();
+    dispatchRender();
   }
 }
 function fetchMeta(force){
