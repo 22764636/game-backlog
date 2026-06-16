@@ -522,7 +522,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   .hrange-reset{display:none;background:transparent;border:none;color:var(--t3);font-size:.82rem;line-height:1;cursor:pointer;padding:0 .15rem;transition:color .12s;flex-shrink:0}
   .hrange-reset.visible{display:block}
   .hrange-reset:hover{color:var(--pink)}
-  .hrange-tip{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:.58rem;font-weight:700;color:var(--blue);white-space:nowrap;pointer-events:none;background:var(--s1);padding:0 2px;border-radius:2px;line-height:1.4}
+  .hrange-tip{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:.58rem;font-weight:700;color:var(--blue);white-space:nowrap;pointer-events:none;line-height:1.4}
   /* pad scrollbar away from counts */
   .fpop-list{padding-right:2px}
 }
