@@ -23,13 +23,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Inject SHEET_URL from secret
+      - name: Inject SHEET_URL into index.html
         env:
           SHEET_URL: ${{ secrets.SHEET_URL }}
         run: |
           if [ -n "$SHEET_URL" ]; then
-            printf 'window.BTB_SHEET_URL = "%s";\n' "$SHEET_URL" > config.js
-            echo "config.js written from secret."
+            python3 -c "
+import sys, json
+url = sys.argv[1]
+with open('index.html') as f: content = f.read()
+content = content.replace('window.BTB_SHEET_URL = \"\";', 'window.BTB_SHEET_URL = ' + json.dumps(url) + ';', 1)
+with open('index.html', 'w') as f: f.write(content)
+print('SHEET_URL injected into index.html.')
+" "$SHEET_URL"
           else
             echo "No SHEET_URL secret — site will run in offline mode."
           fi
