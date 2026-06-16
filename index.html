@@ -556,6 +556,14 @@
 <script src="app.js"></script>
 
 <script>
+// If SHEET_URL is empty but we're online, an old SW is likely serving stale cached HTML.
+// Unregister it and reload once to fetch fresh HTML from the network.
+if(!window.BTB_SHEET_URL && navigator.onLine && 'serviceWorker' in navigator && !sessionStorage.getItem('btb_sw_reset')){
+  sessionStorage.setItem('btb_sw_reset','1');
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    if(regs.length){Promise.all(regs.map(r=>r.unregister())).then(()=>location.reload())}
+  });
+}
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js',{scope:'./'})
     .then(()=>console.log('BtB: Service worker registered'))
