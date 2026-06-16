@@ -553,21 +553,16 @@
 
 <script>window.BTB_SHEET_URL = "";</script>
 <script src="config.js" onerror="void 0"></script>
-<script src="app.js"></script>
-
 <script>
-// If SHEET_URL is empty but we're online, an old SW is likely serving stale cached HTML.
-// Unregister it and reload once to fetch fresh HTML from the network.
-if(!window.BTB_SHEET_URL && navigator.onLine && 'serviceWorker' in navigator && !sessionStorage.getItem('btb_sw_reset')){
-  sessionStorage.setItem('btb_sw_reset','1');
-  navigator.serviceWorker.getRegistrations().then(regs=>{
-    if(regs.length){Promise.all(regs.map(r=>r.unregister())).then(()=>location.reload())}
-  });
-}
+if(window.BTB_SHEET_URL){localStorage.setItem('btb_sc',window.BTB_SHEET_URL);}
+else{var _sc=localStorage.getItem('btb_sc');if(_sc)window.BTB_SHEET_URL=_sc;}
+</script>
+<script src="app.js"></script>
+<script>
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js',{scope:'./'})
-    .then(()=>console.log('BtB: Service worker registered'))
-    .catch(e=>console.warn('BtB: SW registration failed',e));
+    .then(()=>console.log('BtB: SW registered'))
+    .catch(e=>console.warn('BtB: SW failed',e));
 }
 </script>
 </body>
