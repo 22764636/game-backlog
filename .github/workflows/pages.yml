@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject SHEET_URL from secret
+        env:
+          SHEET_URL: ${{ secrets.SHEET_URL }}
+        run: |
+          if [ -n "$SHEET_URL" ]; then
+            printf 'window.BTB_SHEET_URL = "%s";\n' "$SHEET_URL" > config.js
+            echo "config.js written from secret."
+          else
+            echo "No SHEET_URL secret — site will run in offline mode."
+          fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

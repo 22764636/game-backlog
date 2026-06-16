@@ -1,9 +1,11 @@
 // ══════════════════════════════════════════
 //  ⚙️  GOOGLE SHEETS CONFIG
-//  Paste your Apps Script Web App URL below.
-//  Leave empty to use offline mode (localStorage).
+//  Set your Apps Script Web App URL in config.js (see config.example.js).
+//  config.js is gitignored — never committed. For GitHub Pages, add it as a
+//  repository secret named SHEET_URL (the deploy workflow injects it).
+//  Leave empty / unset to use offline mode (localStorage only).
 // ══════════════════════════════════════════
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzzrAYNSYIutza7sOgSKdvz_UXla15gwfF1ZOQtCKlm_czSztSrZgxBAM6dZ12-KX1n/exec';
+const SHEET_URL = (typeof window !== 'undefined' && window.BTB_SHEET_URL) || '';
 
 // Use JSONP on file:// (fetch can't read cross-origin responses there);
 // use fetch+CORS on http/https and fall back to JSONP on failure.
