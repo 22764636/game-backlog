@@ -27,12 +27,8 @@ jobs:
         env:
           SHEET_URL: ${{ secrets.SHEET_URL }}
         run: |
-          if [ -n "$SHEET_URL" ]; then
-            printf 'window.BTB_SHEET_URL = "%s";\n' "$SHEET_URL" > btb-url.js
-            echo "SHEET_URL written to btb-url.js (${#SHEET_URL} chars)"
-          else
-            echo "No SHEET_URL secret — site will run in offline mode."
-          fi
+          printf 'window.BTB_SHEET_URL = "%s";\n' "$SHEET_URL" > btb-url.js
+          echo "btb-url.js written (${#SHEET_URL} chars in URL)"
 
       - uses: actions/configure-pages@v5
 
