@@ -25,12 +25,23 @@ jobs:
 
       - uses: actions/configure-pages@v5
 
-      - name: Write SHEET_URL into btb-url.js
+      - name: Inject SHEET_URL into index.html
         env:
           SHEET_URL: ${{ secrets.SHEET_URL }}
         run: |
-          printf 'window.BTB_SHEET_URL = "%s";\n' "$SHEET_URL" > btb-url.js
-          echo "btb-url.js size: $(wc -c < btb-url.js) bytes"
+          python3 -c "
+          import os, sys
+          url = os.environ['SHEET_URL']
+          with open('index.html', 'r') as f:
+              html = f.read()
+          if '__SHEET_URL__' not in html:
+              print('ERROR: placeholder not found in index.html', file=sys.stderr)
+              sys.exit(1)
+          html = html.replace('__SHEET_URL__', url)
+          with open('index.html', 'w') as f:
+              f.write(html)
+          print(f'Injected URL ({len(url)} chars) into index.html')
+          "
 
       - uses: actions/upload-pages-artifact@v3
         with:
