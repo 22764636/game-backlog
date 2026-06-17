@@ -47,12 +47,7 @@
   </div>
   <span id="syncStatus" class="sync-hdr"></span>
   <div class="hr">
-    <button class="hb hb-desk" id="themeBtn" style="display:none">☀️</button>
-    <button class="hb hb-desk" id="metaRefreshBtn" style="display:none" title="Refresh genre & tag descriptions">⟳ Meta</button>
-    <button class="hb hb-desk" id="rdcBtn" style="display:none" title="Check Steam for updated release dates">↻ Dates</button>
     <button class="hb hb-desk" id="calBtn" title="Release Calendar"><span class="hb-label">Calendar</span></button>
-    <button class="hb hb-desk" id="expBtn" style="display:none" title="Export"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg><span class="hb-label"> Export</span></button>
-    <button class="hb hb-desk" id="impBtn" style="display:none" title="Import"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg><span class="hb-label"> Import</span></button>
     <button class="hb hb-desk kb-help-btn" id="kbHelpBtn" title="Keyboard shortcuts">?</button>
     <div class="mode-tog hb-desk" id="modeTog">
       <button class="mode-btn on" id="modeWishlist">Wishlist</button>
@@ -100,7 +95,6 @@
   <button class="hmi" id="dhDatesBtn">↻ Check release dates</button>
   <button class="hmi" id="dhExpBtn">⬇ Export</button>
   <button class="hmi" id="dhImpBtn">⬆ Import</button>
-  <button class="hmi" id="dhResyncBtn" style="display:none">⟳ Re-sync</button>
 </div>
 
 <div id="tb">
@@ -135,6 +129,10 @@
     <option value="price-desc">Price ↓</option>
     <option value="added" selected>Date added</option>
   </select>
+  <div class="vt">
+    <button class="vtb on" id="gridBtn" title="Grid">⊞</button>
+    <button class="vtb" id="listBtn" title="List">☰</button>
+  </div>
   <select class="ts" id="groupSel">
     <option value="none">No grouping</option>
     <option value="priority">By priority</option>
@@ -154,6 +152,7 @@
         </div>
         <button class="fpop-clear" id="genreFilterClear">Clear</button>
       </div>
+      <input type="text" class="fpop-search" id="genreFilterSearch" placeholder="Search…" autocomplete="off">
       <div class="fpop-list" id="genreFilterList"></div>
     </div>
   </div>
@@ -169,6 +168,7 @@
         </div>
         <button class="fpop-clear" id="tagFilterClear">Clear</button>
       </div>
+      <input type="text" class="fpop-search" id="tagFilterSearch" placeholder="Search…" autocomplete="off">
       <div class="fpop-list" id="tagFilterList"></div>
     </div>
   </div>
@@ -197,10 +197,6 @@
     <span class="hrange-vals" id="hrVals">0–100</span>
     <button class="hrange-reset" id="hrReset" title="Reset hotness filter">×</button>
   </div>
-  <div class="vt">
-    <button class="vtb on" id="gridBtn" title="Grid">⊞</button>
-    <button class="vtb" id="listBtn" title="List">☰</button>
-  </div>
   <div class="sc" id="statChips"></div>
 </div>
 
@@ -214,6 +210,10 @@
     <option value="cost-asc">Cost ↑</option>
     <option value="purchaseDate">Purchase Date</option>
   </select>
+  <div class="vt">
+    <button class="vtb on" id="cGridBtn" title="Grid">⊞</button>
+    <button class="vtb" id="cListBtn" title="List">☰</button>
+  </div>
   <!-- Genre filter (reuse existing genre filter pop) -->
   <div class="fpop-wrap">
     <button class="fpop-btn" id="cGenreFilterBtn">Genre <span class="fpop-badge" id="cGenreFilterBadge" style="display:none"></span></button>
@@ -226,6 +226,7 @@
         </div>
         <button class="fpop-clear" id="cGenreFilterClear">Clear</button>
       </div>
+      <input type="text" class="fpop-search" id="cGenreFilterSearch" placeholder="Search…" autocomplete="off">
       <div class="fpop-list" id="cGenreFilterList"></div>
     </div>
   </div>
@@ -249,12 +250,9 @@
         </div>
         <button class="fpop-clear" id="cColFilterClear">Clear</button>
       </div>
+      <input type="text" class="fpop-search" id="cColFilterSearch" placeholder="Search…" autocomplete="off">
       <div class="fpop-list" id="cColFilterList"></div>
     </div>
-  </div>
-  <div class="vt">
-    <button class="vtb on" id="cGridBtn" title="Grid">⊞</button>
-    <button class="vtb" id="cListBtn" title="List">☰</button>
   </div>
   <div class="sc" id="cStatChips"></div>
 </div>
@@ -602,5 +600,16 @@ if('serviceWorker' in navigator){
     .catch(e=>console.warn('BtB: SW failed',e));
 }
 </script>
+<!-- DLC hover tooltip -->
+<div id="dlcTooltip"></div>
+<!-- DLC mobile bottom sheet -->
+<div id="dlcSheetOv"></div>
+<div id="dlcSheet">
+  <div class="dlc-sheet-header">
+    <span id="dlcSheetTitle"></span>
+    <button id="dlcSheetClose">✕</button>
+  </div>
+  <div class="dlc-sheet-body" id="dlcSheetBody"></div>
+</div>
 </body>
 </html>
