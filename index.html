@@ -45,8 +45,8 @@
     <input type="text" id="searchInputMob" placeholder="Search…" autocomplete="off">
     <button class="hs-clear" id="searchClearMob" tabindex="-1">Clear</button>
   </div>
+  <span id="syncStatus" class="sync-hdr"></span>
   <div class="hr">
-    <span id="syncStatus" class="sync-hdr"></span>
     <button class="hb hb-desk" id="calBtn" title="Release Calendar"><span class="hb-label">Calendar</span></button>
     <button class="hb hb-desk kb-help-btn" id="kbHelpBtn" title="Keyboard shortcuts">?</button>
     <div class="mode-tog hb-desk" id="modeTog">
@@ -601,6 +601,13 @@ if('serviceWorker' in navigator){
 }
 </script>
 <div id="dlcTooltip"></div>
-<div id="dlcSheet"><div class="dlc-sheet-inner"></div></div>
+<div id="dlcSheetOv"></div>
+<div id="dlcSheet">
+  <div class="dlc-sheet-header">
+    <span id="dlcSheetTitle"></span>
+    <button id="dlcSheetClose">✕</button>
+  </div>
+  <div class="dlc-sheet-body" id="dlcSheetBody"></div>
+</div>
 </body>
 </html>
