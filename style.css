@@ -295,6 +295,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   .gg.lv .ct{-webkit-line-clamp:2;font-size:.84rem;width:100%}
   .gg.lv .cbot{width:100%;justify-content:flex-start;flex-wrap:wrap}
   .gg.lv .cq{width:auto}
+  .qb.qr{display:none}
 }
 
 /* empty */

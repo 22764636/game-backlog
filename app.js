@@ -704,14 +704,10 @@ function prioLabel(p){return t(p==='high'?'pHi':p==='low'?'pLo':'pMe')}
 // Normalise any date format to YYYY-MM-DD string
 function normaliseDate(raw){
   if(!raw)return'';
-  if(/^\d{4}-\d{2}-\d{2}$/.test(String(raw)))return raw;
-  // ISO 8601 full (T separator) or SQL datetime (space separator): "2024-04-25T..." / "2024-04-25 ..."
-  if(/^\d{4}-\d{2}-\d{2}[T ]/.test(String(raw))){
-    const s=String(raw).replace(' ','T');
-    const d=new Date(s);
-    if(!isNaN(d))return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    return String(raw).slice(0,10);
-  }
+  const s=String(raw).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  // ISO 8601 or SQL datetime — slice the date part, no timezone conversion
+  if(/^\d{4}-\d{2}-\d{2}[T ]/.test(s))return s.slice(0,10);
   // Numeric epoch: 10 digits = seconds, 13 digits = milliseconds
   if(/^\d{10,13}$/.test(String(raw))){
     const ms=String(raw).length<=10?Number(raw)*1000:Number(raw);
@@ -733,7 +729,7 @@ function fmtDate(d){
   if(!d)return'';
   const n=normaliseDate(d);
   if(/^\d{4}-\d{2}-\d{2}$/.test(n)){const[y,mo,dd]=n.split('-');return`${dd}/${mo}/${y}`}
-  return d;
+  return '';
 }
 function parseDate(raw){return normaliseDate(raw)}
 function todayISO(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
