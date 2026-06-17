@@ -1867,12 +1867,14 @@ function openPanel(id){
     const parent=findParentGame(g);
     if(parent){
       const pCover=parent.cover||(parent.steamAppId?sc(parent.steamAppId):'');
-      const pThumb=pCover?`<img class="panel-base-thumb" src="${esc(pCover)}" alt="">`:`<div class="panel-base-thumb" style="background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--t3)">🎮</div>`;
+      const pThumb=pCover?`<img class="panel-base-thumb" src="${esc(pCover)}" alt="">`:`<div class="panel-base-thumb" style="background:var(--base);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--t3)">🎮</div>`;
       b+=`<div class="ps"><div class="psl">Base Game</div>
         <div class="panel-base-game" data-pid="${esc(parent.id)}">
           ${pThumb}
-          <span class="panel-base-title">${esc(parent.title)}</span>
-          <span class="panel-base-arrow">›</span>
+          <div class="panel-base-info">
+            <span class="panel-base-title">${esc(parent.title)}</span>
+            <span class="panel-base-arrow">›</span>
+          </div>
         </div></div>`;
     }
   }
@@ -1882,11 +1884,13 @@ function openPanel(id){
     if(gameDlcs.length){
       const dlcCards=gameDlcs.map(d=>{
         const dCover=d.cover||(d.steamAppId?sc(d.steamAppId):'');
-        const dThumb=dCover?`<img class="panel-base-thumb" src="${esc(dCover)}" alt="">`:`<div class="panel-base-thumb" style="background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--t3)">🎮</div>`;
+        const dThumb=dCover?`<img class="panel-base-thumb" src="${esc(dCover)}" alt="">`:`<div class="panel-base-thumb" style="background:var(--base);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--t3)">🎮</div>`;
         return`<div class="panel-dlc-item panel-base-game" data-did="${esc(d.id)}">
           ${dThumb}
-          <span class="panel-base-title">${esc(d.title)}</span>
-          <span class="panel-base-arrow">›</span>
+          <div class="panel-base-info">
+            <span class="panel-base-title">${esc(d.title)}</span>
+            <span class="panel-base-arrow">›</span>
+          </div>
         </div>`;
       }).join('');
       b+=`<div class="ps"><div class="psl">DLC (${gameDlcs.length})</div>${dlcCards}</div>`;
