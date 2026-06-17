@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Write SHEET_URL
+      - uses: actions/configure-pages@v5
+
+      - name: Write SHEET_URL into btb-url.js
         env:
           SHEET_URL: ${{ secrets.SHEET_URL }}
         run: |
           printf 'window.BTB_SHEET_URL = "%s";\n' "$SHEET_URL" > btb-url.js
-          echo "btb-url.js written (${#SHEET_URL} chars in URL)"
-
-      - uses: actions/configure-pages@v5
+          echo "btb-url.js size: $(wc -c < btb-url.js) bytes"
 
       - uses: actions/upload-pages-artifact@v3
         with:
