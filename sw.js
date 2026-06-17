@@ -12,8 +12,8 @@ self.addEventListener('activate',e=>{
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET')return;
   const url=new URL(e.request.url);
-  // Never cache HTML navigation — always fetch fresh so new deployments take effect
-  if(e.request.mode==='navigate'){
+  // Never cache btb-url.js or HTML — always fetch fresh
+  if(url.pathname.endsWith('/btb-url.js')||e.request.mode==='navigate'){
     e.respondWith(fetch(e.request,{cache:'no-store'}).catch(()=>caches.match(e.request)));
     return;
   }

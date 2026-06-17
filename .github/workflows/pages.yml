@@ -6,46 +6,26 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
+  contents: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/configure-pages@v5
-
-      - name: Inject SHEET_URL into index.html
+      - name: Write SHEET_URL to btb-url.js
         env:
           SHEET_URL: ${{ secrets.SHEET_URL }}
         run: |
-          python3 -c "
-          import os, sys
-          url = os.environ['SHEET_URL']
-          with open('index.html', 'r') as f:
-              html = f.read()
-          if '__SHEET_URL__' not in html:
-              print('ERROR: placeholder not found in index.html', file=sys.stderr)
-              sys.exit(1)
-          html = html.replace('__SHEET_URL__', url)
-          with open('index.html', 'w') as f:
-              f.write(html)
-          print(f'Injected URL ({len(url)} chars) into index.html')
-          "
+          printf 'window.BTB_SHEET_URL = "%s";\n' "$SHEET_URL" > btb-url.js
+          echo "btb-url.js: $(wc -c < btb-url.js) bytes"
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Push to gh-pages branch
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git checkout --orphan gh-pages-deploy
+          git add -A
+          git commit -m "deploy: ${GITHUB_SHA::7}"
+          git push origin gh-pages-deploy:gh-pages --force
