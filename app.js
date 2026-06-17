@@ -2412,7 +2412,10 @@ async function steamAutoFill(appId,{fromUrl=false}={}){
         const dateEl=document.getElementById('fDate');
         if(!dateEl.value){
           const parsed=new Date(dateStr);
-          if(!isNaN(parsed)){dateEl.value=parsed.toISOString().split('T')[0];filled.push('release')}
+          if(!isNaN(parsed)){
+            dateEl.value=`${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`;
+            filled.push('release');
+          }
         }
       }
     }

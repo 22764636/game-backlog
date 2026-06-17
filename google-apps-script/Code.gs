@@ -66,10 +66,14 @@ function getAll() {
   const rows = sheet.getDataRange().getValues();
   if (rows.length < 2) return [];
 
+  const tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
   const headers = rows[0].map(String);
   return rows.slice(1).map(row => {
     const obj = {};
-    headers.forEach((h, i) => { obj[h] = row[i]; });
+    headers.forEach((h, i) => {
+      const v = row[i];
+      obj[h] = (v instanceof Date) ? Utilities.formatDate(v, tz, 'yyyy-MM-dd') : v;
+    });
     return obj;
   });
 }
@@ -83,10 +87,14 @@ function getMeta() {
   const rows = sheet.getDataRange().getValues();
   if (rows.length < 2) return [];
 
+  const tz = ss.getSpreadsheetTimeZone();
   const headers = rows[0].map(String);
   return rows.slice(1).map(row => {
     const obj = {};
-    headers.forEach((h, i) => { obj[h] = row[i]; });
+    headers.forEach((h, i) => {
+      const v = row[i];
+      obj[h] = (v instanceof Date) ? Utilities.formatDate(v, tz, 'yyyy-MM-dd') : v;
+    });
     return obj;
   });
 }
