@@ -716,6 +716,7 @@ let hrMinVal=0,hrMaxVal=100;
 let cGenres=[],cTags=[],cStars=0;
 let fGenres=new Set(),fTags=new Set(),fPrios=new Set();
 let fGenreLogic='or',fTagLogic='or';
+let cfGenres=new Set(),cfGenreLogic='or';
 
 // ══════════════════════════════════════════
 //  HELPERS
@@ -846,9 +847,9 @@ function collectionFiltered(){
       const colMatch=cfSteamColLogic==='and'?[...cfSteamCol].every(c=>gc2.includes(c)):[...cfSteamCol].some(c=>gc2.includes(c));
       if(!colMatch)return false;
     }
-    if(fGenres.size>0){
+    if(cfGenres.size>0){
       const gg=g.genres&&g.genres.length?g.genres:(g.genre?[g.genre]:[]);
-      const genreMatch=fGenreLogic==='and'?[...fGenres].every(x=>gg.includes(x)):[...fGenres].some(x=>gg.includes(x));
+      const genreMatch=cfGenreLogic==='and'?[...cfGenres].every(x=>gg.includes(x)):[...cfGenres].some(x=>gg.includes(x));
       if(!genreMatch)return false;
     }
     return true;
@@ -3015,8 +3016,8 @@ makeFilterPopover({
 makeFilterPopover({
   btnId:'cGenreFilterBtn',popId:'cGenreFilterPop',badgeId:'cGenreFilterBadge',
   clearId:'cGenreFilterClear',listId:'cGenreFilterList',logicToggleId:'cGenreColLogicToggle',
-  getSelected:()=>fGenres,setSelected:s=>{fGenres=s},
-  getLogic:()=>fGenreLogic,setLogic:l=>{fGenreLogic=l},
+  getSelected:()=>cfGenres,setSelected:s=>{cfGenres=s},
+  getLogic:()=>cfGenreLogic,setLogic:l=>{cfGenreLogic=l},
   getOptions:()=>{
     const freq={};
     games.filter(g=>g.status==='bought').forEach(g=>{(g.genres||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1})});
