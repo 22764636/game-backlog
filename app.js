@@ -172,8 +172,14 @@ function fetchMeta(force){
 loadMetaCache();
 
 function normalise(g){
-  if(!g.genres)g.genres=g.genre?g.genre.split(',').map(s=>s.trim()).filter(Boolean):[];
-  if(!g.platforms)g.platforms=g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[];
+  if(!Array.isArray(g.genres)){
+    if(g.genres&&typeof g.genres==='string'){try{g.genres=JSON.parse(g.genres)}catch(e){g.genres=g.genres.split(',').map(s=>s.trim()).filter(Boolean)}}
+    else{g.genres=g.genre?g.genre.split(',').map(s=>s.trim()).filter(Boolean):[]}
+  }
+  if(!Array.isArray(g.platforms)){
+    if(g.platforms&&typeof g.platforms==='string'){try{g.platforms=JSON.parse(g.platforms)}catch(e){g.platforms=g.platforms.split(',').map(s=>s.trim()).filter(Boolean)}}
+    else{g.platforms=g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]}
+  }
   if(g.status)g.status=String(g.status).toLowerCase().trim();
   if(!g.status)g.status='wishlist';
   g.id=g.id!==undefined&&g.id!==null&&g.id!==''?String(g.id):gid();
@@ -183,6 +189,12 @@ function normalise(g){
   if(g.tbaText&&/^\d{4}-\d{2}-\d{2}[T ]/.test(String(g.tbaText))){
     if(!g.releaseDate)g.releaseDate=normaliseDate(String(g.tbaText));
     g.tbaText='';
+  }
+  // Google Sheets auto-converts "Month YYYY" text to a Date cell; Code.gs returns it as
+  // YYYY-MM-01. Restore it to a human-readable "Month YYYY" label.
+  if(g.tbaText&&/^\d{4}-\d{2}-01$/.test(String(g.tbaText))){
+    const p=g.tbaText.split('-');
+    g.tbaText=['January','February','March','April','May','June','July','August','September','October','November','December'][parseInt(p[1])-1]+' '+p[0];
   }
   g.steamAppId=(g.steamAppId!==undefined&&g.steamAppId!==null&&g.steamAppId!=='')?String(g.steamAppId):'';
   delete g.played; // field removed — no longer used
