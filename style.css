@@ -734,6 +734,22 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .gg.lv .gc{transform-style:flat;transform:none!important}
 .gg.lv .gc-shine{display:none}
 
+/* ── MODE PILL TOGGLE (Wishlist / Collection) ── */
+.mode-tog{display:flex;border-radius:var(--r);overflow:hidden;border:1px solid var(--bd);height:30px}
+.mode-btn{padding:0 .75rem;background:transparent;color:var(--t2);border:none;cursor:pointer;font-size:.72rem;font-weight:500;white-space:nowrap;transition:background .15s,color .15s;font-family:'Inter',sans-serif}
+.mode-btn.on{background:var(--blue);color:#031329;font-weight:700}
+.mode-btn:not(.on):hover{color:var(--blue)}
+
+/* ── DESKTOP HAMBURGER MENU ── */
+#dhmenu{
+  display:none;position:fixed;top:var(--hh);right:0;
+  background:var(--s1);border:1px solid var(--bd2);border-top:none;
+  border-radius:0 0 var(--rl) var(--rl);z-index:350;min-width:220px;
+  box-shadow:0 8px 24px rgba(0,0,0,.35)
+}
+#dhmenu.on{display:block}
+@media(max-width:640px){#dhmenu{display:none!important}}
+
 /* ── HAMBURGER MENU ── */
 #hmenu{
   display:none;position:fixed;top:var(--hh);right:0;
