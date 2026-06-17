@@ -1171,9 +1171,12 @@ function colCardHTML(g){
   const ps=g.playStatus||'Unplayed';
   const psM=PS_META[ps]||{code:'UP',cls:'ps-UP'};
   const psBadgeCard=`<span class="col-ps-badge ${psM.cls} ps-card-badge" data-id="${gid_s}" title="Click to change status">${psM.code}<span class="ps-tip">${esc(ps)}</span></span>`;
-  const costEl=(g.cost!==undefined&&g.cost!=='')
-    ?'<span class="cprice">€'+parseFloat(g.cost).toFixed(2)+'</span>'
-    :'<span class="cprice" style="color:var(--t3)">—</span>';
+  const _costNum=g.cost!==undefined&&g.cost!==''?parseFloat(g.cost):null;
+  const costEl=_costNum===null
+    ?'<span class="cprice" style="color:var(--t3)">—</span>'
+    :_costNum===0
+      ?'<span class="cprice" style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>'
+      :'<span class="cprice">€'+_costNum.toFixed(2)+'</span>';
   const dlcs=g.type!=='dlc'?findDlcs(g):[];
   const dlcBadge=dlcs.length?`<span class="dlc-count-badge" data-id="${gid_s}">DLC (${dlcs.length})</span>`:'';
 
@@ -1876,12 +1879,14 @@ function openPanel(id){
     if(gameDlcs.length){
       const dlcCards=gameDlcs.map(d=>{
         const dCover=d.cover||(d.steamAppId?sc(d.steamAppId):'');
-        const dThumb=dCover?`<img src="${esc(dCover)}" alt="${esc(d.title)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="panel-dlc-ph" style="display:none">🎮</div>`:`<div class="panel-dlc-ph">🎮</div>`;
-        return`<div class="panel-dlc-item" data-did="${esc(d.id)}" title="${esc(d.title)}">
-          <div class="panel-dlc-cover">${dThumb}</div>
+        const dThumb=dCover?`<img class="panel-base-thumb" src="${esc(dCover)}" alt="">`:`<div class="panel-base-thumb" style="background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--t3)">🎮</div>`;
+        return`<div class="panel-dlc-item panel-base-game" data-did="${esc(d.id)}">
+          ${dThumb}
+          <span class="panel-base-title">${esc(d.title)}</span>
+          <span class="panel-base-arrow">›</span>
         </div>`;
       }).join('');
-      b+=`<div class="ps"><div class="psl">DLC (${gameDlcs.length})</div><div class="panel-dlc-grid">${dlcCards}</div></div>`;
+      b+=`<div class="ps"><div class="psl">DLC (${gameDlcs.length})</div>${dlcCards}</div>`;
     }
   }
   if(g.shortDescription)b+=`<div class="ps"><div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${esc(g.shortDescription)}</div></div>`;
@@ -1890,7 +1895,10 @@ function openPanel(id){
   if(g.status==='bought'){
     const colDets=[];
     if(g.store)colDets.push(`<div><span style="color:var(--t3)">Store: </span>${esc(g.store)}</div>`);
-    if(g.cost!==undefined&&g.cost!=='')colDets.push(`<div><span style="color:var(--t3)">Cost: </span><b style="color:var(--blue)">€${parseFloat(g.cost).toFixed(2)}</b></div>`);
+    if(g.cost!==undefined&&g.cost!==''){
+      const cn=parseFloat(g.cost);
+      colDets.push(`<div><span style="color:var(--t3)">Cost: </span>${cn===0?`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`:`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`}</div>`);
+    }
     if(g.purchaseDate)colDets.push(`<div><span style="color:var(--t3)">Purchased: </span>${esc(g.purchaseDate)}</div>`);
     if(colDets.length)b+=`<div class="ps"><div class="psl">Collection</div><div class="pv" style="display:grid;grid-template-columns:1fr 1fr;gap:.28rem .55rem">${colDets.join('')}</div></div>`;
     // Inline editable: play status — styled picker button
@@ -3480,14 +3488,21 @@ makeFilterPopover({
   const sheetClose=document.getElementById('dlcSheetClose');
   if(!tooltip||!sheet)return;
 
-  const isTouch=()=>window.matchMedia('(hover:none)').matches;
+  let lastPointerType='mouse';
+  document.addEventListener('pointerdown',e=>{lastPointerType=e.pointerType;});
   let hideTimer=null;
+
+  function fmtCostTt(d){
+    if(d.cost===undefined||d.cost==='')return'—';
+    const n=parseFloat(d.cost);
+    return n===0?'FREE':'€'+n.toFixed(2);
+  }
 
   function dlcCardFull(d){
     const cover=d.cover||(d.steamAppId?sc(d.steamAppId):'');
     const ps=d.playStatus||'Unplayed';
     const m=PS_META[ps]||{code:'UP',cls:'ps-UP'};
-    const costStr=(d.cost!==undefined&&d.cost!=='')?`€${parseFloat(d.cost).toFixed(2)}`:'—';
+    const costStr=fmtCostTt(d);
     return`<div class="dlc-tt-card" data-did="${esc(d.id)}">
       <div class="dlc-tt-cover">${cover?`<img src="${esc(cover)}" alt="${esc(d.title)}" onerror="this.style.display='none'">`:'<div class="dlc-tt-ph">🎮</div>'}</div>
       <div class="dlc-tt-info">
@@ -3517,9 +3532,9 @@ makeFilterPopover({
     const th=tooltip.offsetHeight;
     let top=r.top-th-8;
     let left=r.left+r.width/2-tw/2;
-    if(top<8){top=r.bottom+8;}
+    if(top<8)top=r.bottom+8;
     left=Math.max(8,Math.min(left,window.innerWidth-tw-8));
-    tooltip.style.top=(top+window.scrollY)+'px';
+    tooltip.style.top=top+'px';
     tooltip.style.left=left+'px';
   }
 
@@ -3557,16 +3572,16 @@ makeFilterPopover({
   sheetClose.addEventListener('click',closeSheet);
   sheetOv.addEventListener('click',closeSheet);
 
-  // Capture phase so we run before card click handlers
+  // Capture phase — runs before card click handler to stop propagation
   document.addEventListener('click',e=>{
     const badge=e.target.closest('.dlc-count-badge');
     if(!badge)return;
     e.stopPropagation();
-    if(isTouch()) openSheet(badge);
+    if(lastPointerType==='touch') openSheet(badge);
   },true);
 
   document.addEventListener('mouseover',e=>{
-    if(isTouch())return;
+    if(lastPointerType==='touch')return;
     const badge=e.target.closest('.dlc-count-badge');
     if(badge){clearTimeout(hideTimer);showTooltip(badge);}
     else if(!tooltip.contains(e.target)){

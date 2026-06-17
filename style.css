@@ -134,7 +134,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   border-radius:4px;padding:1px 5px;max-width:120px;overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;display:inline-block;line-height:1.5}
 /* ── DLC TOOLTIP ── */
-#dlcTooltip{position:absolute;z-index:200;background:var(--s2);border:1px solid var(--bd2);
+#dlcTooltip{position:fixed;z-index:200;background:var(--s2);border:1px solid var(--bd2);
   border-radius:8px;padding:.5rem;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5);
   min-width:140px;max-width:480px}
 .dlc-tt-card{display:flex;flex-direction:column;gap:.3rem;cursor:pointer;border-radius:6px;
@@ -166,13 +166,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 #dlcSheetClose{background:none;border:none;color:var(--t2);font-size:1rem;cursor:pointer;padding:.2rem .4rem}
 .dlc-sheet-body{overflow-y:auto;padding:.6rem;display:flex;flex-direction:column;gap:.4rem}
 /* ── PANEL DLC GRID ── */
-.panel-dlc-grid{display:flex;flex-wrap:wrap;gap:.4rem}
-.panel-dlc-item{width:100px;cursor:pointer;border-radius:6px;overflow:hidden;
-  border:1px solid var(--bd);transition:border-color .15s;background:var(--s3)}
-.panel-dlc-item:hover{border-color:var(--blue)}
-.panel-dlc-cover{width:100%;height:57px;overflow:hidden;background:var(--s2);display:block}
-.panel-dlc-cover img{width:100%;height:100%;object-fit:cover;display:block}
-.panel-dlc-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--t3)}
+.panel-dlc-item{cursor:pointer}
 /* ── PLAY STATUS FILTER BADGE STYLE ── */
 .ps-filter-opt{display:flex;align-items:center;gap:.5rem;padding:.3rem .45rem;border-radius:6px;
   cursor:pointer;transition:background .1s}
@@ -520,7 +514,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 
 /* ── SYNC FLOATING PILL ── */
 /* Desktop: inline in header */
-.sync-hdr{font-size:.68rem;font-weight:500;color:var(--t3);white-space:nowrap;margin-left:.2rem}
+.sync-hdr{font-size:.68rem;font-weight:500;color:var(--t3);white-space:nowrap}
 #syncPill{display:none} /* hidden on desktop */
 /* Mobile: floating pill bottom-left */
 @media(max-width:640px){
