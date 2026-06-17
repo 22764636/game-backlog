@@ -117,7 +117,8 @@ async function resync(){
     games = incoming;
     localStorage.setItem(KEY, JSON.stringify(games));
     setSyncStatus('ok','Synced');
-    renderAll();
+    dispatchRender();
+    fetchMeta();
   } catch(err){
     setSyncStatus('err','Re-sync failed');
     console.error('BTB resync error:', err);
@@ -209,6 +210,11 @@ function normalise(g){
     catch(e){g.steamCollection=g.steamCollection.split(',').map(s=>s.trim()).filter(Boolean)}
   }
   if(!Array.isArray(g.steamCollection))g.steamCollection=[];
+  // notes: parse JSON array of {id,date,text} objects from Sheet string
+  if(!Array.isArray(g.notes)){
+    if(g.notes&&typeof g.notes==='string'){try{g.notes=JSON.parse(g.notes)}catch(e){g.notes=[]}}
+    else{g.notes=[]}
+  }
   // Normalise purchaseDate to dd/mm/yyyy
   if(g.purchaseDate){const pf=fmtDate(String(g.purchaseDate));if(pf&&pf!==String(g.purchaseDate))g.purchaseDate=pf;}
   // parentAppId: ensure string or null
@@ -3061,7 +3067,7 @@ document.getElementById('cSortSel').onchange=renderCollection;
   const clear=document.getElementById('cGenreFilterClear');
   function getUsedGenres(){
     const s=new Set();
-    games.filter(g=>g.status==='bought').forEach(g=>{(g.genres||[]).forEach(x=>s.add(x));if(g.genre)s.add(g.genre)});
+    games.filter(g=>g.status==='bought').forEach(g=>{(g.genres||[]).forEach(x=>{if(x)s.add(x)})});
     return [...s].sort();
   }
   function renderPop(){

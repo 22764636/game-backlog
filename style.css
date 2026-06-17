@@ -329,7 +329,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   margin-bottom:.3rem;display:flex;align-items:center;gap:.3rem}
 .psl::after{content:'';flex:1;height:1px;background:var(--bd)}
 .pv{font-size:.8rem;color:var(--t2);line-height:1.6}
-.plks{display:flex;gap:.35rem;flex-wrap:wrap}
+.plks{display:flex;gap:.35rem;flex-wrap:wrap;justify-content:center}
 .plk{display:flex;align-items:center;gap:.28rem;background:var(--base);border:1px solid var(--bd);
   color:var(--t2);border-radius:var(--r);padding:.28rem .6rem;font-size:.7rem;font-weight:500;cursor:pointer;transition:all .15s}
 .plk:hover{border-color:var(--blue);color:var(--blue)}
