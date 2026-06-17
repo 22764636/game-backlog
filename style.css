@@ -440,9 +440,13 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .tba-btn.on{background:var(--blue);border-color:var(--blue);color:#031329}
 
 /* overlays */
-#riov,#rmov,#btcov{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
+#riov,#rmov,#btcov,#rdcov{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
   z-index:300;align-items:center;justify-content:center;padding:1rem}
-#riov.on,#rmov.on,#btcov.on{display:flex}
+#riov.on,#rmov.on,#btcov.on,#rdcov.on{display:flex}
+#rdcLog{max-height:300px;overflow-y:auto;font-size:.72rem;font-family:monospace;line-height:1.7;background:var(--s3);border:1px solid var(--bd);border-radius:var(--r);padding:.5rem .7rem}
+#rdcLog .rdc-ok{color:var(--green)}
+#rdcLog .rdc-skip{color:var(--t3)}
+#rdcLog .rdc-err{color:var(--pink)}
 
 
 /* notes system */

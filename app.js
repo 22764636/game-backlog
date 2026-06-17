@@ -3407,6 +3407,109 @@ document.addEventListener('keydown',function(e){
 });
 
 // ══════════════════════════════════════════
+//  RELEASE DATE CHECKER
+// ══════════════════════════════════════════
+(function(){
+  const ov=document.getElementById('rdcov');
+  const summary=document.getElementById('rdcSummary');
+  const log=document.getElementById('rdcLog');
+  const closeBtn=document.getElementById('rdcClose');
+  closeBtn.onclick=()=>ov.classList.remove('on');
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('on')});
+
+  function rdcLog(msg,cls){
+    const d=document.createElement('div');
+    d.className=cls||'';
+    d.textContent=msg;
+    log.appendChild(d);
+    log.scrollTop=log.scrollHeight;
+  }
+
+  // Parse a Steam release_date object into {releaseDate, tbaText}
+  function parseSteamDate(relObj){
+    if(!relObj)return{releaseDate:'',tbaText:''};
+    const coming=!!relObj.coming_soon;
+    const raw=(relObj.date||'').trim();
+    if(!raw)return{releaseDate:'',tbaText:''};
+    if(coming){
+      // Not yet released — keep as descriptive text
+      return{releaseDate:'',tbaText:raw};
+    }
+    // Released or confirmed date — try to parse as a real calendar date
+    const parsed=new Date(raw);
+    if(!isNaN(parsed)&&/\d/.test(raw)){
+      // Verify the parse actually produced a day-level date (not just a year)
+      const full=`${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`;
+      return{releaseDate:full,tbaText:''};
+    }
+    // Couldn't resolve to a full date (e.g. "Q3 2026", "2026") → tbaText
+    return{releaseDate:'',tbaText:raw};
+  }
+
+  async function run(){
+    if(OFFLINE){showToast('Offline — cannot reach Steam.');return}
+    const targets=games.filter(g=>g.steamAppId&&isGameUnreleased(g)&&!isCancelled(g));
+    if(!targets.length){showToast('No unreleased Steam games found.');return}
+
+    ov.classList.add('on');
+    log.innerHTML='';
+    summary.textContent=`Checking ${targets.length} game${targets.length>1?'s':''}…`;
+
+    let updated=0,unchanged=0,failed=0;
+
+    for(let i=0;i<targets.length;i++){
+      const g=targets[i];
+      summary.textContent=`${i+1}/${targets.length} — ${g.title}`;
+
+      try{
+        const res=await fetch(`${STEAM_WORKER}/?appid=${g.steamAppId}`);
+        if(!res.ok)throw new Error(`HTTP ${res.status}`);
+        const json=await res.json();
+        const entry=json[g.steamAppId];
+        if(!entry||!entry.success||!entry.data){
+          rdcLog(`✗ ${g.title} — no Steam data`,'rdc-err');
+          failed++;continue;
+        }
+
+        const{releaseDate:newRd,tbaText:newTba}=parseSteamDate(entry.data.release_date);
+        const oldRd=g.releaseDate||'';
+        const oldTba=g.tbaText||'';
+
+        if(newRd!==oldRd||newTba!==oldTba){
+          const gg=games.find(x=>x.id===g.id);
+          if(gg){
+            gg.releaseDate=newRd;
+            gg.tbaText=newTba;
+            save(gg.id);
+          }
+          const before=oldRd||oldTba||'(empty)';
+          const after=newRd||newTba||'(empty)';
+          rdcLog(`✔ ${g.title}  ${before} → ${after}`,'rdc-ok');
+          updated++;
+        }else{
+          rdcLog(`— ${g.title}  ${oldRd||oldTba||'(empty)'}`,'rdc-skip');
+          unchanged++;
+        }
+      }catch(err){
+        rdcLog(`✗ ${g.title} — ${err.message}`,'rdc-err');
+        failed++;
+      }
+
+      if(i<targets.length-1)await new Promise(r=>setTimeout(r,400));
+    }
+
+    summary.textContent=`Done — ${updated} updated, ${unchanged} unchanged${failed?`, ${failed} failed`:''}`;
+    if(updated)dispatchRender();
+  }
+
+  document.getElementById('rdcBtn').onclick=run;
+  document.getElementById('hmRdcBtn').onclick=()=>{
+    document.getElementById('hmenu').classList.remove('open');
+    run();
+  };
+})();
+
+// ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
 restoreFromHash();

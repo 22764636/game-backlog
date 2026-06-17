@@ -49,6 +49,7 @@
   <div class="hr">
     <button class="hb hb-desk" id="themeBtn">☀️</button>
     <button class="hb hb-desk" id="metaRefreshBtn" title="Refresh genre & tag descriptions">⟳ Meta</button>
+    <button class="hb hb-desk" id="rdcBtn" title="Check Steam for updated release dates">↻ Dates</button>
     <button class="hb hb-desk" id="calBtn" title="Release Calendar"><span class="hb-label">Calendar</span></button>
     <button class="hb hb-desk" id="expBtn" title="Export"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg><span class="hb-label"> Export</span></button>
     <button class="hb hb-desk" id="impBtn" title="Import"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg><span class="hb-label"> Import</span></button>
@@ -86,6 +87,7 @@
   <button class="hmi" id="hmImpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg> Import</button>
   <button class="hmi" id="hmCollectionBtn">Collection</button>
   <button class="hmi" id="hmResyncBtn" style="display:none">⟳ Re-sync</button>
+  <button class="hmi" id="hmRdcBtn">↻ Check release dates</button>
 </div>
 
 <div id="tb">
@@ -245,6 +247,18 @@
 </div>
 
 <div id="main"><div id="content"><div id="gc"></div></div></div>
+
+<!-- RELEASE DATE CHECK MODAL -->
+<div id="rdcov">
+  <div class="modal" style="max-width:520px">
+    <div class="mt" style="color:var(--blue)">↻ Release Date Check</div>
+    <div id="rdcSummary" style="font-size:.82rem;color:var(--t2);margin-bottom:.7rem;min-height:1.1em"></div>
+    <div id="rdcLog"></div>
+    <div class="ma" style="margin-top:.9rem">
+      <button class="mb2 c" id="rdcClose" style="flex:1">Close</button>
+    </div>
+  </div>
+</div>
 
 <div id="pov"></div>
 <div id="toast"></div>
