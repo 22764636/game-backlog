@@ -600,16 +600,7 @@ if('serviceWorker' in navigator){
     .catch(e=>console.warn('BtB: SW failed',e));
 }
 </script>
-<!-- DLC hover tooltip -->
 <div id="dlcTooltip"></div>
-<!-- DLC mobile bottom sheet -->
-<div id="dlcSheetOv"></div>
-<div id="dlcSheet">
-  <div class="dlc-sheet-header">
-    <span id="dlcSheetTitle"></span>
-    <button id="dlcSheetClose">✕</button>
-  </div>
-  <div class="dlc-sheet-body" id="dlcSheetBody"></div>
-</div>
+<div id="dlcSheet"><div class="dlc-sheet-inner"></div></div>
 </body>
 </html>
