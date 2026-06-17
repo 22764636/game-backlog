@@ -38,16 +38,9 @@ const t=k=>S[k]||k;
 //  THEME
 // ══════════════════════════════════════════
 let theme=localStorage.getItem('btb_theme')||'dark';
-function applyTheme(){document.documentElement.setAttribute('data-theme',theme);document.getElementById('themeBtn').textContent=theme==='dark'?'☀️':'🌙'}
+function applyTheme(){document.documentElement.setAttribute('data-theme',theme);}
 applyTheme();
 function toggleTheme(){theme=theme==='dark'?'light':'dark';localStorage.setItem('btb_theme',theme);applyTheme()}
-document.getElementById('themeBtn').onclick=toggleTheme;
-document.getElementById('metaRefreshBtn').onclick=async function(){
-  this.textContent='⟳ …';this.disabled=true;
-  await fetchMeta(true);
-  this.textContent='⟳ Meta';this.disabled=false;
-  showToast('Metadata refreshed.');
-};
 
 // ══════════════════════════════════════════
 //  SYNC STATUS UI
@@ -96,19 +89,6 @@ function setSyncStatus(state, msg){
       hmResync.textContent='⟳ Syncing…';
       hmResync.style.display='';
       hmResync.style.color='var(--amber)';
-    }
-  }
-  // ── Desktop hamburger Re-sync button ──
-  const dhResync = document.getElementById('dhResyncBtn');
-  if(dhResync){
-    if(state==='ok'||state==='err'||state==='offline'){
-      dhResync.style.display='';
-      dhResync.textContent = state==='err' ? '⚠ Re-sync (failed)' : state==='offline' ? '⊘ Offline mode' : '⟳ Re-sync';
-      dhResync.style.color = state==='err' ? 'var(--pink)' : state==='offline' ? 'var(--t3)' : '';
-    } else if(state==='syncing'){
-      dhResync.textContent='⟳ Syncing…';
-      dhResync.style.display='';
-      dhResync.style.color='var(--amber)';
     }
   }
 }
@@ -961,11 +941,23 @@ function fmtEur(n){
   const parts=n.toFixed(2).split('.');
   return '€'+fmtNum(parts[0])+'.'+parts[1];
 }
+function baselineGames(){
+  return games.filter(g=>{
+    if(af==='wishlist')return g.status==='wishlist'&&!isCancelled(g);
+    if(af==='all')return g.status!=='bought';
+    if(af==='cancelled')return isCancelled(g);
+    if(af==='removed')return g.status==='removed';
+    if(af==='review')return g.status==='wishlist'&&!isCancelled(g)&&nr(g);
+    if(af==='unreleased')return(g.status==='wishlist'||g.status==='bought')&&isGameUnreleased(g)&&!isCancelled(g);
+    return g.status!=='bought';
+  });
+}
 function renderStats(){
   const cur=filtered();
-  const total=games.length;
+  const baseline=baselineGames();
+  const total=baseline.length;
   const isFiltered=cur.length!==total;
-  const totVal=games.filter(g=>g.price).reduce((s,g)=>s+parseFloat(g.price),0);
+  const totVal=baseline.filter(g=>g.price).reduce((s,g)=>s+parseFloat(g.price),0);
   const curVal=cur.filter(g=>g.price).reduce((s,g)=>s+parseFloat(g.price),0);
   let countChip;
   if(isFiltered){
@@ -1159,21 +1151,16 @@ function findDlcs(g){
   return games.filter(x=>x.type==='dlc'&&x.parentAppId&&String(x.parentAppId)===String(g.steamAppId)&&x.status==='bought');
 }
 
-// Mini DLC card for the shelf under a parent game card
-function dlcMiniHTML(g){
-  const coverUrl=g.cover||(g.steamAppId?sc(g.steamAppId):'');
-  const gid_s=String(g.id);
-  const ps=g.playStatus||'Unplayed';
-  const m=PS_META[ps]||{code:'UP',cls:'ps-UP'};
-  return`<div class="dlc-mini" data-id="${gid_s}" title="${esc(g.title)} — ${esc(ps)}">
-    ${coverUrl?`<img src="${esc(coverUrl)}" alt="${esc(g.title)}" onerror="this.style.display='none'">`:`<div class="dlc-mini-ph">DLC</div>`}
-    <div class="dlc-mini-title" style="display:flex;align-items:center;gap:3px">
-      <span class="col-ps-badge ${m.cls}" style="font-size:.5rem;padding:1px 4px">${m.code}</span>
-      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(g.title)}</span>
-    </div>
-  </div>`;
-}
 
+function colTypeBadge(g){
+  if(g.type==='dlc') return '';
+  const cols=g.steamCollection&&g.steamCollection.length?g.steamCollection:[];
+  if(!cols.length) return '';
+  const first=colLabel(cols[0]);
+  const truncated=first.length>18?first.slice(0,17)+'…':first;
+  const extra=cols.length>1?` +${cols.length-1}`:'';
+  return`<span class="col-type-badge" title="${esc(cols.map(colLabel).join(', '))}">${esc(truncated)}${extra}</span>`;
+}
 function colCardHTML(g){
   const coverUrl=g.cover||(g.steamAppId?sc(g.steamAppId):'');
   const cImg=coverUrl?`<img src="${esc(coverUrl)}" alt="${esc(g.title)}" onerror="this.style.display='none';this.previousElementSibling.style.display='flex'">`:'';
@@ -1181,18 +1168,14 @@ function colCardHTML(g){
   const sdbUrl=g.steamAppId?`https://www.steamdb.info/app/${g.steamAppId}/`:`https://www.steamdb.info/search/?q=${encodeURIComponent(g.title||'')}`;
   const stUrl=g.storeLink||(g.steamAppId?`https://store.steampowered.com/app/${g.steamAppId}/`:`https://store.steampowered.com/search/?term=${encodeURIComponent(g.title||'')}`);
   const gid_s=String(g.id);
-  const typeBdg=g.type==='dlc'
-    ?`<span class="bdg" style="background:#3a1a6e;color:#c4a0ff">DLC</span>`
-    :`<span class="bdg" style="background:#0e2e1a;color:#5ddb8e">Game</span>`;
   const ps=g.playStatus||'Unplayed';
   const psM=PS_META[ps]||{code:'UP',cls:'ps-UP'};
   const psBadgeCard=`<span class="col-ps-badge ${psM.cls} ps-card-badge" data-id="${gid_s}" title="Click to change status">${psM.code}<span class="ps-tip">${esc(ps)}</span></span>`;
   const costEl=(g.cost!==undefined&&g.cost!=='')
     ?'<span class="cprice">€'+parseFloat(g.cost).toFixed(2)+'</span>'
     :'<span class="cprice" style="color:var(--t3)">—</span>';
-  const cols=(g.steamCollection&&g.steamCollection.length)
-    ?g.steamCollection.slice(0,2).map(s=>`<span class="col-row-tag">${esc(colLabel(s))}</span>`).join('')
-    :'';
+  const dlcs=g.type!=='dlc'?findDlcs(g):[];
+  const dlcBadge=dlcs.length?`<span class="dlc-count-badge" data-id="${gid_s}" onclick="event.stopPropagation()">DLC (${dlcs.length})</span>`:'';
 
   return`<div class="gc col-card st-bought" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}">
     <div class="cc">
@@ -1200,11 +1183,12 @@ function colCardHTML(g){
       <div class="cg"></div>
       <div class="hb2" style="display:none"></div>
     </div>
-    <div class="pb">${psBadgeCard}<div class="pb-r">${typeBdg}</div></div>
+    <div class="pb">${psBadgeCard}<div class="pb-r">${colTypeBadge(g)}</div></div>
     <div class="cb">
       <div class="ct">${esc(g.title)}</div>
       <div class="cbot">
         ${costEl}
+        ${dlcBadge}
         <div class="cq">
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
           <a href="${sdbUrl}" class="qb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
@@ -1289,25 +1273,7 @@ function renderNextBatch(sb,state){
   if(!next.length)return;
   const fn=state.cardFn||cardHTML;
 
-  if(state.dlcShelves){
-    // Render each card + inject DLC shelf immediately after if parent has DLCs
-    next.forEach(g=>{
-      const tmp=document.createElement('div');
-      tmp.innerHTML=fn(g);
-      while(tmp.firstChild)grid.appendChild(tmp.firstChild);
-      const dlcs=findDlcs(g);
-      if(dlcs.length){
-        const shelf=document.createElement('div');
-        shelf.className='dlc-shelf';
-        shelf.style.cssText='grid-column:1/-1';
-        shelf.innerHTML=`<div class="dlc-shelf-label">DLC (${dlcs.length})</div>${dlcs.map(dlcMiniHTML).join('')}`;
-        shelf.querySelectorAll('.dlc-mini').forEach(m=>{
-          m.addEventListener('click',()=>openPanel(m.dataset.id));
-        });
-        grid.appendChild(shelf);
-      }
-    });
-  } else {
+  {
     const frag=document.createDocumentFragment();
     const tmp=document.createElement('div');
     tmp.innerHTML=next.map(fn).join('');
@@ -1483,8 +1449,7 @@ function renderCollection(){
       const tmp=document.createElement('div');tmp.innerHTML=html;
       const sb=tmp.firstElementChild;
       gc.appendChild(sb);
-      // Custom render that injects DLC shelves after each parent card
-      const state={cards:groups[k],rendered:0,gcls:'gg',cardFn:colCardHTML,dlcShelves:true};
+      const state={cards:groups[k],rendered:0,gcls:'gg',cardFn:colCardHTML};
       sectionState.set(sb,state);
       if(!sb.classList.contains('collapsed'))renderNextBatch(sb,state);
       bindSectionToggle(sb);
@@ -1864,7 +1829,7 @@ function openPanel(id){
       ${isNR&&g.status==='wishlist'&&!isCancelled(g)?`<span class="b-rev">${t('bdgRev')}</span>`:''}
       <span class="bdg" style="background:${prioColor(g.priority)};color:#031329">${prioLabel(g.priority)}</span>
       ${platD?`<span class="bdg" style="background:var(--s3);color:var(--t2)">${esc(platD)}</span>`:''}
-      ${g.type==='dlc'?`<span class="bdg" style="background:#3a1a6e;color:#c4a0ff">DLC</span>`:`<span class="bdg" style="background:#0e2e1a;color:#5ddb8e">Game</span>`}
+      ${g.type==='dlc'?`<span class="bdg" style="background:#3a1a6e;color:#c4a0ff">DLC</span>`:''}
     </div>`;
 
   b+=`<div class="ps"><div class="psl">${t('pHotness')}</div>`;
@@ -1903,6 +1868,26 @@ function openPanel(id){
           <span class="panel-base-title">${esc(parent.title)}</span>
           <span class="panel-base-arrow">›</span>
         </div></div>`;
+    }
+  }
+  // DLC section — shown for parent games that have DLCs
+  if(g.type!=='dlc'){
+    const gameDlcs=findDlcs(g);
+    if(gameDlcs.length){
+      const dlcCards=gameDlcs.map(d=>{
+        const dCover=d.cover||(d.steamAppId?sc(d.steamAppId):'');
+        const dPs=d.playStatus||'Unplayed';
+        const dPsM=PS_META[dPs]||{code:'UP',cls:'ps-UP'};
+        const dThumb=dCover?`<img src="${esc(dCover)}" alt="${esc(d.title)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="panel-dlc-ph" style="display:none">🎮</div>`:`<div class="panel-dlc-ph">🎮</div>`;
+        return`<div class="panel-dlc-item" data-did="${esc(d.id)}" title="${esc(d.title)}">
+          <div class="panel-dlc-cover">${dThumb}</div>
+          <div class="panel-dlc-info">
+            <span class="col-ps-badge ${dPsM.cls}" style="font-size:.5rem;padding:1px 4px">${dPsM.code}</span>
+            <span class="panel-dlc-title">${esc(d.title)}</span>
+          </div>
+        </div>`;
+      }).join('');
+      b+=`<div class="ps"><div class="psl">DLC (${gameDlcs.length})</div><div class="panel-dlc-grid">${dlcCards}</div></div>`;
     }
   }
   if(g.shortDescription)b+=`<div class="ps"><div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${esc(g.shortDescription)}</div></div>`;
@@ -1998,6 +1983,11 @@ function openPanel(id){
   // Base game link click (DLC panel)
   const bgEl=document.querySelector('.panel-base-game');
   if(bgEl)bgEl.addEventListener('click',()=>openPanel(bgEl.dataset.pid));
+
+  // DLC items click (parent game panel)
+  document.querySelectorAll('.panel-dlc-item').forEach(el=>{
+    el.addEventListener('click',()=>openPanel(el.dataset.did));
+  });
 
   // Inline play status save
   const psInlineBtn=document.getElementById('psInlineBtn');
@@ -3025,18 +3015,51 @@ document.getElementById('cListBtn').onclick=()=>{
 // Collection sort
 document.getElementById('cSortSel').onchange=renderCollection;
 
-makeFilterPopover({
-  btnId:'cPlayFilterBtn',popId:'cPlayFilterPop',badgeId:'cPlayFilterBadge',
-  clearId:'cPlayFilterClear',listId:'cPlayFilterList',showTip:false,
-  getSelected:()=>cfPlayStatus,setSelected:s=>{cfPlayStatus=s},
-  getOptions:()=>{
-    const order=['Unplayed','In Progress','Completed','Superseded','Unfinishable','Played on Different Platform','Will Never Complete','Will Never Play'];
-    const freq={};order.forEach(s=>{freq[s]=0});
-    games.filter(g=>g.status==='bought').forEach(g=>{const s=g.playStatus||'Unplayed';if(freq[s]!==undefined)freq[s]++;else freq[s]=1;});
-    return order.filter(s=>freq[s]>0).map(v=>({value:v,count:freq[v]}));
-  },
-  renderFn:renderCollection,
-});
+(function(){
+  const btn=document.getElementById('cPlayFilterBtn');
+  const pop=document.getElementById('cPlayFilterPop');
+  const badge=document.getElementById('cPlayFilterBadge');
+  const clearBtn=document.getElementById('cPlayFilterClear');
+  const list=document.getElementById('cPlayFilterList');
+  const order=['Unplayed','In Progress','Completed','Superseded','Unfinishable','Played on Different Platform','Will Never Complete','Will Never Play'];
+  function updateBtn(){
+    const active=cfPlayStatus.size>0;
+    btn.classList.toggle('active',active);
+    badge.textContent=cfPlayStatus.size;badge.style.display=active?'':'none';
+  }
+  function renderList(){
+    const freq={};
+    games.filter(g=>g.status==='bought').forEach(g=>{const s=g.playStatus||'Unplayed';freq[s]=(freq[s]||0)+1;});
+    const opts=order.filter(s=>freq[s]>0);
+    if(!opts.length){list.innerHTML=`<div class="fpop-empty">No options</div>`;return;}
+    list.innerHTML=opts.map(v=>{
+      const m=PS_META[v]||{code:'UP',cls:'ps-UP'};
+      const sel=cfPlayStatus.has(v);
+      return`<div class="ps-filter-opt${sel?' selected':''}" data-val="${esc(v)}">
+        <span class="col-ps-badge ${m.cls}" style="pointer-events:none">${m.code}<span class="ps-tip">${esc(v)}</span></span>
+        <span class="fpop-opt-label">${esc(v)}</span>
+        <span class="fpop-opt-count">${freq[v]||0}</span>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.ps-filter-opt').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const v=el.dataset.val;
+        cfPlayStatus.has(v)?cfPlayStatus.delete(v):cfPlayStatus.add(v);
+        el.classList.toggle('selected',cfPlayStatus.has(v));
+        updateBtn();renderCollection();
+      });
+    });
+  }
+  clearBtn.onclick=()=>{cfPlayStatus=new Set();updateBtn();renderList();renderCollection();};
+  btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
+    const opening=!pop.classList.contains('open');
+    pop.classList.toggle('open',opening);
+    if(opening){positionFpop(btn,pop);renderList();}
+  });
+  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
+})();
 makeFilterPopover({
   btnId:'cColFilterBtn',popId:'cColFilterPop',badgeId:'cColFilterBadge',
   clearId:'cColFilterClear',listId:'cColFilterList',logicToggleId:'cColLogicToggle',showTip:false,
@@ -3149,14 +3172,14 @@ document.getElementById('searchClearMob').onclick=function(){
 // ══════════════════════════════════════════
 //  EXPORT / IMPORT
 // ══════════════════════════════════════════
-document.getElementById('expBtn').onclick=()=>{
+function doExport(){
   const b=new Blob([JSON.stringify(games,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);
   const now=new Date();
   const ts=now.toISOString().slice(0,10)+'-'+now.toTimeString().slice(0,8).replace(/:/g,'');
   a.download=`backlog-${ts}.json`;a.click();
-};
-document.getElementById('impBtn').onclick=()=>{
+}
+function doImport(){
   const inp=document.createElement('input');inp.type='file';inp.accept='.json';
   inp.onchange=e=>{
     const f=e.target.files[0];if(!f)return;
@@ -3176,7 +3199,7 @@ document.getElementById('impBtn').onclick=()=>{
     r.readAsText(f);
   };
   inp.click();
-};
+}
 
 // ══════════════════════════════════════════
 //  HAMBURGER MENU + CALENDAR BUTTON
@@ -3196,8 +3219,8 @@ document.getElementById('impBtn').onclick=()=>{
   function hm(fn){return function(){menu.classList.remove('on');fn();}}
   document.getElementById('hmCalBtn').addEventListener('click',hm(openCalendar));
   document.getElementById('hmThemeBtn').addEventListener('click',hm(toggleTheme));
-  document.getElementById('hmExpBtn').addEventListener('click',hm(function(){document.getElementById('expBtn').onclick();}));
-  document.getElementById('hmImpBtn').addEventListener('click',hm(function(){document.getElementById('impBtn').onclick();}));
+  document.getElementById('hmExpBtn').addEventListener('click',hm(doExport));
+  document.getElementById('hmImpBtn').addEventListener('click',hm(doImport));
   document.getElementById('hmResyncBtn').addEventListener('click',hm(function(){if(!OFFLINE)resync();}));
   document.getElementById('calBtn').addEventListener('click',openCalendar);
 })();
@@ -3216,11 +3239,10 @@ document.getElementById('impBtn').onclick=()=>{
   document.addEventListener('click',e=>{if(!menu.contains(e.target)&&e.target!==btn)menu.classList.remove('on');});
   function dh(fn){return function(){menu.classList.remove('on');fn();}}
   document.getElementById('dhThemeBtn').addEventListener('click',dh(toggleTheme));
-  document.getElementById('dhMetaBtn').addEventListener('click',dh(()=>document.getElementById('metaRefreshBtn').click()));
-  document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>document.getElementById('rdcBtn').click()));
-  document.getElementById('dhExpBtn').addEventListener('click',dh(()=>document.getElementById('expBtn').click()));
-  document.getElementById('dhImpBtn').addEventListener('click',dh(()=>document.getElementById('impBtn').click()));
-  document.getElementById('dhResyncBtn').addEventListener('click',dh(()=>{if(!OFFLINE)resync();}));
+  document.getElementById('dhMetaBtn').addEventListener('click',dh(async()=>{fetchMeta(true);showToast('Metadata refreshed.');}));
+  document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>runReleaseDateCheck()));
+  document.getElementById('dhExpBtn').addEventListener('click',dh(doExport));
+  document.getElementById('dhImpBtn').addEventListener('click',dh(doImport));
 })();
 
 // ══════════════════════════════════════════
@@ -3348,12 +3370,25 @@ function makeFilterPopover({btnId,popId,badgeId,clearId,listId,logicToggleId,get
     });
   }
   clearBtn.onclick=()=>{setSelected(new Set());updateBtn();renderList();doRender()};
+  const searchInp=pop.querySelector('.fpop-search');
+  if(searchInp){
+    searchInp.addEventListener('input',()=>{
+      const q=searchInp.value.toLowerCase();
+      list.querySelectorAll('label.fpop-opt,.ps-filter-opt').forEach(opt=>{
+        const lbl=opt.querySelector('.fpop-opt-label');
+        opt.style.display=(!q||!lbl||(lbl.textContent||'').toLowerCase().includes(q))?'':'none';
+      });
+    });
+  }
   btn.addEventListener('click',e=>{
     e.stopPropagation();
     document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
     const opening=!pop.classList.contains('open');
     pop.classList.toggle('open',opening);
-    if(opening){positionFpop(btn,pop);renderList();}
+    if(opening){
+      positionFpop(btn,pop);renderList();
+      if(searchInp){searchInp.value='';list.querySelectorAll('label.fpop-opt,.ps-filter-opt').forEach(o=>o.style.display='');}
+    }
   });
   document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
 }
@@ -3437,6 +3472,114 @@ makeFilterPopover({
   btn.addEventListener('mouseleave',e=>{if(!pop.matches(':hover'))pop.classList.remove('open')});
   pop.addEventListener('mouseleave',()=>pop.classList.remove('open'));
   document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
+})();
+
+// ══════════════════════════════════════════
+//  DLC TOOLTIP + MOBILE SHEET
+// ══════════════════════════════════════════
+(function(){
+  const tooltip=document.getElementById('dlcTooltip');
+  const sheet=document.getElementById('dlcSheet');
+  const sheetOv=document.getElementById('dlcSheetOv');
+  const sheetTitle=document.getElementById('dlcSheetTitle');
+  const sheetBody=document.getElementById('dlcSheetBody');
+  const sheetClose=document.getElementById('dlcSheetClose');
+  if(!tooltip||!sheet)return;
+
+  const isTouch=()=>window.matchMedia('(hover:none)').matches;
+  let hideTimer=null;
+
+  function dlcCardFull(d){
+    const cover=d.cover||(d.steamAppId?sc(d.steamAppId):'');
+    const ps=d.playStatus||'Unplayed';
+    const m=PS_META[ps]||{code:'UP',cls:'ps-UP'};
+    const costStr=(d.cost!==undefined&&d.cost!=='')?`€${parseFloat(d.cost).toFixed(2)}`:'—';
+    return`<div class="dlc-tt-card" data-did="${esc(d.id)}">
+      <div class="dlc-tt-cover">${cover?`<img src="${esc(cover)}" alt="${esc(d.title)}" onerror="this.style.display='none'">`:'<div class="dlc-tt-ph">🎮</div>'}</div>
+      <div class="dlc-tt-info">
+        <span class="col-ps-badge ${m.cls}" style="font-size:.5rem;padding:1px 4px">${m.code}</span>
+        <span class="dlc-tt-title">${esc(d.title)}</span>
+        <span class="dlc-tt-cost">${costStr}</span>
+      </div>
+    </div>`;
+  }
+
+  function dlcCardImg(d){
+    const cover=d.cover||(d.steamAppId?sc(d.steamAppId):'');
+    return`<div class="dlc-tt-img-only" data-did="${esc(d.id)}" title="${esc(d.title)}">
+      ${cover?`<img src="${esc(cover)}" alt="${esc(d.title)}" onerror="this.style.display='none'">`:'<div class="dlc-tt-ph-sm">🎮</div>'}
+    </div>`;
+  }
+
+  function buildTooltipContent(dlcs){
+    if(dlcs.length<=2) return dlcs.map(dlcCardFull).join('');
+    return`<div class="dlc-tt-img-row">${dlcs.map(dlcCardImg).join('')}</div>`;
+  }
+
+  function positionTooltip(badge){
+    const r=badge.getBoundingClientRect();
+    tooltip.style.display='block';
+    const tw=tooltip.offsetWidth;
+    const th=tooltip.offsetHeight;
+    let top=r.top-th-8;
+    let left=r.left+r.width/2-tw/2;
+    if(top<8){top=r.bottom+8;}
+    left=Math.max(8,Math.min(left,window.innerWidth-tw-8));
+    tooltip.style.top=(top+window.scrollY)+'px';
+    tooltip.style.left=left+'px';
+  }
+
+  function showTooltip(badge){
+    const id=badge.dataset.id;
+    const g=games.find(x=>x.id===id);if(!g)return;
+    const dlcs=findDlcs(g);if(!dlcs.length)return;
+    tooltip.innerHTML=buildTooltipContent(dlcs);
+    tooltip.querySelectorAll('[data-did]').forEach(el=>{
+      el.addEventListener('click',()=>{hideTooltip();openPanel(el.dataset.did);});
+    });
+    positionTooltip(badge);
+  }
+
+  function hideTooltip(){tooltip.style.display='none';tooltip.innerHTML='';}
+
+  function openSheet(badge){
+    const id=badge.dataset.id;
+    const g=games.find(x=>x.id===id);if(!g)return;
+    const dlcs=findDlcs(g);if(!dlcs.length)return;
+    sheetTitle.textContent=`DLCs for ${g.title}`;
+    sheetBody.innerHTML=dlcs.map(dlcCardFull).join('');
+    sheetBody.querySelectorAll('[data-did]').forEach(el=>{
+      el.addEventListener('click',()=>{closeSheet();openPanel(el.dataset.did);});
+    });
+    sheetOv.style.display='block';
+    sheet.classList.add('open');
+  }
+
+  function closeSheet(){
+    sheet.classList.remove('open');
+    setTimeout(()=>{sheetOv.style.display='none';},280);
+  }
+
+  sheetClose.addEventListener('click',closeSheet);
+  sheetOv.addEventListener('click',closeSheet);
+
+  document.addEventListener('mouseover',e=>{
+    if(isTouch())return;
+    const badge=e.target.closest('.dlc-count-badge');
+    if(badge){clearTimeout(hideTimer);showTooltip(badge);}
+    else if(!tooltip.contains(e.target)){
+      clearTimeout(hideTimer);
+      hideTimer=setTimeout(hideTooltip,150);
+    }
+  });
+  tooltip.addEventListener('mouseover',()=>clearTimeout(hideTimer));
+  tooltip.addEventListener('mouseleave',()=>{hideTimer=setTimeout(hideTooltip,150);});
+
+  document.addEventListener('click',e=>{
+    if(!isTouch())return;
+    const badge=e.target.closest('.dlc-count-badge');
+    if(badge){e.stopPropagation();openSheet(badge);}
+  });
 })();
 
 // ══════════════════════════════════════════
@@ -3551,7 +3694,7 @@ document.addEventListener('keydown',function(e){
     if(updated)dispatchRender();
   }
 
-  document.getElementById('rdcBtn').onclick=run;
+  window.runReleaseDateCheck=run;
   document.getElementById('hmRdcBtn').onclick=()=>{
     document.getElementById('hmenu').classList.remove('open');
     run();
