@@ -591,15 +591,6 @@
   </div>
 </div>
 
-<script src="btb-url.js" onerror="void 0"></script>
-<script src="app.js"></script>
-<script>
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js',{scope:'./'})
-    .then(()=>console.log('BtB: SW registered'))
-    .catch(e=>console.warn('BtB: SW failed',e));
-}
-</script>
 <div id="dlcTooltip"></div>
 <div id="dlcSheetOv"></div>
 <div id="dlcSheet">
@@ -609,5 +600,15 @@ if('serviceWorker' in navigator){
   </div>
   <div class="dlc-sheet-body" id="dlcSheetBody"></div>
 </div>
+
+<script src="btb-url.js" onerror="void 0"></script>
+<script src="app.js"></script>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js',{scope:'./'})
+    .then(()=>console.log('BtB: SW registered'))
+    .catch(e=>console.warn('BtB: SW failed',e));
+}
+</script>
 </body>
 </html>

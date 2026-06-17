@@ -134,7 +134,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   border-radius:4px;padding:1px 5px;max-width:120px;overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;display:inline-block;line-height:1.5}
 /* ── DLC TOOLTIP ── */
-#dlcTooltip{position:fixed;z-index:200;background:var(--s2);border:1px solid var(--bd2);
+#dlcTooltip{position:fixed;z-index:200;background:var(--s1);border:1px solid var(--bd2);
   border-radius:8px;padding:.5rem;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5);
   min-width:140px;max-width:480px}
 .dlc-tt-card{display:flex;flex-direction:column;gap:.3rem;cursor:pointer;border-radius:6px;
@@ -180,16 +180,17 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .fpop-search:focus{border-color:var(--blue)}
 /* Base game / DLC link in side panel */
 .panel-base-game{display:flex;align-items:center;gap:0;padding:0;
-  background:var(--s3);border:1px solid var(--bd);border-radius:var(--r);
-  cursor:pointer;overflow:hidden;transition:border-color .18s,box-shadow .18s}
-.panel-base-game:hover{border-color:var(--blue);box-shadow:0 2px 12px rgba(2,179,252,.15)}
-.panel-base-thumb{width:72px;height:40px;object-fit:cover;flex-shrink:0;display:block;
-  background:var(--base)}
-.panel-base-info{display:flex;align-items:center;gap:.5rem;padding:.35rem .55rem;flex:1;min-width:0}
-.panel-base-title{font-size:.78rem;font-weight:600;color:var(--text);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;letter-spacing:.01em}
-.panel-base-arrow{color:var(--blue);font-size:.9rem;flex-shrink:0;opacity:.6;transition:opacity .15s,transform .15s}
-.panel-base-game:hover .panel-base-arrow{opacity:1;transform:translateX(2px)}
+  background:transparent;border:none;border-left:2px solid var(--bd2);border-radius:0;
+  cursor:pointer;overflow:hidden;transition:border-color .18s}
+.panel-base-game:hover{border-color:var(--blue)}
+.panel-base-thumb{width:64px;height:36px;object-fit:cover;flex-shrink:0;display:block;
+  background:var(--base);border-radius:4px;margin-left:.4rem}
+.panel-base-info{display:flex;align-items:center;gap:.5rem;padding:.3rem .45rem .3rem .5rem;flex:1;min-width:0}
+.panel-base-title{font-size:.76rem;font-weight:500;color:var(--t2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.panel-base-arrow{color:var(--t3);font-size:.8rem;flex-shrink:0;transition:color .15s,transform .15s}
+.panel-base-game:hover .panel-base-title{color:var(--text)}
+.panel-base-game:hover .panel-base-arrow{color:var(--blue);transform:translateX(2px)}
 
 /* ── COLLECTION MODE ── */
 #tb.col-hidden{display:none}
