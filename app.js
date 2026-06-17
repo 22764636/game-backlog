@@ -179,6 +179,12 @@ function normalise(g){
   g.id=g.id!==undefined&&g.id!==null&&g.id!==''?String(g.id):gid();
   if(!g.added)g.added=Date.now();
   if(g.releaseDate)g.releaseDate=normaliseDate(g.releaseDate);
+  // Sheet Date cells in tbaText column come back as ISO strings — move to releaseDate
+  if(g.tbaText&&/^\d{4}-\d{2}-\d{2}[T ]/.test(String(g.tbaText))){
+    if(!g.releaseDate)g.releaseDate=normaliseDate(String(g.tbaText));
+    g.tbaText='';
+  }
+  g.steamAppId=(g.steamAppId!==undefined&&g.steamAppId!==null&&g.steamAppId!=='')?String(g.steamAppId):'';
   delete g.played; // field removed — no longer used
 
   // steamCollection: parse JSON array string or comma-separated from Sheet
@@ -2315,7 +2321,7 @@ function checkAppIdDup(){
   const errEl=document.getElementById('appIdErr');
   const inp=document.getElementById('fAppId');
   if(!id){errEl.classList.remove('on');inp.classList.remove('err');return false}
-  const dup=games.find(g=>g.steamAppId===id&&g.id!==editId);
+  const dup=games.find(g=>g.steamAppId&&String(g.steamAppId)===id&&g.id!==editId);
   if(dup){
     errEl.textContent=`"${dup.title}" already uses this App ID.`;
     errEl.classList.add('on');inp.classList.add('err');return true;
@@ -2495,7 +2501,8 @@ document.getElementById('fStore').addEventListener('blur',()=>{
   const url=document.getElementById('fStore').value.trim();if(!url)return;
   const parsed=parseStoreLink(url);if(!parsed)return;
   const appIdEl=document.getElementById('fAppId');
-  if(!appIdEl.value.trim()){appIdEl.value=parsed.appId;checkAppIdDup()}
+  if(!appIdEl.value.trim())appIdEl.value=parsed.appId;
+  checkAppIdDup();
   // Always fetch — title will be overwritten with the correct API name (fromUrl=true)
   steamAutoFill(parsed.appId,{fromUrl:true});
 });
