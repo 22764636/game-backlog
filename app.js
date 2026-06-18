@@ -3650,7 +3650,7 @@ document.addEventListener('keydown',function(e){
           }
           const before=oldRd||oldTba||'(empty)';
           const after=newRd||newTba||'(empty)';
-          rdcLog(`✔ ${g.title}  ${before} → ${after}`,'rdc-ok');
+          rdcLog(`✔ ${g.title}  ${before} → ${after} [rd:"${oldRd}"→"${newRd}" tba:"${oldTba}"→"${newTba}"]`,'rdc-ok');
           updated++;
         }else{
           rdcLog(`— ${g.title}  ${oldRd||oldTba||'(empty)'}`,'rdc-skip');
