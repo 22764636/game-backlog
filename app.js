@@ -21,7 +21,7 @@ const SEED=[];
 // ══════════════════════════════════════════
 const S={
   secRev:'To Review',secWl:'Wishlist',secRm:'Removed',secBacklog:'Your Backlog',
-  bdgBt:'✓ Bought',bdgRm:'Removed',bdgRev:'To Review',
+  bdgBt:'IN COLLECTION',bdgRm:'Removed',bdgRev:'To Review',
   pHi:'High',pMe:'Medium',pLo:'Low',
   stTot:'total',stWl:'wishlist',stBt:'bought',stRm:'removed',stVal:'total value',
   pHotness:'Hotness',pDetails:'Details',pDev:'Developer',pPub:'Publisher',pRel:'Release',
@@ -40,9 +40,8 @@ const t=k=>S[k]||k;
 let theme=localStorage.getItem('btb_theme')||'dark';
 function applyTheme(){
   document.documentElement.setAttribute('data-theme',theme);
-  const tl=document.getElementById('themeLight');
-  const td=document.getElementById('themeDark');
-  if(tl&&td){tl.classList.toggle('on',theme==='light');td.classList.toggle('on',theme==='dark');}
+  ['hmThemeLight','dhThemeLight'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',theme==='light');});
+  ['hmThemeDark','dhThemeDark'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',theme==='dark');});
 }
 applyTheme();
 function toggleTheme(){theme=theme==='dark'?'light':'dark';localStorage.setItem('btb_theme',theme);applyTheme()}
@@ -781,12 +780,20 @@ function daysAgo(ts){
   if(!ts)return null;
   return Math.floor((Date.now()-ts)/(1000*60*60*24));
 }
+const _months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtAdded(d,val){
+  if(d===null)return'—';
+  if(d===0)return'Today';
+  if(d===1)return'Yesterday';
+  if(d<=7)return`${d} days ago`;
+  const dt=new Date(val);
+  return`${dt.getDate()} ${_months[dt.getMonth()]} ${dt.getFullYear()}`;
+}
 function addedTip(g){
   const d=daysAgo(g.added);
   if(d===null)return'';
-  if(d===0)return'Added today';
-  if(d===1)return'Added yesterday';
-  return`Added ${d} days ago`;
+  const label=fmtAdded(d,g.added);
+  return`Added ${label}`;
 }
 
 const FAV_STEAM='https://store.steampowered.com/favicon.ico';
@@ -1324,19 +1331,19 @@ function bindNewCards(container,count){
   }
 }
 
-function makeSection(label,cards,gcls){
+function makeSection(label,cards,gcls,showToggle=false){
   const collapsed=getCollapsed().has(label);
   const bodyH=collapsed?'max-height:0':'';
   const displayLabel=colLabel(label);
+  const toggleHTML=showToggle
+    ?`<span class="sl-line"></span><div class="vt sl-vt" onclick="event.stopPropagation()"><button class="vtb${vm==='grid'?' on':''}" title="Grid" onclick="vm='grid';document.querySelectorAll('.sl-vt .vtb').forEach((b,i)=>{b.classList.toggle('on',i%2===0)});renderAll()">⊞</button><button class="vtb${vm==='list'?' on':''}" title="List" onclick="vm='list';document.querySelectorAll('.sl-vt .vtb').forEach((b,i)=>{b.classList.toggle('on',i%2===1)});renderAll()">☰</button></div><span class="sl-line"></span>`
+    :`<span class="sl-line"></span>`;
   return`<div class="sb${collapsed?' collapsed':''}" data-section="${esc(label)}">
-    <div class="sl">
+    <div class="sl${showToggle?' sl-sticky':''}">
       ${displayLabel}
       <span class="sl-count" style="font-family:'Inter',sans-serif;font-size:.6rem;font-weight:400;letter-spacing:0;text-transform:none;color:var(--t3)">${cards.length}</span>
       <span class="sl-toggle">▾</span>
-      <div class="vt sl-vt" onclick="event.stopPropagation()">
-        <button class="vtb${vm==='grid'?' on':''}" id="secGridBtn" title="Grid" onclick="vm='grid';document.querySelectorAll('.vtb[id^=secG]').forEach(b=>b.classList.add('on'));document.querySelectorAll('.vtb[id^=secL]').forEach(b=>b.classList.remove('on'));renderAll()">⊞</button>
-        <button class="vtb${vm==='list'?' on':''}" id="secListBtn" title="List" onclick="vm='list';document.querySelectorAll('.vtb[id^=secL]').forEach(b=>b.classList.add('on'));document.querySelectorAll('.vtb[id^=secG]').forEach(b=>b.classList.remove('on'));renderAll()">☰</button>
-      </div>
+      ${toggleHTML}
     </div>
     <div class="sb-body" style="${bodyH}"><div class="${gcls}"></div></div>
   </div>`;
@@ -1454,8 +1461,10 @@ function renderCollection(){
       const keys=(g.steamCollection&&g.steamCollection.length)?g.steamCollection:['Uncategorised'];
       keys.forEach(k=>{if(!groups[k])groups[k]=[];groups[k].push(g)});
     });
+    let _firstColSec=true;
     Object.keys(groups).sort().forEach(k=>{
-      const html=makeSection(k,groups[k],'gg');
+      const html=makeSection(k,groups[k],'gg',_firstColSec);
+      _firstColSec=false;
       const tmp=document.createElement('div');tmp.innerHTML=html;
       const sb=tmp.firstElementChild;
       gc.appendChild(sb);
@@ -1491,8 +1500,10 @@ function renderAll(){
   initBatchObserver();
 
   // Helper: build section HTML, insert into gc, then init batch rendering
+  let _firstSec=true;
   function addSection(label,cards){
-    const html=makeSection(label,cards,gcls);
+    const html=makeSection(label,cards,gcls,_firstSec);
+    _firstSec=false;
     const tmp=document.createElement('div');
     tmp.innerHTML=html;
     const sb=tmp.firstElementChild;
@@ -1863,7 +1874,7 @@ function openPanel(id){
     `<div><span style="color:var(--t3)">${t('pGenre')}: </span>${genreD?genreD.split(',').map(s=>s.trim()).map(s=>`<span style="display:inline-flex;align-items:center;gap:.1rem">${esc(s)}${metaTipHTML(s)}</span>`).join(', '):'—'}</div>`,
     
     `<div><span style="color:var(--t3)">${t('pPrice')}: </span>${g.price?`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>`:`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`}</div>`,
-    `<div><span style="color:var(--t3)">Added: </span><span style="color:var(--t2)">${(()=>{const d=daysAgo(g.added);return d===null?'—':d===0?'Today':d===1?'Yesterday':d+' days ago'})()}</span></div>`,
+    `<div><span style="color:var(--t3)">Added: </span><span style="color:var(--t2)">${fmtAdded(daysAgo(g.added),g.added)}</span></div>`,
   ];
   b+=`<div class="ps"><div class="psl">${t('pDetails')}</div><div class="pv" style="display:grid;grid-template-columns:1fr 1fr;gap:.28rem .55rem">${det.join('')}</div></div>`;
 
@@ -3223,7 +3234,8 @@ function doImport(){
   });
   function hm(fn){return function(){menu.classList.remove('on');fn();}}
   document.getElementById('hmCalBtn').addEventListener('click',hm(openCalendar));
-  document.getElementById('hmThemeBtn').addEventListener('click',hm(toggleTheme));
+  document.getElementById('hmThemeLight').addEventListener('click',hm(()=>{if(theme!=='light'){theme='light';localStorage.setItem('btb_theme',theme);applyTheme();}}));
+  document.getElementById('hmThemeDark').addEventListener('click',hm(()=>{if(theme!=='dark'){theme='dark';localStorage.setItem('btb_theme',theme);applyTheme();}}));
   document.getElementById('hmExpBtn').addEventListener('click',hm(doExport));
   document.getElementById('hmImpBtn').addEventListener('click',hm(doImport));
   document.getElementById('hmResyncBtn').addEventListener('click',hm(function(){if(!OFFLINE)resync();}));
@@ -3243,9 +3255,8 @@ function doImport(){
   });
   document.addEventListener('click',e=>{if(!menu.contains(e.target)&&e.target!==btn)menu.classList.remove('on');});
   function dh(fn){return function(){menu.classList.remove('on');fn();}}
-  document.getElementById('dhThemeBtn').addEventListener('click',dh(toggleTheme));
-  document.getElementById('themeLight').addEventListener('click',()=>{if(theme!=='light'){theme='light';localStorage.setItem('btb_theme',theme);applyTheme();}});
-  document.getElementById('themeDark').addEventListener('click',()=>{if(theme!=='dark'){theme='dark';localStorage.setItem('btb_theme',theme);applyTheme();}});
+  document.getElementById('dhThemeLight').addEventListener('click',dh(()=>{if(theme!=='light'){theme='light';localStorage.setItem('btb_theme',theme);applyTheme();}}));
+  document.getElementById('dhThemeDark').addEventListener('click',dh(()=>{if(theme!=='dark'){theme='dark';localStorage.setItem('btb_theme',theme);applyTheme();}}));
   document.getElementById('dhMetaBtn').addEventListener('click',dh(async()=>{fetchMeta(true);showToast('Metadata refreshed.');}));
   document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>runReleaseDateCheck()));
   document.getElementById('dhExpBtn').addEventListener('click',dh(doExport));

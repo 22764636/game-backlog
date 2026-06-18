@@ -49,10 +49,6 @@
   <div class="hr">
     <button class="hb hb-desk accent" id="calBtn" title="Release Calendar"><span class="hb-label">Calendar</span></button>
     <button class="hb hb-desk accent kb-help-btn" id="kbHelpBtn" title="Keyboard shortcuts">?</button>
-    <div class="mode-tog hb-desk" id="themeTog">
-      <button class="mode-btn" id="themeLight" title="Light theme">☀</button>
-      <button class="mode-btn" id="themeDark" title="Dark theme">🌙</button>
-    </div>
     <div class="mode-tog hb-desk" id="modeTog">
       <button class="mode-btn on" id="modeWishlist">Wishlist</button>
       <button class="mode-btn" id="modeCollection">Collection</button>
@@ -85,7 +81,7 @@
 <!-- Mobile dropdown menu — outside header to avoid overflow:hidden clipping -->
 <div id="hmenu">
   <button class="hmi" id="hmCalBtn">Release Calendar</button>
-  <button class="hmi" id="hmThemeBtn">☀️ Toggle theme</button>
+  <div class="hmi-theme"><span class="hmi-theme-label">Theme</span><div class="mode-tog" id="hmThemeTog"><button class="mode-btn" id="hmThemeLight" title="Light theme">☀</button><button class="mode-btn" id="hmThemeDark" title="Dark theme">🌙</button></div></div>
   <button class="hmi" id="hmExpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg> Export</button>
   <button class="hmi" id="hmImpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg> Import</button>
   <button class="hmi" id="hmCollectionBtn">Collection</button>
@@ -94,7 +90,7 @@
 </div>
 <!-- Desktop dropdown menu -->
 <div id="dhmenu">
-  <button class="hmi" id="dhThemeBtn">☀️ Toggle theme</button>
+  <div class="hmi-theme"><span class="hmi-theme-label">Theme</span><div class="mode-tog" id="dhThemeTog"><button class="mode-btn" id="dhThemeLight" title="Light theme">☀</button><button class="mode-btn" id="dhThemeDark" title="Dark theme">🌙</button></div></div>
   <button class="hmi" id="dhMetaBtn">⟳ Refresh genre &amp; tag data</button>
   <button class="hmi" id="dhDatesBtn">↻ Check release dates</button>
   <button class="hmi" id="dhExpBtn">⬇ Export</button>
@@ -134,7 +130,7 @@
     <option value="added" selected>Date added</option>
   </select>
   <select class="ts" id="groupSel">
-    <option value="none">No grouping</option>
+    <option value="none">Default</option>
     <option value="priority">By priority</option>
     <option value="genre">By genre</option>
     <option value="platform">By platform</option>
