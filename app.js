@@ -3670,7 +3670,7 @@ document.addEventListener('keydown',function(e){
 
   window.runReleaseDateCheck=run;
   document.getElementById('hmRdcBtn').onclick=()=>{
-    document.getElementById('hmenu').classList.remove('open');
+    document.getElementById('hmenu').classList.remove('on');
     run();
   };
 })();
