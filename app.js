@@ -887,7 +887,10 @@ function collectionSorted(list){
     }
     if(s==='cost-desc')return(parseFloat(b.cost)||0)-(parseFloat(a.cost)||0);
     if(s==='cost-asc')return(parseFloat(a.cost)||0)-(parseFloat(b.cost)||0);
-    if(s==='purchaseDate')return(b.purchaseDate||'').localeCompare(a.purchaseDate||'');
+    if(s==='purchaseDate'){
+      function _pdKey(d){if(!d)return'';const m=d.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:''}
+      return _pdKey(b.purchaseDate).localeCompare(_pdKey(a.purchaseDate));
+    }
     // default: steamcol — group by first collection, then title
     const ca=(a.steamCollection&&a.steamCollection[0])||'zzz';
     const cb2=(b.steamCollection&&b.steamCollection[0])||'zzz';
@@ -1490,14 +1493,69 @@ function renderCollection(){
       bindSectionToggle(sb);
     });
   } else {
-    // Flat batched grid — DLCs mixed in, no nesting
-    const wrapper=document.createElement('div');
-    wrapper.className='sb';
-    const grid=document.createElement('div');grid.className='gg';
-    wrapper.appendChild(grid);gc.appendChild(wrapper);
-    const state={cards:sorted2,rendered:0,gcls:'gg',cardFn:colCardHTML};
-    sectionState.set(wrapper,state);
-    renderNextBatch(wrapper,state);
+    // Group into sections based on sort type
+    const groups = {};
+    const groupOrder = [];
+
+    function addToGroup(key, game) {
+      if(!groups[key]) { groups[key] = []; groupOrder.push(key); }
+      groups[key].push(game);
+    }
+
+    sorted2.forEach(g => {
+      if(sortBy === 'title') {
+        const first = (g.title||'').trim()[0]?.toUpperCase() || '#';
+        const bucket = /^[A-Z]$/.test(first) ? first : '#';
+        addToGroup(bucket, g);
+      } else if(sortBy === 'playstatus') {
+        addToGroup(g.playStatus || 'Unplayed', g);
+      } else if(sortBy === 'purchaseDate') {
+        if(!g.purchaseDate) { addToGroup('Unknown', g); return; }
+        const m = g.purchaseDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        const yr = m ? m[3] : g.purchaseDate.slice(0,4) || 'Unknown';
+        addToGroup(yr, g);
+      } else if(sortBy === 'cost-desc' || sortBy === 'cost-asc') {
+        const c = parseFloat(g.cost) || 0;
+        const bucket = c === 0 ? 'Free' : c < 10 ? '< €10' : c < 25 ? '€10–25' : c < 50 ? '€25–50' : '€50+';
+        addToGroup(bucket, g);
+      } else {
+        addToGroup('', g);
+      }
+    });
+
+    // Determine ordered keys
+    let keys;
+    if(sortBy === 'title') {
+      // '#' first, then A-Z
+      const alphaKeys = groupOrder.filter(k => k !== '#').sort();
+      keys = groups['#'] ? ['#', ...alphaKeys] : alphaKeys;
+    } else if(sortBy === 'playstatus') {
+      const psOrder = ['In Progress','Completed','Unplayed','Superseded','Unfinishable','Played on Different Platform','Will Never Complete','Will Never Play','Unknown'];
+      keys = psOrder.filter(k => groups[k]);
+    } else if(sortBy === 'purchaseDate') {
+      // Sort years descending (most recent first), Unknown last
+      keys = groupOrder.filter(k => k !== 'Unknown').sort((a,b) => b.localeCompare(a));
+      if(groups['Unknown']) keys.push('Unknown');
+    } else if(sortBy === 'cost-desc') {
+      keys = ['€50+','€25–50','€10–25','< €10','Free'].filter(k => groups[k]);
+    } else if(sortBy === 'cost-asc') {
+      keys = ['Free','< €10','€10–25','€25–50','€50+'].filter(k => groups[k]);
+    } else {
+      keys = groupOrder;
+    }
+
+    keys.forEach(k => {
+      if(!groups[k]) return;
+      const label = k || 'All';
+      const html = makeSection(label, groups[k], 'gg');
+      const tmp = document.createElement('div'); tmp.innerHTML = html;
+      const sb = tmp.firstElementChild;
+      gc.appendChild(sb);
+      const state = {cards: groups[k], rendered: 0, gcls: 'gg', cardFn: colCardHTML};
+      sectionState.set(sb, state);
+      if(!sb.classList.contains('collapsed')) renderNextBatch(sb, state);
+      bindSectionToggle(sb);
+    });
   }
   saveHash();
 }
@@ -2744,7 +2802,12 @@ function openEdit(id){
     colSec.style.display='block';
     const fcs=document.getElementById('fColStore');if(fcs)fcs.value=g.store||'Steam';
     const fcc=document.getElementById('fColCost');if(fcc)fcc.value=g.cost||'';
-    const fcd=document.getElementById('fColDate');if(fcd)fcd.value=g.purchaseDate||'';
+    const fcd=document.getElementById('fColDate');
+    if(fcd){
+      const _pd=g.purchaseDate||'';
+      const _pdm=_pd.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      fcd.value=_pdm?`${_pdm[3]}-${_pdm[2]}-${_pdm[1]}`:_pd;
+    }
     const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value=g.playStatus||'Unplayed';_syncModalPsBtn(g.playStatus||'Unplayed');}
     cModalCol=[...(g.steamCollection||[])];renderModalCol();
   }
@@ -2987,7 +3050,6 @@ function saveHash(){
   const p=new URLSearchParams();
   if(appMode!=='wishlist')p.set('mode',appMode);
   if(vm!=='grid')p.set('view',vm);
-  if(af!=='all')p.set('filter',af);
   const si=document.getElementById('searchInput');
   if(si&&si.value)p.set('q',si.value);
   const ss=document.getElementById('sortSel');
@@ -3007,16 +3069,6 @@ function restoreFromHash(){
     if(p.has('mode'))appMode=p.get('mode');
     if(p.has('view')){
       vm=p.get('view');
-    }
-    if(p.has('filter')){
-      af=p.get('filter');
-      document.querySelectorAll('.ft').forEach(b=>b.classList.toggle('on',b.dataset.f===af));
-      document.querySelectorAll('.ftpop-opt').forEach(b=>b.classList.toggle('on',b.dataset.f===af));
-      const label=document.getElementById('ftabsDropLabel');
-      const labels={all:'All',wishlist:'Wishlist',cancelled:'Cancelled',removed:'Removed',review:'To Review',unreleased:'Unreleased'};
-      if(label)label.textContent=labels[af]||af;
-      const drop=document.getElementById('ftabsDrop');
-      if(drop)drop.classList.toggle('is-active',af!=='all');
     }
     if(p.has('q')){
       const val=p.get('q');
@@ -3168,46 +3220,6 @@ makePlatFilterPopover({
 // ══════════════════════════════════════════
 //  VIEW / FILTER / SORT
 // ══════════════════════════════════════════
-document.getElementById('ftabs').onclick=e=>{
-  const b=e.target.closest('.ft');if(!b)return;
-  af=b.dataset.f;document.querySelectorAll('.ft').forEach(x=>x.classList.toggle('on',x===b));renderAll();
-};
-// Mobile filter-tab dropdown
-(function(){
-  const drop=document.getElementById('ftabsDrop');
-  const pop=document.getElementById('ftabsPop');
-  const label=document.getElementById('ftabsDropLabel');
-  const labels={'all':'All','wishlist':'Wishlist','cancelled':'Cancelled','removed':'Removed','review':'To Review','unreleased':'Unreleased'};
-  function syncDrop(){
-    label.textContent=labels[af]||'All';
-    drop.classList.toggle('is-active',af!=='all');
-    pop.querySelectorAll('.ftpop-opt').forEach(o=>o.classList.toggle('on',o.dataset.f===af));
-  }
-  drop.addEventListener('click',e=>{
-    e.stopPropagation();
-    const rect=drop.getBoundingClientRect();
-    pop.style.top=(rect.bottom+window.scrollY+4)+'px';
-    pop.style.left=rect.left+'px';
-    pop.classList.toggle('open');
-    drop.classList.toggle('open');
-  });
-  pop.addEventListener('click',e=>{
-    const opt=e.target.closest('.ftpop-opt');if(!opt)return;
-    af=opt.dataset.f;
-    document.querySelectorAll('.ft').forEach(x=>x.classList.toggle('on',x.dataset.f===af));
-    pop.classList.remove('open');drop.classList.remove('open');
-    syncDrop();renderAll();
-  });
-  document.addEventListener('click',e=>{
-    if(!e.target.closest('#ftabsDrop')&&!e.target.closest('#ftabsPop')){
-      pop.classList.remove('open');drop.classList.remove('open');
-    }
-  });
-  // Keep dropdown in sync when desktop tabs are used
-  const origFtabs=document.getElementById('ftabs');
-  origFtabs.addEventListener('click',()=>requestAnimationFrame(syncDrop));
-  syncDrop();
-})();
 document.getElementById('sortSel').onchange=renderAll;
 document.getElementById('groupSel').onchange=renderAll;
 const _searchRender=debounce(()=>dispatchRender(),150);
