@@ -734,7 +734,7 @@ function platTextColor(p){return p==='Epic Games'?'#fff':p==='GOG'?'#fff':p==='P
 function platBadgesHTML(g){
   const ps=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);
   if(!ps.length)return'';
-  return ps.map(p=>`<span class="b-plat" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}</span>`).join('');
+  return`<div class="cc-plats">${ps.map(p=>`<span class="b-plat" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}</span>`).join('')}</div>`;
 }
 function prioLabel(p){return t(p==='high'?'pHi':p==='low'?'pLo':'pMe')}
 
@@ -1131,13 +1131,13 @@ function cardHTML(g){
       <div class="cph" ${phStyle}>🎮</div>${cImg}
       <div class="cg"></div>
       <div class="hb2"><div class="hf" style="width:${h}%"></div></div>
+      ${platBadgesHTML(g)}
     </div>
     <div class="pb">${lBdg}<div class="pb-r">${prioLbl}</div></div>
     <div class="cb">
       <div class="ct">${esc(g.title)}</div>
       <div class="cbot">
         ${priceEl}
-        ${platBadgesHTML(g)}
         <div class="cq">
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
           <a href="${ggUrl}" class="qb" title="gg.deals" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_GG,'gg')}</a>
@@ -1218,13 +1218,13 @@ function colCardHTML(g){
       <div class="cph" ${phStyle}>🎮</div>${cImg}
       <div class="cg"></div>
       <div class="hb2" style="display:none"></div>
+      ${platBadgesHTML(g)}
     </div>
     <div class="pb">${psBadgeCard}<div class="pb-r">${colTypeBadge(g)}</div></div>
     <div class="cb">
       <div class="ct">${esc(g.title)}</div>
       <div class="cbot">
         ${costEl}
-        ${platBadgesHTML(g)}
         ${dlcBadge}
         <div class="cq">
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
@@ -1853,7 +1853,7 @@ function openPanel(id){
   const sdbUrl=g.steamAppId?`https://www.steamdb.info/app/${g.steamAppId}/`:`https://www.steamdb.info/search/?q=${sl}`;
   const stUrl=g.storeLink||(g.steamAppId?`https://store.steampowered.com/app/${g.steamAppId}/`:`https://store.steampowered.com/search/?term=${sl}`);
   const sh=[1,2,3,4,5].map(i=>`<span class="star${cStars>=i?' on':''}" data-s="${i}">★</span>`).join('');
-  const platD=(g.platforms||[]).join(', ')||g.platform||'';
+  const _plats=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);
   const genreD=(g.genres||[]).join(', ')||g.genre||'';
   const dateD=g.tbaText||fmtDate(g.releaseDate)||'—';
 
@@ -1864,7 +1864,7 @@ function openPanel(id){
       ${isCancelled(g)?`<span class="b-cancelled">CANCELLED</span>`:''}
       ${isNR&&g.status==='wishlist'&&!isCancelled(g)?`<span class="b-rev">${t('bdgRev')}</span>`:''}
       <span class="bdg" style="background:${prioColor(g.priority)};color:#031329">${prioLabel(g.priority)}</span>
-      ${platD?`<span class="bdg" style="background:var(--s3);color:var(--t2)">${esc(platD)}</span>`:''}
+      ${_plats.map(p=>`<span class="b-plat" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}</span>`).join('')}
       ${g.type==='dlc'?`<span class="bdg" style="background:#3a1a6e;color:#c4a0ff">DLC</span>`:''}
     </div>`;
 
