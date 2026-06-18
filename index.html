@@ -47,8 +47,12 @@
   </div>
   <span id="syncStatus" class="sync-hdr"></span>
   <div class="hr">
-    <button class="hb hb-desk" id="calBtn" title="Release Calendar"><span class="hb-label">Calendar</span></button>
-    <button class="hb hb-desk kb-help-btn" id="kbHelpBtn" title="Keyboard shortcuts">?</button>
+    <button class="hb hb-desk accent" id="calBtn" title="Release Calendar"><span class="hb-label">Calendar</span></button>
+    <button class="hb hb-desk accent kb-help-btn" id="kbHelpBtn" title="Keyboard shortcuts">?</button>
+    <div class="mode-tog hb-desk" id="themeTog">
+      <button class="mode-btn" id="themeLight" title="Light theme">☀</button>
+      <button class="mode-btn" id="themeDark" title="Dark theme">🌙</button>
+    </div>
     <div class="mode-tog hb-desk" id="modeTog">
       <button class="mode-btn on" id="modeWishlist">Wishlist</button>
       <button class="mode-btn" id="modeCollection">Collection</button>
@@ -129,10 +133,6 @@
     <option value="price-desc">Price ↓</option>
     <option value="added" selected>Date added</option>
   </select>
-  <div class="vt">
-    <button class="vtb on" id="gridBtn" title="Grid">⊞</button>
-    <button class="vtb" id="listBtn" title="List">☰</button>
-  </div>
   <select class="ts" id="groupSel">
     <option value="none">No grouping</option>
     <option value="priority">By priority</option>
@@ -210,10 +210,6 @@
     <option value="cost-asc">Cost ↑</option>
     <option value="purchaseDate">Purchase Date</option>
   </select>
-  <div class="vt">
-    <button class="vtb on" id="cGridBtn" title="Grid">⊞</button>
-    <button class="vtb" id="cListBtn" title="List">☰</button>
-  </div>
   <!-- Genre filter (reuse existing genre filter pop) -->
   <div class="fpop-wrap">
     <button class="fpop-btn" id="cGenreFilterBtn">Genre <span class="fpop-badge" id="cGenreFilterBadge" style="display:none"></span></button>
@@ -591,15 +587,6 @@
   </div>
 </div>
 
-<div id="dlcTooltip"></div>
-<div id="dlcSheetOv"></div>
-<div id="dlcSheet">
-  <div class="dlc-sheet-header">
-    <span id="dlcSheetTitle"></span>
-    <button id="dlcSheetClose">✕</button>
-  </div>
-  <div class="dlc-sheet-body" id="dlcSheetBody"></div>
-</div>
 
 <script src="btb-url.js" onerror="void 0"></script>
 <script src="app.js"></script>

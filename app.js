@@ -38,7 +38,12 @@ const t=k=>S[k]||k;
 //  THEME
 // ══════════════════════════════════════════
 let theme=localStorage.getItem('btb_theme')||'dark';
-function applyTheme(){document.documentElement.setAttribute('data-theme',theme);}
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme',theme);
+  const tl=document.getElementById('themeLight');
+  const td=document.getElementById('themeDark');
+  if(tl&&td){tl.classList.toggle('on',theme==='light');td.classList.toggle('on',theme==='dark');}
+}
 applyTheme();
 function toggleTheme(){theme=theme==='dark'?'light':'dark';localStorage.setItem('btb_theme',theme);applyTheme()}
 
@@ -836,7 +841,7 @@ function collectionFiltered(){
     if(q&&!(g.title||'').toLowerCase().includes(q)&&!(g.steamAppId&&String(g.steamAppId)===q.replace(/\D/g,'')))return false;
     if(cfPlayStatus.size>0&&!cfPlayStatus.has(g.playStatus||'Unplayed'))return false;
     if(cfSteamCol.size>0){
-      const gc2=g.steamCollection||[];
+      const gc2=(g.steamCollection||[]).map(colLabel);
       const colMatch=cfSteamColLogic==='and'?[...cfSteamCol].every(c=>gc2.includes(c)):[...cfSteamCol].some(c=>gc2.includes(c));
       if(!colMatch)return false;
     }
@@ -1315,8 +1320,6 @@ function bindNewCards(container,count){
     const c=all[i];
     c.addEventListener('click',()=>openPanel(c.dataset.id));
     c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openPanel(c.dataset.id)});
-    if(!c.querySelector('.gc-shine')){const sh=document.createElement('div');sh.className='gc-shine';c.appendChild(sh);}
-    bindTilt(c);
     scaleTitleFont(c);
   }
 }
@@ -1330,6 +1333,10 @@ function makeSection(label,cards,gcls){
       ${displayLabel}
       <span class="sl-count" style="font-family:'Inter',sans-serif;font-size:.6rem;font-weight:400;letter-spacing:0;text-transform:none;color:var(--t3)">${cards.length}</span>
       <span class="sl-toggle">▾</span>
+      <div class="vt sl-vt" onclick="event.stopPropagation()">
+        <button class="vtb${vm==='grid'?' on':''}" id="secGridBtn" title="Grid" onclick="vm='grid';document.querySelectorAll('.vtb[id^=secG]').forEach(b=>b.classList.add('on'));document.querySelectorAll('.vtb[id^=secL]').forEach(b=>b.classList.remove('on'));renderAll()">⊞</button>
+        <button class="vtb${vm==='list'?' on':''}" id="secListBtn" title="List" onclick="vm='list';document.querySelectorAll('.vtb[id^=secL]').forEach(b=>b.classList.add('on'));document.querySelectorAll('.vtb[id^=secG]').forEach(b=>b.classList.remove('on'));renderAll()">☰</button>
+      </div>
     </div>
     <div class="sb-body" style="${bodyH}"><div class="${gcls}"></div></div>
   </div>`;
@@ -1407,7 +1414,7 @@ function renderCollectionStats(list){
   el.innerHTML=gameChip+dlcChip+costChip;
 }
 
-let cvm='grid'; // collection view mode: 'grid'|'list'
+// cvm removed — collection uses shared vm variable
 
 function renderCollection(){
   const gc=document.getElementById('gc');
@@ -1425,7 +1432,7 @@ function renderCollection(){
   const sorted2=collectionSorted(list);
   const sortBy=document.getElementById('cSortSel').value;
 
-  if(cvm==='list'){
+  if(vm==='list'){
     // Two-column list — no batching needed at this density
     const wrapper=document.createElement('div');
     wrapper.className='col-list';
@@ -1568,8 +1575,6 @@ function bindCards(gc){
   gc.querySelectorAll('.gc').forEach(c=>{
     c.addEventListener('click',()=>openPanel(c.dataset.id));
     c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openPanel(c.dataset.id)});
-    if(!c.querySelector('.gc-shine')){const shine=document.createElement('div');shine.className='gc-shine';c.appendChild(shine);}
-    bindTilt(c);
     scaleTitleFont(c);
   });
 }
@@ -2977,10 +2982,6 @@ function restoreFromHash(){
     if(p.has('mode'))appMode=p.get('mode');
     if(p.has('view')){
       vm=p.get('view');
-      const gb=document.getElementById('gridBtn');
-      const lb=document.getElementById('listBtn');
-      if(gb)gb.classList.toggle('on',vm==='grid');
-      if(lb)lb.classList.toggle('on',vm==='list');
     }
     if(p.has('filter')){
       af=p.get('filter');
@@ -3016,19 +3017,7 @@ document.getElementById('modeWishlist').onclick=()=>setAppMode('wishlist');
 document.getElementById('modeCollection').onclick=()=>setAppMode('collection');
 document.getElementById('hmCollectionBtn').onclick=()=>{document.getElementById('hmenu').classList.remove('on');setAppMode(appMode==='collection'?'wishlist':'collection');};
 
-// Collection view mode toggle (grid/list)
-document.getElementById('cGridBtn').onclick=()=>{
-  cvm='grid';
-  document.getElementById('cGridBtn').classList.add('on');
-  document.getElementById('cListBtn').classList.remove('on');
-  renderCollection();
-};
-document.getElementById('cListBtn').onclick=()=>{
-  cvm='list';
-  document.getElementById('cListBtn').classList.add('on');
-  document.getElementById('cGridBtn').classList.remove('on');
-  renderCollection();
-};
+// Collection view mode toggle (grid/list) — handled via per-section toggles
 
 // Collection sort
 document.getElementById('cSortSel').onchange=renderCollection;
@@ -3109,8 +3098,6 @@ makeFilterPopover({
 // ══════════════════════════════════════════
 //  VIEW / FILTER / SORT
 // ══════════════════════════════════════════
-document.getElementById('gridBtn').onclick=()=>{vm='grid';document.getElementById('gridBtn').classList.add('on');document.getElementById('listBtn').classList.remove('on');renderAll()};
-document.getElementById('listBtn').onclick=()=>{vm='list';document.getElementById('listBtn').classList.add('on');document.getElementById('gridBtn').classList.remove('on');renderAll()};
 document.getElementById('ftabs').onclick=e=>{
   const b=e.target.closest('.ft');if(!b)return;
   af=b.dataset.f;document.querySelectorAll('.ft').forEach(x=>x.classList.toggle('on',x===b));renderAll();
@@ -3257,6 +3244,8 @@ function doImport(){
   document.addEventListener('click',e=>{if(!menu.contains(e.target)&&e.target!==btn)menu.classList.remove('on');});
   function dh(fn){return function(){menu.classList.remove('on');fn();}}
   document.getElementById('dhThemeBtn').addEventListener('click',dh(toggleTheme));
+  document.getElementById('themeLight').addEventListener('click',()=>{if(theme!=='light'){theme='light';localStorage.setItem('btb_theme',theme);applyTheme();}});
+  document.getElementById('themeDark').addEventListener('click',()=>{if(theme!=='dark'){theme='dark';localStorage.setItem('btb_theme',theme);applyTheme();}});
   document.getElementById('dhMetaBtn').addEventListener('click',dh(async()=>{fetchMeta(true);showToast('Metadata refreshed.');}));
   document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>runReleaseDateCheck()));
   document.getElementById('dhExpBtn').addEventListener('click',dh(doExport));
@@ -3492,122 +3481,6 @@ makeFilterPopover({
   document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
 })();
 
-// ══════════════════════════════════════════
-//  DLC TOOLTIP + MOBILE SHEET
-// ══════════════════════════════════════════
-(function(){
-  const tooltip=document.getElementById('dlcTooltip');
-  const sheet=document.getElementById('dlcSheet');
-  const sheetOv=document.getElementById('dlcSheetOv');
-  const sheetTitle=document.getElementById('dlcSheetTitle');
-  const sheetBody=document.getElementById('dlcSheetBody');
-  const sheetClose=document.getElementById('dlcSheetClose');
-  if(!tooltip||!sheet)return;
-
-  let lastPointerType='mouse';
-  document.addEventListener('pointerdown',e=>{lastPointerType=e.pointerType;});
-  let hideTimer=null;
-
-  function fmtCostTt(d){
-    if(d.cost===undefined||d.cost==='')return'—';
-    const n=parseFloat(d.cost);
-    return n===0?'FREE':'€'+n.toFixed(2);
-  }
-
-  function dlcCardFull(d){
-    const cover=d.cover||(d.steamAppId?sc(d.steamAppId):'');
-    const ps=d.playStatus||'Unplayed';
-    const m=PS_META[ps]||{code:'UP',cls:'ps-UP'};
-    const costStr=fmtCostTt(d);
-    return`<div class="dlc-tt-card" data-did="${esc(d.id)}">
-      <div class="dlc-tt-cover">${cover?`<img src="${esc(cover)}" alt="${esc(d.title)}" onerror="this.style.display='none'">`:'<div class="dlc-tt-ph">🎮</div>'}</div>
-      <div class="dlc-tt-info">
-        <span class="col-ps-badge ${m.cls}" style="font-size:.5rem;padding:1px 4px">${m.code}</span>
-        <span class="dlc-tt-title">${esc(d.title)}</span>
-        <span class="dlc-tt-cost">${costStr}</span>
-      </div>
-    </div>`;
-  }
-
-  function dlcCardImg(d){
-    const cover=d.cover||(d.steamAppId?sc(d.steamAppId):'');
-    return`<div class="dlc-tt-img-only" data-did="${esc(d.id)}" title="${esc(d.title)}">
-      ${cover?`<img src="${esc(cover)}" alt="${esc(d.title)}" onerror="this.style.display='none'">`:'<div class="dlc-tt-ph-sm">🎮</div>'}
-    </div>`;
-  }
-
-  function buildTooltipContent(dlcs){
-    if(dlcs.length<=2) return dlcs.map(dlcCardFull).join('');
-    return`<div class="dlc-tt-img-row">${dlcs.map(dlcCardImg).join('')}</div>`;
-  }
-
-  function positionTooltip(badge){
-    const r=badge.getBoundingClientRect();
-    tooltip.style.display='block';
-    const tw=tooltip.offsetWidth;
-    const th=tooltip.offsetHeight;
-    let top=r.top-th-8;
-    let left=r.left+r.width/2-tw/2;
-    if(top<8)top=r.bottom+8;
-    left=Math.max(8,Math.min(left,window.innerWidth-tw-8));
-    tooltip.style.top=top+'px';
-    tooltip.style.left=left+'px';
-  }
-
-  function showTooltip(badge){
-    const id=badge.dataset.id;
-    const g=games.find(x=>String(x.id)===String(id));if(!g)return;
-    const dlcs=findDlcs(g);if(!dlcs.length)return;
-    tooltip.innerHTML=buildTooltipContent(dlcs);
-    tooltip.querySelectorAll('[data-did]').forEach(el=>{
-      el.addEventListener('click',()=>{hideTooltip();openPanel(el.dataset.did);});
-    });
-    positionTooltip(badge);
-  }
-
-  function hideTooltip(){tooltip.style.display='none';tooltip.innerHTML='';}
-
-  function openSheet(badge){
-    const id=badge.dataset.id;
-    const g=games.find(x=>String(x.id)===String(id));if(!g)return;
-    const dlcs=findDlcs(g);if(!dlcs.length)return;
-    sheetTitle.textContent=`DLCs for ${g.title}`;
-    sheetBody.innerHTML=dlcs.map(dlcCardFull).join('');
-    sheetBody.querySelectorAll('[data-did]').forEach(el=>{
-      el.addEventListener('click',()=>{closeSheet();openPanel(el.dataset.did);});
-    });
-    sheetOv.style.display='block';
-    sheet.classList.add('open');
-  }
-
-  function closeSheet(){
-    sheet.classList.remove('open');
-    setTimeout(()=>{sheetOv.style.display='none';},280);
-  }
-
-  sheetClose.addEventListener('click',closeSheet);
-  sheetOv.addEventListener('click',closeSheet);
-
-  // Capture phase — runs before card click handler to stop propagation
-  document.addEventListener('click',e=>{
-    const badge=e.target.closest('.dlc-count-badge');
-    if(!badge)return;
-    e.stopPropagation();
-    if(lastPointerType==='touch') openSheet(badge);
-  },true);
-
-  document.addEventListener('mouseover',e=>{
-    if(lastPointerType==='touch')return;
-    const badge=e.target.closest('.dlc-count-badge');
-    if(badge){clearTimeout(hideTimer);showTooltip(badge);}
-    else if(!tooltip.contains(e.target)){
-      clearTimeout(hideTimer);
-      hideTimer=setTimeout(hideTooltip,150);
-    }
-  });
-  tooltip.addEventListener('mouseover',()=>clearTimeout(hideTimer));
-  tooltip.addEventListener('mouseleave',()=>{hideTimer=setTimeout(hideTooltip,150);});
-})();
 
 // ══════════════════════════════════════════
 //  KEYBOARD SHORTCUTS
@@ -3629,8 +3502,8 @@ document.addEventListener('keydown',function(e){
   if(e.key==='/'){e.preventDefault();const si=document.getElementById('searchInput');if(si){si.focus();si.select()}return}
   if(e.key==='a'||e.key==='A'||e.key==='n'||e.key==='N'){openAdd();return}
   if(e.key==='c'||e.key==='C'){openCalendar();return}
-  if(e.key==='g'||e.key==='G'){vm='grid';document.getElementById('gridBtn').classList.add('on');document.getElementById('listBtn').classList.remove('on');renderAll();return}
-  if(e.key==='l'||e.key==='L'){vm='list';document.getElementById('listBtn').classList.add('on');document.getElementById('gridBtn').classList.remove('on');renderAll();return}
+  if(e.key==='g'||e.key==='G'){vm='grid';renderAll();return}
+  if(e.key==='l'||e.key==='L'){vm='list';renderAll();return}
 });
 
 // ══════════════════════════════════════════
