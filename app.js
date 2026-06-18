@@ -1459,21 +1459,32 @@ function renderCollection(){
 
   const sorted2=collectionSorted(list);
   const sortBy=document.getElementById('cSortSel').value;
+  const isList=vm==='list';
 
-  if(vm==='list'){
-    // Two-column list — no batching needed at this density
-    const wrapper=document.createElement('div');
-    wrapper.className='col-list';
-    wrapper.innerHTML=sorted2.map(colRowHTML).join('');
-    gc.appendChild(wrapper);
-    wrapper.querySelectorAll('.col-row').forEach(r=>{
-      r.addEventListener('click',()=>openPanel(r.dataset.id));
-      r.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openPanel(r.dataset.id)});
-    });
-    return;
+  function makeColSection(label,cards){
+    const html=makeSection(label,cards,'gg');
+    const tmp=document.createElement('div');tmp.innerHTML=html;
+    const sb=tmp.firstElementChild;
+    gc.appendChild(sb);
+    if(isList){
+      const body=sb.querySelector('.sb-body');
+      const inner=body.querySelector('.gg');
+      inner.className='col-list';
+      inner.innerHTML=cards.map(colRowHTML).join('');
+      inner.querySelectorAll('.col-row').forEach(r=>{
+        r.addEventListener('click',()=>openPanel(r.dataset.id));
+        r.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openPanel(r.dataset.id)});
+      });
+      bindSectionToggle(sb);
+    } else {
+      const state={cards,rendered:0,gcls:'gg',cardFn:colCardHTML};
+      sectionState.set(sb,state);
+      if(!sb.classList.contains('collapsed'))renderNextBatch(sb,state);
+      bindSectionToggle(sb);
+    }
   }
 
-  // Grid — group by steamcol when sort=steamcol, else flat batched
+  // Group by steamcol when sort=steamcol, else section by sort type
   if(sortBy==='steamcol'){
     const groups={};
     // Only top-level games (non-DLC or DLCs without a parent in collection)
@@ -1482,16 +1493,7 @@ function renderCollection(){
       const keys=(g.steamCollection&&g.steamCollection.length)?g.steamCollection:['Uncategorised'];
       keys.forEach(k=>{if(!groups[k])groups[k]=[];groups[k].push(g)});
     });
-    Object.keys(groups).sort().forEach(k=>{
-      const html=makeSection(k,groups[k],'gg');
-      const tmp=document.createElement('div');tmp.innerHTML=html;
-      const sb=tmp.firstElementChild;
-      gc.appendChild(sb);
-      const state={cards:groups[k],rendered:0,gcls:'gg',cardFn:colCardHTML};
-      sectionState.set(sb,state);
-      if(!sb.classList.contains('collapsed'))renderNextBatch(sb,state);
-      bindSectionToggle(sb);
-    });
+    Object.keys(groups).sort().forEach(k=>makeColSection(k,groups[k]));
   } else {
     // Group into sections based on sort type
     const groups = {};
@@ -1544,18 +1546,7 @@ function renderCollection(){
       keys = groupOrder;
     }
 
-    keys.forEach(k => {
-      if(!groups[k]) return;
-      const label = k || 'All';
-      const html = makeSection(label, groups[k], 'gg');
-      const tmp = document.createElement('div'); tmp.innerHTML = html;
-      const sb = tmp.firstElementChild;
-      gc.appendChild(sb);
-      const state = {cards: groups[k], rendered: 0, gcls: 'gg', cardFn: colCardHTML};
-      sectionState.set(sb, state);
-      if(!sb.classList.contains('collapsed')) renderNextBatch(sb, state);
-      bindSectionToggle(sb);
-    });
+    keys.forEach(k=>{if(!groups[k])return;makeColSection(k||'All',groups[k]);});
   }
   saveHash();
 }
@@ -3032,8 +3023,8 @@ function setAppMode(mode){
   const mCo=document.getElementById('modeCollection');
   if(mWl)mWl.classList.toggle('on',!isCol);
   if(mCo)mCo.classList.toggle('on',isCol);
-  const mBtn=document.getElementById('hmCollectionBtn');
-  if(mBtn)mBtn.textContent=isCol?'Wishlist':'Collection';
+  ['hmModeWishlist'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',!isCol);});
+  ['hmModeCollection'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',isCol);});
   // Render the right view
   if(isCol){renderCollection();}else{renderAll();}
 }
@@ -3092,7 +3083,8 @@ function debounce(fn,ms){let t;return function(...a){clearTimeout(t);t=setTimeou
 // Collection toggle buttons
 document.getElementById('modeWishlist').onclick=()=>setAppMode('wishlist');
 document.getElementById('modeCollection').onclick=()=>setAppMode('collection');
-document.getElementById('hmCollectionBtn').onclick=()=>{document.getElementById('hmenu').classList.remove('on');setAppMode(appMode==='collection'?'wishlist':'collection');};
+document.getElementById('hmModeWishlist').onclick=()=>{document.getElementById('hmenu').classList.remove('on');setAppMode('wishlist');};
+document.getElementById('hmModeCollection').onclick=()=>{document.getElementById('hmenu').classList.remove('on');setAppMode('collection');};
 
 // Collection view mode toggle (grid/list) — handled via per-section toggles
 
@@ -3307,8 +3299,8 @@ function doImport(){
   document.getElementById('hmCalBtn').addEventListener('click',hm(openCalendar));
   document.getElementById('hmThemeLight').addEventListener('click',hm(()=>{if(theme!=='light'){theme='light';localStorage.setItem('btb_theme',theme);applyTheme();}}));
   document.getElementById('hmThemeDark').addEventListener('click',hm(()=>{if(theme!=='dark'){theme='dark';localStorage.setItem('btb_theme',theme);applyTheme();}}));
-  document.getElementById('hmViewGrid').addEventListener('click',()=>{if(vm!=='grid'){vm='grid';renderAll();applyVm();}});
-  document.getElementById('hmViewList').addEventListener('click',()=>{if(vm!=='list'){vm='list';renderAll();applyVm();}});
+  document.getElementById('hmViewGrid').addEventListener('click',()=>{if(vm!=='grid'){vm='grid';dispatchRender();applyVm();}});
+  document.getElementById('hmViewList').addEventListener('click',()=>{if(vm!=='list'){vm='list';dispatchRender();applyVm();}});
   document.getElementById('hmExpBtn').addEventListener('click',hm(doExport));
   document.getElementById('hmImpBtn').addEventListener('click',hm(doImport));
   document.getElementById('hmResyncBtn').addEventListener('click',hm(function(){if(!OFFLINE)resync();}));
@@ -3330,8 +3322,8 @@ function doImport(){
   function dh(fn){return function(){menu.classList.remove('on');fn();}}
   document.getElementById('dhThemeLight').addEventListener('click',dh(()=>{if(theme!=='light'){theme='light';localStorage.setItem('btb_theme',theme);applyTheme();}}));
   document.getElementById('dhThemeDark').addEventListener('click',dh(()=>{if(theme!=='dark'){theme='dark';localStorage.setItem('btb_theme',theme);applyTheme();}}));
-  document.getElementById('dhViewGrid').addEventListener('click',dh(()=>{if(vm!=='grid'){vm='grid';renderAll();applyVm();}}));
-  document.getElementById('dhViewList').addEventListener('click',dh(()=>{if(vm!=='list'){vm='list';renderAll();applyVm();}}));
+  document.getElementById('dhViewGrid').addEventListener('click',dh(()=>{if(vm!=='grid'){vm='grid';dispatchRender();applyVm();}}));
+  document.getElementById('dhViewList').addEventListener('click',dh(()=>{if(vm!=='list'){vm='list';dispatchRender();applyVm();}}));
   document.getElementById('dhMetaBtn').addEventListener('click',dh(async()=>{fetchMeta(true);showToast('Metadata refreshed.');}));
   document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>runReleaseDateCheck()));
   document.getElementById('dhExpBtn').addEventListener('click',dh(doExport));
@@ -3588,8 +3580,8 @@ document.addEventListener('keydown',function(e){
   if(e.key==='/'){e.preventDefault();const si=document.getElementById('searchInput');if(si){si.focus();si.select()}return}
   if(e.key==='a'||e.key==='A'||e.key==='n'||e.key==='N'){openAdd();return}
   if(e.key==='c'||e.key==='C'){openCalendar();return}
-  if(e.key==='g'||e.key==='G'){vm='grid';renderAll();return}
-  if(e.key==='l'||e.key==='L'){vm='list';renderAll();return}
+  if(e.key==='g'||e.key==='G'){vm='grid';dispatchRender();applyVm();return}
+  if(e.key==='l'||e.key==='L'){vm='list';dispatchRender();applyVm();return}
 });
 
 // ══════════════════════════════════════════
