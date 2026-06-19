@@ -3418,6 +3418,8 @@ function setAppMode(mode){
 }
 
 function dispatchRender(){
+  const sp=document.getElementById('btb-splash');
+  if(sp){sp.classList.add('gone');setTimeout(()=>sp.remove(),350);}
   if(appMode==='collection')renderCollection();else renderAll();
 }
 
