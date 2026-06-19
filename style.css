@@ -881,6 +881,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   color:var(--blue);white-space:nowrap;flex-shrink:0}
 
 /* ── PER-PLATFORM PURCHASES ── */
+.plat-tab-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;align-items:start}
+.plat-tab-grid.plat-tab-grid-3{grid-template-columns:1.6fr 1.4fr 1.8fr}
+@media(max-width:520px){.plat-tab-grid,.plat-tab-grid.plat-tab-grid-3{grid-template-columns:1fr}}
 .plat-tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.6rem;justify-content:center}
 .plat-tab{padding:.22rem .6rem;border-radius:4px;border:1px solid var(--bd);background:var(--s3);
   color:var(--t2);font-size:.68rem;font-weight:700;cursor:pointer;transition:all .15s;
