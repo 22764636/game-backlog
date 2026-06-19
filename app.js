@@ -228,14 +228,13 @@ function gameFilteredCost(g,platSet){
   return matched.length?matched.reduce((s,p)=>s+(parseFloat(p.cost)||0),0):null;
 }
 let _migrationHappened=false;
+let _modalAddType='wishlist'; // 'wishlist' or 'collection'
+let _modalColPlat='Steam';    // selected platform in collection add/edit
+let _modalSteamWishlist=false;// state of steamWishlist toggle in modal
 function normalise(g){
   if(!Array.isArray(g.genres)){
     if(g.genres&&typeof g.genres==='string'){try{g.genres=JSON.parse(g.genres)}catch(e){g.genres=g.genres.split(',').map(s=>s.trim()).filter(Boolean)}}
     else{g.genres=g.genre?g.genre.split(',').map(s=>s.trim()).filter(Boolean):[]}
-  }
-  if(!Array.isArray(g.platforms)){
-    if(g.platforms&&typeof g.platforms==='string'){try{g.platforms=JSON.parse(g.platforms)}catch(e){g.platforms=g.platforms.split(',').map(s=>s.trim()).filter(Boolean)}}
-    else{g.platforms=g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]}
   }
   if(!Array.isArray(g.tags)){
     if(g.tags&&typeof g.tags==='string'){try{g.tags=JSON.parse(g.tags)}catch(e){g.tags=g.tags.split(',').map(s=>s.trim()).filter(Boolean)}}
@@ -243,48 +242,42 @@ function normalise(g){
   }
   if(g.status)g.status=String(g.status).toLowerCase().trim();
   if(!g.status)g.status='wishlist';
-  g.id=g.id!==undefined&&g.id!==null&&g.id!==''?String(g.id):gid();
-  if(!g.added)g.added=Date.now();
-  if(g.releaseDate)g.releaseDate=normaliseDate(g.releaseDate);
-  // Sheet Date cells in tbaText column come back as ISO strings — move to releaseDate
-  if(g.tbaText&&/^\d{4}-\d{2}-\d{2}[T ]/.test(String(g.tbaText))){
-    if(!g.releaseDate)g.releaseDate=normaliseDate(String(g.tbaText));
+  // Migrate legacy tbaText
+  if(g.tbaText){
+    const tb=String(g.tbaText).trim();
+    if(tb.toLowerCase()==='cancelled'){g.status='cancelled';}
+    else if(!g.releaseDate){g.releaseDate=tb;}
     g.tbaText='';
   }
-  // Google Sheets auto-converts "Month YYYY" text to a Date cell; Code.gs returns it as
-  // YYYY-MM-01. Restore it to a human-readable "Month YYYY" label.
-  if(g.tbaText&&/^\d{4}-\d{2}-01$/.test(String(g.tbaText))){
-    const p=g.tbaText.split('-');
-    g.tbaText=['January','February','March','April','May','June','July','August','September','October','November','December'][parseInt(p[1])-1]+' '+p[0];
+  g.id=g.id!==undefined&&g.id!==null&&g.id!==''?String(g.id):gid();
+  if(!g.added)g.added=Date.now();
+  // Only call normaliseDate for recognisable date formats — preserve text like "Q3 2026"
+  if(g.releaseDate){
+    const rd=String(g.releaseDate).trim();
+    if(/^\d{4}-\d{2}-\d{2}[T ]/.test(rd)||/^\d{10,13}$/.test(rd)||/^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.](\d{2}|\d{4})$/.test(rd)||/^Date\(/.test(rd)){
+      g.releaseDate=normaliseDate(rd);
+    } else {
+      g.releaseDate=rd;
+    }
   }
   g.steamAppId=(g.steamAppId!==undefined&&g.steamAppId!==null&&g.steamAppId!=='')?String(g.steamAppId):'';
-  delete g.played; // field removed — no longer used
-
-  // steamCollection: parse JSON array string or comma-separated from Sheet
-  if(g.steamCollection&&typeof g.steamCollection==='string'){
-    try{g.steamCollection=JSON.parse(g.steamCollection)}
-    catch(e){g.steamCollection=g.steamCollection.split(',').map(s=>s.trim()).filter(Boolean)}
-  }
-  if(!Array.isArray(g.steamCollection))g.steamCollection=[];
-  // notes: parse JSON array of {id,date,text} objects from Sheet string
+  delete g.played;
   if(!Array.isArray(g.notes)){
     if(g.notes&&typeof g.notes==='string'){try{g.notes=JSON.parse(g.notes)}catch(e){g.notes=[]}}
     else{g.notes=[]}
   }
-  // Normalise purchaseDate to dd/mm/yyyy
-  if(g.purchaseDate){const pf=fmtDate(String(g.purchaseDate));if(pf&&pf!==String(g.purchaseDate))g.purchaseDate=pf;}
-  // parentAppId: ensure string or null
   if(g.parentAppId!==undefined&&g.parentAppId!==null&&g.parentAppId!=='')
     g.parentAppId=String(g.parentAppId);
   else g.parentAppId=null;
-  // purchases: parse JSON string or migrate from legacy flat fields
   const _purchasesRawEmpty=!g.purchases||(typeof g.purchases==='string'&&!g.purchases.trim());
   if(g.purchases&&typeof g.purchases==='string'){
     try{g.purchases=JSON.parse(g.purchases)}catch(e){g.purchases=[]}
   }
   if(!Array.isArray(g.purchases))g.purchases=[];
+  // Migrate from legacy flat fields if purchases array is empty
   if(!g.purchases.length&&(g.store||g.cost||g.purchaseDate||(g.steamCollection&&g.steamCollection.length)||g.playStatus)){
-    g.purchases=[{platform:'Steam',store:g.store||'',cost:g.cost||'',purchaseDate:g.purchaseDate||'',playStatus:g.playStatus||'Unplayed',steamCollection:[...(g.steamCollection||[])]}];
+    const sc=typeof g.steamCollection==='string'?g.steamCollection.split(',').map(s=>s.trim()).filter(Boolean):(g.steamCollection||[]);
+    g.purchases=[{platform:'Steam',store:g.store||'',cost:g.cost||'',purchaseDate:g.purchaseDate||'',playStatus:g.playStatus||'Unplayed',steamCollection:[...sc]}];
     if(_purchasesRawEmpty)_migrationHappened=true;
   }
   g.purchases.forEach(p=>{
@@ -293,6 +286,12 @@ function normalise(g){
   });
   syncLegacyFromPurchases(g);
   return g;
+}
+function toSheetRecord(g){
+  const r={...g};
+  delete r.playStatus;delete r.cost;delete r.purchaseDate;delete r.store;
+  delete r.steamCollection;delete r.platforms;delete r.platform;delete r.tbaText;
+  return r;
 }
 let games=[];
 function gid(){return Date.now()+Math.random().toString(36).slice(2,6)}
@@ -367,13 +366,13 @@ function flushSave(){
     _changedIds.clear();
     const rows=ids.map(id=>games.find(g=>g.id===id)).filter(Boolean);
     if(rows.length){
-      postToSheet({action:'setRows',data:JSON.stringify(rows)})
+      postToSheet({action:'setRows',data:JSON.stringify(rows.map(toSheetRecord))})
         .then(()=>{_saveFlushing=false;setSyncStatus('ok','Saved');if(_saveQueue.length){_saveQueue=[];flushSave()}})
         .catch(()=>{
           // Apps Script doesn't support setRows — fall back to full save
           _saveFlushing=false;
           _changedIds.clear();
-          postToSheet({action:'setAll',data:JSON.stringify(games)})
+          postToSheet({action:'setAll',data:JSON.stringify(games.map(toSheetRecord))})
             .then(()=>{_saveFlushing=false;setSyncStatus('ok','Saved');if(_saveQueue.length){_saveQueue=[];flushSave()}})
             .catch(err=>{_saveFlushing=false;setSyncStatus('err','Save failed — check console');console.error('BTB save error:',err)});
         });
@@ -381,7 +380,7 @@ function flushSave(){
     }
   }
   _changedIds.clear();
-  postToSheet({action:'setAll',data:JSON.stringify(games)})
+  postToSheet({action:'setAll',data:JSON.stringify(games.map(toSheetRecord))})
     .then(()=>{
       _saveFlushing=false;
       setSyncStatus('ok','Saved');
@@ -461,7 +460,7 @@ function populateCalSelects(){
 }
 
 function calendarGames(){
-  return games.filter(g=>g.title&&(g.releaseDate||g.tbaText)&&!isCancelled(g));
+  return games.filter(g=>g.title&&g.releaseDate&&!isCancelled(g));
 }
 
 function renderCalendar(){
@@ -472,8 +471,8 @@ function renderCalendar(){
   if(ySel)ySel.value=calYear;
 
   const allCal=calendarGames();
-  const tbaGames=allCal.filter(g=>!g.releaseDate&&g.tbaText);
-  const datedGames=allCal.filter(g=>g.releaseDate);
+  const tbaGames=allCal.filter(g=>!/^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate));
+  const datedGames=allCal.filter(g=>/^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate));
 
   // TBA list — paginated sidebar
   const TBA_PAGE_SIZE=20;
@@ -492,7 +491,7 @@ function renderCalendar(){
     for(let p=0;p<totalPages;p++){
       const slice=tbaGames.slice(p*TBA_PAGE_SIZE,(p+1)*TBA_PAGE_SIZE);
       pagesHTML+=`<div class="tba-list-page"><div class="cal-tba-grid">${slice.map(g=>`
-        <div class="cal-tba-chip" title="${esc(g.title)} — ${esc(g.tbaText)}" onclick="closeCalendar();openPanel('${g.id}')"><span class="cal-tba-chip-title">${esc(g.title)}</span><span class="cal-tba-chip-sub">${esc(g.tbaText)}</span></div>
+        <div class="cal-tba-chip" title="${esc(g.title)} — ${esc(g.releaseDate)}" onclick="closeCalendar();openPanel('${g.id}')"><span class="cal-tba-chip-title">${esc(g.title)}</span><span class="cal-tba-chip-sub">${esc(g.releaseDate)}</span></div>
       `).join('')}</div></div>`;
     }
     track.innerHTML=pagesHTML;
@@ -773,7 +772,7 @@ async function initData(){
     // If any games had empty purchases column and were migrated from flat fields, persist them
     if(_migrationHappened){
       _migrationHappened=false;
-      postToSheet({action:'setAll',data:JSON.stringify(games)})
+      postToSheet({action:'setAll',data:JSON.stringify(games.map(toSheetRecord))})
         .then(()=>setSyncStatus('ok','Purchases synced'))
         .catch(()=>{});
     }
@@ -811,7 +810,7 @@ const PLAT_COLORS={'Steam':'#66c0f4','Epic Games':'#101014','GOG':'#9b4dca','Oth
 function platColor(p){return PLAT_COLORS[p]||'#555'}
 function platTextColor(p){return p==='Epic Games'?'#fff':p==='GOG'?'#fff':p==='PS'?'#fff':p==='Xbox'?'#fff':p==='Nintendo'?'#fff':'#031329'}
 function platBadgesHTML(g){
-  const ps=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);
+  const ps=ownedPlatforms(g);
   if(!ps.length)return'';
   return`<div class="cc-plats">${ps.map(p=>`<span class="b-plat" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}</span>`).join('')}</div>`;
 }
@@ -841,6 +840,18 @@ function normaliseDate(raw){
   if(!isNaN(fd)&&fd.getFullYear()>1900){return`${fd.getFullYear()}-${String(fd.getMonth()+1).padStart(2,'0')}-${String(fd.getDate()).padStart(2,'0')}`}
   return String(raw);
 }
+function displayReleaseDate(g){
+  if(!g.releaseDate)return'—';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate))return fmtDate(g.releaseDate);
+  return g.releaseDate;
+}
+function releaseYear(g){
+  if(!g.releaseDate)return'—';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate))return g.releaseDate.slice(0,4);
+  if(/^\d{4}$/.test(g.releaseDate))return g.releaseDate;
+  const m=g.releaseDate.match(/\b(20\d{2})\b/);
+  return m?m[1]:'TBA';
+}
 function isTodayDate(raw){return normaliseDate(raw)===todayISO()}
 function fmtDate(d){
   if(!d)return'';
@@ -855,18 +866,18 @@ function isFutureDate(raw){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(n))return false;
   return n>todayISO();
 }
-// A game is "unreleased" if it has tbaText OR a future releaseDate
+// A game is "unreleased" if releaseDate is non-ISO text ("Q3 2026") or a future ISO date
 function isGameUnreleased(g){
-  return !!(g.tbaText||isFutureDate(g.releaseDate));
+  if(!g.releaseDate)return false;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate))return true;
+  return isFutureDate(g.releaseDate);
 }
-// A game is a pre-order if: status=bought AND future releaseDate
+// A game is a pre-order if: status=bought AND future ISO releaseDate
 function isPreOrder(g){
-  return g.status==='bought'&&isGameUnreleased(g);
+  return g.status==='bought'&&isFutureDate(g.releaseDate);
 }
-// A game is cancelled if tbaText is "cancelled" (case-insensitive)
-function isCancelled(g){
-  return typeof g.tbaText==='string'&&g.tbaText.trim().toLowerCase()==='cancelled';
-}
+// A game is cancelled if its status is 'cancelled'
+function isCancelled(g){ return g.status==='cancelled'; }
 function daysAgo(ts){
   if(!ts)return null;
   return Math.floor((Date.now()-ts)/(1000*60*60*24));
@@ -949,9 +960,7 @@ function collectionFiltered(){
       if(!genreMatch)return false;
     }
     if(cfPlats.size>0){
-      const owned=ownedPlatforms(g);
-      const gp=owned.length?owned:(g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]));
-      if(!gp.some(p=>cfPlats.has(p)))return false;
+      if(!ownedPlatforms(g).some(p=>cfPlats.has(p)))return false;
     }
     return true;
   });
@@ -989,13 +998,13 @@ function filtered(){
       const appIdMatch=isNumeric&&g.steamAppId&&String(g.steamAppId)===q;
       if(!titleMatch&&!appIdMatch)return false;
     }
-    if(af==='wishlist'){if(!(g.status==='wishlist'&&!isCancelled(g)))return false;}
+    if(af==='wishlist'){if(g.status!=='wishlist'&&!(g.status==='bought'&&g.steamWishlist))return false;}
     // Bought/collection games never appear in wishlist tabs
-    if(af==='all'&&g.status==='bought')return false;
-    else if(af==='cancelled'){if(!isCancelled(g))return false;}
+    if(af==='all'&&g.status==='bought'&&!g.steamWishlist)return false;
+    else if(af==='cancelled'){if(g.status!=='cancelled')return false;}
     else if(af==='removed'){if(g.status!=='removed')return false;}
-    else if(af==='review'){if(!(g.status==='wishlist'&&!isCancelled(g)&&nr(g)))return false;}
-    else if(af==='unreleased'){if(!((g.status==='wishlist'||g.status==='bought')&&isGameUnreleased(g)&&!isCancelled(g)))return false;}
+    else if(af==='review'){if(!(g.status==='wishlist'&&nr(g)))return false;}
+    else if(af==='unreleased'){if(!((g.status==='wishlist'||g.status==='bought')&&isGameUnreleased(g)&&g.status!=='cancelled'))return false;}
     else{
       if(hrMinVal>0||hrMaxVal<100){
         if(!nr(g)){const h=parseInt(g.hotness)||0;if(h<hrMinVal||h>hrMaxVal)return false}
@@ -1014,10 +1023,6 @@ function filtered(){
     if(fPrios.size>0){
       const p=g.priority||'medium';
       if(!fPrios.has(p))return false;
-    }
-    if(fPlats.size>0){
-      const gp=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);
-      if(!gp.some(p=>fPlats.has(p)))return false;
     }
     return true;
   });
@@ -1184,8 +1189,8 @@ function cardHTML(g){
     const cd=days===1?'tomorrow':days<=30?`in ${days}d`:null;
     const cdLabel=cd?` <span style="color:var(--amber);font-size:.6rem;font-weight:700">${cd}</span>`:'';
     priceEl=`<span class="b-unrel-card">${fmtDate(g.releaseDate)}${cdLabel}</span>`;
-  } else if(g.tbaText){
-    priceEl=`<span class="b-unrel-card">${esc(g.tbaText)}</span>`;
+  } else if(g.releaseDate&&!/^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate)){
+    priceEl=`<span class="b-unrel-card">${esc(g.releaseDate)}</span>`;
   } else if(g.price){
     priceEl=`<span class="cprice">€${parseFloat(g.price).toFixed(2)}</span>`;
   } else {
@@ -1717,8 +1722,8 @@ ${t('noHint')}`);return}
     sorted(list).forEach(g=>{
       let keys=[];
       if(grp==='genre')keys=g.genres&&g.genres.length?g.genres:[g.genre||'—'];
-      else if(grp==='platform')keys=(g.platforms&&g.platforms.length?g.platforms:[g.platform||'—']);
-      else if(grp==='year'){const yr=g.releaseDate?g.releaseDate.slice(0,4):g.tbaText?'TBA':'—';keys=[yr]}
+      else if(grp==='platform'){const op=ownedPlatforms(g);keys=op.length?op:['—'];}
+      else if(grp==='year'){keys=[releaseYear(g)]}
       else if(grp==='priority')keys=[g.priority||'medium'];
       keys.forEach(k=>{if(!groups[k])groups[k]=[];groups[k].push(g)});
     });
@@ -2027,7 +2032,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('click',e=>{
   const btn=e.target.closest('#fColStorePick');if(!btn)return;
   e.stopPropagation();
-  openStorePicker(btn,getPlatformStores('Steam'),document.getElementById('fColStore').value,val=>{
+  openStorePicker(btn,getPlatformStores(_modalColPlat||'Steam'),document.getElementById('fColStore').value,val=>{
     document.getElementById('fColStore').value=val;
     document.getElementById('fColStoreLabel').textContent=val;
   });
@@ -2255,12 +2260,10 @@ function openPanel(id){
   const sdbUrl=g.steamAppId?`https://www.steamdb.info/app/${g.steamAppId}/`:`https://www.steamdb.info/search/?q=${sl}`;
   const stUrl=g.storeLink||(g.steamAppId?`https://store.steampowered.com/app/${g.steamAppId}/`:`https://store.steampowered.com/search/?term=${sl}`);
   const sh=[1,2,3,4,5].map(i=>`<span class="star${cStars>=i?' on':''}" data-s="${i}">★</span>`).join('');
-  const _plats=g.status==='bought'&&ownedPlatforms(g).length
-    ?ownedPlatforms(g)
-    :(g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]));
+  const _plats=ownedPlatforms(g);
 
   const genreD=(g.genres||[]).join(', ')||g.genre||'';
-  const dateD=g.tbaText||fmtDate(g.releaseDate)||'—';
+  const dateD=displayReleaseDate(g);
 
   let b=`<div class="pt">${esc(g.title)}</div>
     <div class="pm">
@@ -3018,25 +3021,71 @@ function clearModal(){
   const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value='Unplayed';_syncModalPsBtn('Unplayed');}
   document.getElementById('modalColSection').style.display='none';
 }
+let _addPickOpen=false;
 function openAdd(){
-  editId=null;clearModal();setPlatforms(['Steam']);
-  const isCol=appMode==='collection';
-  document.getElementById('modalTitle').textContent=isCol?'Add to Collection':'Add game';
-  document.getElementById('msave').textContent=isCol?'Save to Collection':'Save game';
-  // Show collection fields when in collection mode
+  const pop=document.getElementById('addPickPop');if(!pop)return;
+  if(!_addPickOpen){
+    const btn=document.getElementById('addBtn');
+    const r=btn.getBoundingClientRect();
+    pop.style.top=(r.bottom+6)+'px';
+    pop.style.right=(window.innerWidth-r.right)+'px';
+    pop.style.left='auto';
+    pop.style.display='';
+    _addPickOpen=true;
+  } else {
+    pop.style.display='none';
+    _addPickOpen=false;
+  }
+}
+function _closeAddPick(){
+  const pop=document.getElementById('addPickPop');
+  if(pop)pop.style.display='none';
+  _addPickOpen=false;
+}
+function openAddWishlist(){
+  _closeAddPick();editId=null;clearModal();
+  document.getElementById('modalTitle').textContent='Add to Wishlist';
+  document.getElementById('msave').textContent='Save to Wishlist';
+  document.getElementById('modalColSection').style.display='none';
+  const swRow=document.getElementById('steamWishlistRow');if(swRow)swRow.style.display='none';
+  _modalAddType='wishlist';
+  const mnSec=document.getElementById('modalNotesSection');if(mnSec)mnSec.style.display='';
+  document.getElementById('mov').classList.add('on');
+}
+function openAddCollection(){
+  _closeAddPick();editId=null;clearModal();
+  document.getElementById('modalTitle').textContent='Add to Collection';
+  document.getElementById('msave').textContent='Save to Collection';
   const colSec=document.getElementById('modalColSection');
   if(colSec){
-    colSec.style.display=isCol?'block':'none';
-    if(isCol){
-      // Pre-fill purchase date to today
-      const fcd=document.getElementById('fColDate');
-      if(fcd){const n=new Date();fcd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
-    }
+    colSec.style.display='';
+    _modalColPlat='Steam';_renderModalColPlatPills();
+    const fcd=document.getElementById('fColDate');
+    if(fcd){const n=new Date();fcd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
+    const stCol=document.getElementById('fColSteamSection');if(stCol)stCol.style.display='';
   }
-  // Show notes section in add mode too
-  const mnSec=document.getElementById('modalNotesSection');
-  if(mnSec)mnSec.style.display='';
+  const swRow=document.getElementById('steamWishlistRow');if(swRow)swRow.style.display='none';
+  _modalAddType='collection';
+  const mnSec=document.getElementById('modalNotesSection');if(mnSec)mnSec.style.display='';
   document.getElementById('mov').classList.add('on');
+}
+function _renderModalColPlatPills(){
+  const wrap=document.getElementById('modalColPlatPills');if(!wrap)return;
+  wrap.innerHTML=PLATFORM_ORDER.map(p=>`<button class="btc-plat-pill${_modalColPlat===p?' selected':''}" data-plat="${esc(p)}">${esc(p)}</button>`).join('');
+  wrap.querySelectorAll('.btc-plat-pill').forEach(btn=>{
+    btn.onclick=()=>_setModalColPlat(btn.dataset.plat);
+  });
+}
+function _setModalColPlat(plat){
+  _modalColPlat=plat;_renderModalColPlatPills();
+  const lbl=document.getElementById('fColStoreLabel');if(lbl)lbl.textContent='— select store —';
+  const inp=document.getElementById('fColStore');if(inp)inp.value='';
+  const stCol=document.getElementById('fColSteamSection');if(stCol)stCol.style.display=plat==='Steam'?'':'none';
+}
+function _syncSteamWishlistBtn(){
+  const btn=document.getElementById('steamWishlistToggle');if(!btn)return;
+  btn.classList.toggle('accent',_modalSteamWishlist);
+  btn.textContent=_modalSteamWishlist?'★ Also want on Steam':'☆ Also want on Steam';
 }
 function openEdit(id){
   const g=games.find(x=>x.id===id);if(!g)return;
@@ -3060,15 +3109,27 @@ function openEdit(id){
     const par=games.find(x=>x.steamAppId&&String(x.steamAppId)===String(g.parentAppId));
     if(parSearch)parSearch.value=par?par.title:g.parentAppId;
   }
-  if(g.tbaText){setTbaState(true);document.getElementById('fTbaText').value=g.tbaText}
-  else{document.getElementById('fDate').value=g.releaseDate||''}
+  if(g.releaseDate&&/^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate)){
+    setTbaState(false);document.getElementById('fDate').value=g.releaseDate;
+  } else if(g.releaseDate){
+    setTbaState(true);document.getElementById('fTbaText').value=g.releaseDate;
+  } else {
+    setTbaState(false);document.getElementById('fDate').value='';
+  }
   const savedCover=g.cover||'';
   document.getElementById('fCover').value=savedCover;
   if(savedCover)setCoverPreview(savedCover);
   else if(g.steamAppId)tryAutoFillCover(g.steamAppId);
   cGenres=[...(g.genres||[])];cTags=[...(g.tags||[])];
-  setPlatforms(g.platforms||[g.platform||'Steam']);
   renderGenres();renderTags();updatePrioLbl();
+  // steamWishlist toggle — show only for bought games with no Steam purchase
+  const swRow=document.getElementById('steamWishlistRow');
+  if(swRow){
+    const hasSteam=gamePurchases(g).some(p=>p.platform==='Steam');
+    swRow.style.display=(g.status==='bought'&&!hasSteam)?'':'none';
+    _modalSteamWishlist=!!g.steamWishlist;
+    _syncSteamWishlistBtn();
+  }
   // Load existing notes into modal note list
   const _editG=games.find(x=>x.id===editId);
   _modalNotes=_editG?(Array.isArray(_editG.notes)?[..._editG.notes]:(_editG.notes?[{id:nid(),date:todayStr(),text:_editG.notes}]:[])):[];
@@ -3077,6 +3138,10 @@ function openEdit(id){
   const colSec=document.getElementById('modalColSection');
   if(colSec&&g.status==='bought'){
     colSec.style.display='block';
+    _modalColPlat=gamePurchases(g)[0]?.platform||'Steam';
+    _renderModalColPlatPills();
+    const stCol=document.getElementById('fColSteamSection');
+    if(stCol)stCol.style.display=_modalColPlat==='Steam'?'':'none';
     const p0=gamePurchases(g)[0]||{};
     const storeVal=p0.store||g.store||'';
     const fcs=document.getElementById('fColStore');if(fcs)fcs.value=storeVal;
@@ -3211,6 +3276,13 @@ function renderModalNoteList(){
   });
 })();
 document.getElementById('addBtn').onclick=openAdd;
+document.getElementById('addPickWishlist').onclick=openAddWishlist;
+document.getElementById('addPickCollection').onclick=openAddCollection;
+document.getElementById('steamWishlistToggle').onclick=()=>{_modalSteamWishlist=!_modalSteamWishlist;_syncSteamWishlistBtn();};
+// Close picker on outside click
+document.addEventListener('click',e=>{
+  if(_addPickOpen&&!e.target.closest('#addPickPop')&&!e.target.closest('#addBtn')){_closeAddPick();}
+});
 document.getElementById('mcancel').onclick=closeModal;
 document.getElementById('mov').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
 
@@ -3221,19 +3293,15 @@ document.getElementById('msave').onclick=()=>{
   const hotRaw=document.getElementById('fHotness').value.trim();
   const hotness=hotRaw===''?null:Math.min(100,Math.max(1,parseInt(hotRaw)||1));
   const appId=document.getElementById('fAppId').value.trim()||null;
-  const platforms=getPlatforms();
   const isTba=document.getElementById('tbaBtn').classList.contains('on');
-  const tbaText=isTba?document.getElementById('fTbaText').value.trim():'';
-  const rawDate=isTba?'':document.getElementById('fDate').value.trim();
+  const releaseDate=isTba?document.getElementById('fTbaText').value.trim():(document.getElementById('fDate').value.trim()?parseDate(document.getElementById('fDate').value.trim()):'');
   const coverVal=document.getElementById('fCover').value.trim();
   const data={
     title,steamAppId:appId,
-    platforms,platform:platforms.join(', '),
     genres:[...cGenres],genre:cGenres.join(', '),
     developer:document.getElementById('fDev').value.trim(),
     publisher:document.getElementById('fPub').value.trim(),
-    releaseDate:rawDate?parseDate(rawDate):'',
-    tbaText,
+    releaseDate,
     price:document.getElementById('fPrice').value.trim(),
     priority:document.getElementById('fPriority').value,
     hotness,
@@ -3256,34 +3324,33 @@ document.getElementById('msave').onclick=()=>{
         purchaseDate:document.getElementById('fColDate').value||'',
         playStatus:document.getElementById('fColPlayStatus').value||'Unplayed',
         steamCollection:[...cModalCol],
-      }:{store:games[i].store,cost:games[i].cost,purchaseDate:games[i].purchaseDate,playStatus:games[i].playStatus,steamCollection:games[i].steamCollection};
+      }:{};
       // Update purchases array when editing collection fields
       let updatedPurchases=gamePurchases(games[i]);
       if(isColEdit){
         if(updatedPurchases.length){
           updatedPurchases=[...updatedPurchases];
           updatedPurchases[0]={...updatedPurchases[0],store:colFields.store,cost:colFields.cost,purchaseDate:colFields.purchaseDate,playStatus:colFields.playStatus};
-          if(updatedPurchases[0].platform==='Steam')updatedPurchases[0].steamCollection=colFields.steamCollection;
+          if(updatedPurchases[0].platform==='Steam')updatedPurchases[0].steamCollection=[...cModalCol];
         } else {
-          updatedPurchases=[{platform:'Steam',store:colFields.store,cost:colFields.cost,purchaseDate:colFields.purchaseDate,playStatus:colFields.playStatus,steamCollection:colFields.steamCollection}];
+          updatedPurchases=[{platform:_modalColPlat,store:colFields.store,cost:colFields.cost,purchaseDate:colFields.purchaseDate,playStatus:colFields.playStatus,steamCollection:_modalColPlat==='Steam'?[...cModalCol]:[]}];
         }
       }
-      const preserved={notes:[..._modalNotes],status:games[i].status,added:games[i].added,removeNote:games[i].removeNote,myRating:games[i].myRating,myReview:games[i].myReview,shortDescription:data.shortDescription||games[i].shortDescription,...colFields,purchases:updatedPurchases};
+      const preserved={notes:[..._modalNotes],status:games[i].status,added:games[i].added,removeNote:games[i].removeNote,myRating:games[i].myRating,myReview:games[i].myReview,shortDescription:data.shortDescription||games[i].shortDescription,steamWishlist:_modalSteamWishlist,...colFields,purchases:updatedPurchases};
       // parentAppId comes from data object, not preserved
       games[i]={...games[i],...data,...preserved};
     }
   } else {
-    const isCol=appMode==='collection';
-    const initStatus=isCol?'bought':'wishlist';
+    const initStatus=_modalAddType==='collection'?'bought':'wishlist';
     const newGame={...data,id:gid(),added:Date.now(),status:initStatus,notes:[]};
     // If adding to collection, build purchases array and sync legacy fields
-    if(isCol){
+    if(_modalAddType==='collection'){
       const _nStore=document.getElementById('fColStore').value||'';
       const _nCostRaw=document.getElementById('fColCost').value.trim();
       const _nCost=_nCostRaw!==''?parseFloat(_nCostRaw).toFixed(2):'';
       const _nDate=document.getElementById('fColDate').value||'';
       const _nPlayStatus=document.getElementById('fColPlayStatus').value||'Unplayed';
-      newGame.purchases=[{platform:'Steam',store:_nStore,cost:_nCost,purchaseDate:_nDate,playStatus:_nPlayStatus,steamCollection:[...cModalCol]}];
+      newGame.purchases=[{platform:_modalColPlat,store:_nStore,cost:_nCost,purchaseDate:_nDate,playStatus:_nPlayStatus,steamCollection:_modalColPlat==='Steam'?[...cModalCol]:[]}];
       syncLegacyFromPurchases(newGame);
     }
     // Attach modal note if any
@@ -3494,17 +3561,10 @@ function makePlatFilterPopover({btnId,popId,badgeId,clearId,listId,getSelected,s
   document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
 }
 makePlatFilterPopover({
-  btnId:'platFilterBtn',popId:'platFilterPop',badgeId:'platFilterBadge',
-  clearId:'platFilterClear',listId:'platFilterList',
-  getSelected:()=>fPlats,setSelected:s=>{fPlats=s},
-  getFreq:()=>{const freq={};games.filter(g=>g.status!=='bought').forEach(g=>{const gp=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);gp.forEach(p=>{if(p)freq[p]=(freq[p]||0)+1})});return freq;},
-  doRender:renderAll,
-});
-makePlatFilterPopover({
   btnId:'cPlatFilterBtn',popId:'cPlatFilterPop',badgeId:'cPlatFilterBadge',
   clearId:'cPlatFilterClear',listId:'cPlatFilterList',
   getSelected:()=>cfPlats,setSelected:s=>{cfPlats=s},
-  getFreq:()=>{const freq={};games.filter(g=>g.status==='bought').forEach(g=>{const gp=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);gp.forEach(p=>{if(p)freq[p]=(freq[p]||0)+1})});return freq;},
+  getFreq:()=>{const freq={};games.filter(g=>g.status==='bought').forEach(g=>{ownedPlatforms(g).forEach(p=>{if(p)freq[p]=(freq[p]||0)+1})});return freq;},
   doRender:renderCollection,
 });
 
@@ -3905,14 +3965,14 @@ document.addEventListener('keydown',function(e){
     log.scrollTop=log.scrollHeight;
   }
 
-  // Parse a Steam release_date object into {releaseDate, tbaText}
+  // Parse a Steam release_date object into releaseDate (ISO date or display text)
   function parseSteamDate(relObj){
-    if(!relObj)return{releaseDate:'',tbaText:''};
+    if(!relObj)return{releaseDate:''};
     const raw=(relObj.date||'').trim();
-    if(!raw)return{releaseDate:'',tbaText:''};
+    if(!raw)return{releaseDate:''};
     const iso=parseSteamDateStr(raw);
-    if(iso)return{releaseDate:iso,tbaText:''};
-    return{releaseDate:'',tbaText:raw};
+    if(iso)return{releaseDate:iso};
+    return{releaseDate:raw};
   }
 
   async function run(){
@@ -3940,23 +4000,16 @@ document.addEventListener('keydown',function(e){
           failed++;continue;
         }
 
-        const{releaseDate:newRd,tbaText:newTba}=parseSteamDate(entry.data.release_date);
+        const{releaseDate:newRd}=parseSteamDate(entry.data.release_date);
         const oldRd=String(g.releaseDate||'');
-        const oldTba=String(g.tbaText||'');
 
-        if(newRd!==oldRd||newTba!==oldTba){
+        if(newRd!==oldRd){
           const gg=games.find(x=>x.id===g.id);
-          if(gg){
-            gg.releaseDate=newRd;
-            gg.tbaText=newTba;
-            save(gg.id);
-          }
-          const before=oldRd||oldTba||'(empty)';
-          const after=newRd||newTba||'(empty)';
-          rdcLog(`✔ ${g.title}  ${before} → ${after}`,'rdc-ok');
+          if(gg){gg.releaseDate=newRd;save(gg.id);}
+          rdcLog(`✔ ${g.title}  ${oldRd||'(empty)'} → ${newRd||'(empty)'}`, 'rdc-ok');
           updated++;
         }else{
-          rdcLog(`— ${g.title}  ${oldRd||oldTba||'(empty)'}`,'rdc-skip');
+          rdcLog(`— ${g.title}  ${oldRd||'(empty)'}`, 'rdc-skip');
           unchanged++;
         }
       }catch(err){

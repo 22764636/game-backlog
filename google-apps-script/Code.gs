@@ -197,10 +197,10 @@ function getSheet(name) {
     sheet = ss.insertSheet(name);
     // Seed the header row — columns match the game data model
     sheet.appendRow([
-      'id','title','status','playStatus','steamAppId','genres','platforms',
-      'priority','hotness','releaseDate','tbaText','price','cost','purchaseDate',
-      'developer','publisher','cover','storeLink','store','type','parentAppId',
-      'steamCollection','myRating','myReview','added','cancelled','notes',
+      'id','title','status','steamAppId','genres',
+      'priority','hotness','releaseDate','price',
+      'developer','publisher','cover','storeLink','type','parentAppId',
+      'myRating','myReview','steamWishlist','added','removeNote','notes',
       'purchases','tags','shortDescription'
     ]);
   }

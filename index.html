@@ -148,17 +148,6 @@
       <div class="fpop-list" id="tagFilterList"></div>
     </div>
   </div>
-  <!-- Platform filter -->
-  <div class="fpop-wrap">
-    <button class="fpop-btn" id="platFilterBtn">Platform <span class="fpop-badge" id="platFilterBadge" style="display:none"></span></button>
-    <div class="fpop" id="platFilterPop">
-      <div class="fpop-header">
-        <span class="fpop-title">Platform</span>
-        <button class="fpop-clear" id="platFilterClear">Clear</button>
-      </div>
-      <div class="fpop-list" id="platFilterList"></div>
-    </div>
-  </div>
   <!-- Priority filter -->
   <div class="fpop-wrap">
     <button class="fpop-btn" id="prioFilterBtn">Priority <span class="fpop-badge" id="prioFilterBadge" style="display:none"></span></button>
@@ -249,6 +238,18 @@
     </div>
   </div>
   <div class="sc" id="cStatChips"></div>
+</div>
+
+<!-- ADD TYPE PICKER -->
+<div id="addPickPop" style="display:none;position:fixed;z-index:320;background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);padding:.3rem;box-shadow:0 6px 24px rgba(0,0,0,.5)">
+  <button class="add-pick-btn" id="addPickWishlist">
+    <div class="add-pick-title">Wishlist</div>
+    <div class="add-pick-sub">Track a game you want</div>
+  </button>
+  <button class="add-pick-btn" id="addPickCollection">
+    <div class="add-pick-title">Collection</div>
+    <div class="add-pick-sub">Add a game you own</div>
+  </button>
 </div>
 
 <div id="main"><div id="content"><div id="gc"></div></div></div>
@@ -397,26 +398,12 @@
       <label>Short Description <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— auto-filled from Steam, editable</span></label>
       <textarea id="fShortDesc" style="min-height:54px;resize:vertical" placeholder="Brief description of the game…"></textarea>
     </div>
-    <!-- Row 4: Platform + Genre side by side -->
-    <div class="fg">
-      <div class="fr">
-        <label>Platform</label>
-        <div class="pcks" id="pcks">
-          <label class="pck"><input type="checkbox" value="Steam" checked> Steam</label>
-          <label class="pck"><input type="checkbox" value="Epic Games"> Epic</label>
-          <label class="pck"><input type="checkbox" value="GOG"> GOG</label>
-          <label class="pck"><input type="checkbox" value="Other PC"> Other PC</label>
-          <label class="pck"><input type="checkbox" value="PS"> PS</label>
-          <label class="pck"><input type="checkbox" value="Xbox"> Xbox</label>
-          <label class="pck"><input type="checkbox" value="Nintendo"> Nintendo</label>
-        </div>
-      </div>
-      <div class="fr">
-        <label>Genre <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
-        <div class="genre-wrap">
-          <div class="ciw" id="genreWrap"><input type="text" class="cir" id="genreInput" placeholder="Start typing…" autocomplete="off"></div>
-          <div class="genre-dd" id="genreDd"></div>
-        </div>
+    <!-- Row 4: Genre -->
+    <div class="fr">
+      <label>Genre <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
+      <div class="genre-wrap">
+        <div class="ciw" id="genreWrap"><input type="text" class="cir" id="genreInput" placeholder="Start typing…" autocomplete="off"></div>
+        <div class="genre-dd" id="genreDd"></div>
       </div>
     </div>
     <!-- Row 5: Dev + Publisher -->
@@ -485,6 +472,10 @@
     <!-- Collection fields (shown only when adding directly to collection) -->
     <div id="modalColSection" style="display:none;border-top:1px solid var(--bd);margin-top:.6rem;padding-top:.6rem">
       <div style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:.6rem">Collection Details</div>
+      <div class="fr" style="margin-bottom:.5rem">
+        <label>Platform</label>
+        <div class="btc-plat-pills" id="modalColPlatPills"></div>
+      </div>
       <!-- Store + Cost + Purchase date -->
       <div class="fr" style="margin-bottom:.5rem">
         <label>Store</label>
@@ -500,13 +491,18 @@
         <input type="hidden" id="fColPlayStatus" value="Unplayed">
         <button type="button" id="fColPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
       </div>
-      <div class="fr">
+      <div class="fr" id="fColSteamSection">
         <label>Steam Collection <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
         <div class="genre-wrap">
           <div class="ciw" id="fColColWrap"><input type="text" class="cir" id="fColColInput" placeholder="Type to filter…" autocomplete="off"></div>
           <div class="genre-dd" id="fColColDd"></div>
         </div>
       </div>
+    </div>
+    <!-- steamWishlist toggle (shown only when editing a bought game with no Steam purchase) -->
+    <div id="steamWishlistRow" style="display:none;border-top:1px solid var(--bd);margin-top:.6rem;padding-top:.6rem">
+      <button type="button" id="steamWishlistToggle" class="hb" style="font-size:.72rem;padding:5px 14px;width:100%">☆ Also want on Steam</button>
+      <div style="font-size:.62rem;color:var(--t3);margin-top:.35rem;text-align:center">I own this elsewhere but also want it on Steam</div>
     </div>
     <!-- Notes in modal -->
     <div class="fr" id="modalNotesSection">
