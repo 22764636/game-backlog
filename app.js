@@ -795,7 +795,7 @@ let hrMinVal=0,hrMaxVal=100;
 let cGenres=[],cTags=[],cStars=0;
 let fGenres=new Set(),fTags=new Set(),fPrios=new Set(),fPlats=new Set();
 let fGenreLogic='or',fTagLogic='or';
-let cfGenres=new Set(),cfGenreLogic='or',cfPlats=new Set();
+let cfGenres=new Set(),cfGenreLogic='or',cfPlats=new Set(),cfPlatExclusive=false;
 
 // ══════════════════════════════════════════
 //  HELPERS
@@ -960,7 +960,13 @@ function collectionFiltered(){
       if(!genreMatch)return false;
     }
     if(cfPlats.size>0){
-      if(!ownedPlatforms(g).some(p=>cfPlats.has(p)))return false;
+      const owned=ownedPlatforms(g);
+      if(cfPlatExclusive){
+        const selPlat=[...cfPlats][0];
+        if(!owned.includes(selPlat)||owned.length!==1)return false;
+      } else {
+        if(!owned.some(p=>cfPlats.has(p)))return false;
+      }
     }
     return true;
   });
@@ -2144,10 +2150,10 @@ function _buildPlatTabContent(g,plat){
 
   const col1=`<div>
     <div class="psl">Purchase</div>
-    <div class="pv">
-      ${p.store?`<div><span style="color:var(--t3)">Store </span>${esc(p.store)}</div>`:''}
-      <div><span style="color:var(--t3)">Cost </span>${costStr}</div>
-      ${p.purchaseDate?`<div><span style="color:var(--t3)">Date </span>${esc(p.purchaseDate)}</div>`:''}
+    <div class="pv pv-kv">
+      ${p.store?`<span class="pv-kv-lbl">Store:</span><span>${esc(p.store)}</span>`:''}
+      <span class="pv-kv-lbl">Cost:</span><span>${costStr}</span>
+      ${p.purchaseDate?`<span class="pv-kv-lbl">Date:</span><span>${esc(p.purchaseDate)}</span>`:''}
     </div>
   </div>`;
 
@@ -2282,23 +2288,22 @@ function openPanel(id){
   b+=`</div>`;
 
   const det=[
-    `<div><span style="color:var(--t3)">${t('pDev')}: </span>${esc(g.developer||'—')}</div>`,
-    `<div><span style="color:var(--t3)">${t('pPub')}: </span>${esc(g.publisher||'—')}</div>`,
-    (()=>{
+    [t('pDev'), esc(g.developer||'—')],
+    [t('pPub'), esc(g.publisher||'—')],
+    [t('pRel'), (()=>{
       let relStr=esc(dateD);
       if(isFutureDate(g.releaseDate)){
         const dys=Math.ceil((new Date(normaliseDate(g.releaseDate))-new Date(todayISO()))/(1000*60*60*24));
         const lbl=dys===1?'tomorrow':dys<=30?`in ${dys}d`:dys<=365?`in ${Math.ceil(dys/7)}w`:null;
         if(lbl)relStr+=` <span style="color:var(--amber);font-size:.65rem;font-weight:700">${lbl}</span>`;
       }
-      return `<div><span style="color:var(--t3)">${t('pRel')}: </span>${relStr}</div>`;
-    })(),
-    `<div><span style="color:var(--t3)">${t('pGenre')}: </span>${genreD?genreD.split(',').map(s=>s.trim()).map(s=>`<span style="display:inline-flex;align-items:center;gap:.1rem">${esc(s)}${metaTipHTML(s)}</span>`).join(', '):'—'}</div>`,
-    
-    `<div><span style="color:var(--t3)">${t('pPrice')}: </span>${g.price?`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>`:`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`}</div>`,
-    `<div><span style="color:var(--t3)">Added: </span><span style="color:var(--t2)">${fmtAdded(daysAgo(g.added),g.added)}</span></div>`,
+      return relStr;
+    })()],
+    [t('pGenre'), genreD?genreD.split(',').map(s=>s.trim()).map(s=>`<span style="display:inline-flex;align-items:center;gap:.1rem">${esc(s)}${metaTipHTML(s)}</span>`).join(', '):'—'],
+    [t('pPrice'), g.price?`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>`:`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`],
+    ['Added', `<span style="color:var(--t2)">${fmtAdded(daysAgo(g.added),g.added)}</span>`],
   ];
-  b+=`<div class="ps"><div class="psl">${t('pDetails')}</div><div class="pv" style="display:grid;grid-template-columns:1fr 1fr;gap:.28rem .55rem">${det.join('')}</div></div>`;
+  b+=`<div class="ps"><div class="psl">${t('pDetails')}</div><div class="pv pv-kv">${det.map(([l,v])=>`<span class="pv-kv-lbl">${l}:</span><span>${v}</span>`).join('')}</div></div>`;
 
   // Base game link — shown for DLCs that have a parent in the collection
   if(g.type==='dlc'&&g.parentAppId){
@@ -3014,7 +3019,8 @@ function clearModal(){
   cGenres=[];cTags=[];cModalCol=[];renderGenres();renderTags();renderModalCol();
   _modalNotes=[];renderModalNoteList();
   // Reset collection fields
-  const fcs=document.getElementById('fColStore');if(fcs)fcs.value='Steam';
+  const fcs=document.getElementById('fColStore');if(fcs)fcs.value='';
+  const fcsl=document.getElementById('fColStoreLabel');if(fcsl)fcsl.textContent='— select store —';
   const fcc=document.getElementById('fColCost');if(fcc)fcc.value='';
   const fcd=document.getElementById('fColDate');
   if(fcd){const n=new Date();fcd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
@@ -3071,7 +3077,11 @@ function openAddCollection(){
 }
 function _renderModalColPlatPills(){
   const wrap=document.getElementById('modalColPlatPills');if(!wrap)return;
-  wrap.innerHTML=PLATFORM_ORDER.map(p=>`<button class="btc-plat-pill${_modalColPlat===p?' selected':''}" data-plat="${esc(p)}">${esc(p)}</button>`).join('');
+  wrap.innerHTML=PLATFORM_ORDER.map(p=>{
+    const sel=_modalColPlat===p;
+    const sty=sel?` style="background:${platColor(p)};color:${platTextColor(p)};border-color:transparent"`:'';
+    return`<button class="btc-plat-pill${sel?' selected':''}" data-plat="${esc(p)}"${sty}>${esc(p)}</button>`;
+  }).join('');
   wrap.querySelectorAll('.btc-plat-pill').forEach(btn=>{
     btn.onclick=()=>_setModalColPlat(btn.dataset.plat);
   });
@@ -3529,26 +3539,44 @@ makeFilterPopover({
   },
   renderFn:renderCollection,
 });
-function makePlatFilterPopover({btnId,popId,badgeId,clearId,listId,getSelected,setSelected,getFreq,doRender}){
+function makePlatFilterPopover({btnId,popId,badgeId,clearId,listId,getSelected,setSelected,getFreq,doRender,exclusiveToggleId,getExclusive,setExclusive}){
   const btn=document.getElementById(btnId);
   const pop=document.getElementById(popId);
   const badge=document.getElementById(badgeId);
   const clearBtn=document.getElementById(clearId);
   const list=document.getElementById(listId);
+  const exclTog=exclusiveToggleId?document.getElementById(exclusiveToggleId):null;
+  function syncExclTog(){
+    if(!exclTog)return;
+    const excl=getExclusive();
+    exclTog.querySelectorAll('.fpop-logic-btn').forEach(b=>b.classList.toggle('on',b.dataset.m===(excl?'excl':'any')));
+  }
   function updateBtn(){const active=getSelected().size>0;btn.classList.toggle('active',active);badge.textContent=getSelected().size;badge.style.display=active?'':'none';}
   function renderList(){
-    const freq=getFreq();const sel=getSelected();
+    const freq=getFreq();const sel=getSelected();const excl=getExclusive?getExclusive():false;
     const platforms=Object.keys(freq);
     if(!platforms.length){list.innerHTML=`<div class="fpop-empty">No platforms</div>`;return;}
     list.innerHTML=`<div class="plat-filter-pills">${platforms.map(p=>`<button class="b-plat plat-filter-pill${sel.has(p)?' selected':''}" data-val="${esc(p)}" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}<span class="plat-pill-count">${freq[p]}</span></button>`).join('')}</div>`;
     list.querySelectorAll('.plat-filter-pill').forEach(el=>{
       el.addEventListener('click',()=>{
         const v=el.dataset.val;
-        getSelected().has(v)?getSelected().delete(v):getSelected().add(v);
-        el.classList.toggle('selected',getSelected().has(v));
-        updateBtn();doRender();
+        if(excl){
+          if(getSelected().has(v)){setSelected(new Set());}else{setSelected(new Set([v]));}
+        } else {
+          getSelected().has(v)?getSelected().delete(v):getSelected().add(v);
+        }
+        updateBtn();doRender();renderList();
       });
     });
+  }
+  if(exclTog){
+    exclTog.addEventListener('click',e=>{
+      const b=e.target.closest('.fpop-logic-btn');if(!b)return;
+      setExclusive(b.dataset.m==='excl');
+      if(getExclusive()&&getSelected().size>1){setSelected(new Set([[...getSelected()][0]]))}
+      syncExclTog();updateBtn();renderList();doRender();
+    });
+    syncExclTog();
   }
   clearBtn.onclick=()=>{setSelected(new Set());updateBtn();renderList();doRender();};
   btn.addEventListener('click',e=>{
@@ -3566,6 +3594,9 @@ makePlatFilterPopover({
   getSelected:()=>cfPlats,setSelected:s=>{cfPlats=s},
   getFreq:()=>{const freq={};games.filter(g=>g.status==='bought').forEach(g=>{ownedPlatforms(g).forEach(p=>{if(p)freq[p]=(freq[p]||0)+1})});return freq;},
   doRender:renderCollection,
+  exclusiveToggleId:'cPlatExclToggle',
+  getExclusive:()=>cfPlatExclusive,
+  setExclusive:v=>{cfPlatExclusive=v},
 });
 
 // Search also triggers collection render when in collection mode
