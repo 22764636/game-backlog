@@ -2148,7 +2148,7 @@ function _buildPlatTabContent(g,plat){
     :`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`;
   const isSteam=plat==='Steam';
 
-  const col1=`<div>
+  const purchaseSection=`<div class="ps">
     <div class="psl">Purchase</div>
     <div class="pv pv-kv">
       ${p.store?`<span class="pv-kv-lbl">Store:</span><span>${esc(p.store)}</span>`:''}
@@ -2157,7 +2157,7 @@ function _buildPlatTabContent(g,plat){
     </div>
   </div>`;
 
-  const col2=`<div>
+  const playSection=`<div class="ps">
     <div class="psl">Play Status</div>
     <div class="ps-inline-edit">
       <button id="psInlineBtn" class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">
@@ -2169,10 +2169,10 @@ function _buildPlatTabContent(g,plat){
     </div>
   </div>`;
 
-  let col3='';
+  let colSection='';
   if(isSteam){
     const chips=(p.steamCollection||[]).map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff">${esc(colLabel(s))}</span>`).join('');
-    col3=`<div id="colInlineWrap">
+    colSection=`<div class="ps" id="colInlineWrap">
       <div class="psl">Collections</div>
       <div style="display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.4rem" id="colInlineChips">${chips}</div>
       <div class="genre-wrap">
@@ -2182,7 +2182,7 @@ function _buildPlatTabContent(g,plat){
     </div>`;
   }
 
-  return`<div class="plat-tab-grid${isSteam?' plat-tab-grid-3':''}">${col1}${col2}${col3}</div>`;
+  return`${purchaseSection}${playSection}${colSection}`;
 }
 
 function wirePlatTabContent(g,plat){
