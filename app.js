@@ -2133,14 +2133,20 @@ function _buildPlatTabContent(g,plat){
   const ps=p.playStatus||'Unplayed';const psM=PS_META[ps]||{code:'UP',cls:'ps-UP'};
   const cn=parseFloat(p.cost)||0;
   const costStr=cn===0
-    ?`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`
+    ?`<span style="color:var(--lime);font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`
     :`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`;
-  let html=`<div class="pv" style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .6rem;margin-bottom:.6rem">
-    ${p.store?`<div><span style="color:var(--t3)">Store: </span>${esc(p.store)}</div>`:''}
-    <div><span style="color:var(--t3)">Cost: </span>${costStr}</div>
-    ${p.purchaseDate?`<div><span style="color:var(--t3)">Purchased: </span>${esc(p.purchaseDate)}</div>`:''}
+  const isSteam=plat==='Steam';
+
+  const col1=`<div>
+    <div class="psl">Purchase</div>
+    <div class="pv">
+      ${p.store?`<div><span style="color:var(--t3)">Store </span>${esc(p.store)}</div>`:''}
+      <div><span style="color:var(--t3)">Cost </span>${costStr}</div>
+      ${p.purchaseDate?`<div><span style="color:var(--t3)">Date </span>${esc(p.purchaseDate)}</div>`:''}
+    </div>
   </div>`;
-  html+=`<div class="ps">
+
+  const col2=`<div>
     <div class="psl">Play Status</div>
     <div class="ps-inline-edit">
       <button id="psInlineBtn" class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">
@@ -2151,11 +2157,12 @@ function _buildPlatTabContent(g,plat){
       <div class="ps-picker" id="psInlinePickerPanel" style="position:relative;box-shadow:none;border-color:var(--bd);margin-top:.3rem;display:none;flex-direction:column"></div>
     </div>
   </div>`;
-  if(plat==='Steam'){
-    const cols=(p.steamCollection||[]);
-    const chips=cols.map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff">${esc(colLabel(s))}</span>`).join('');
-    html+=`<div class="ps" id="colInlineWrap">
-      <div class="psl">Steam Collections</div>
+
+  let col3='';
+  if(isSteam){
+    const chips=(p.steamCollection||[]).map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff">${esc(colLabel(s))}</span>`).join('');
+    col3=`<div id="colInlineWrap">
+      <div class="psl">Collections</div>
       <div style="display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.4rem" id="colInlineChips">${chips}</div>
       <div class="genre-wrap">
         <div class="ciw" id="colInlineWrapInput"><input type="text" class="cir" id="colInlineInput" placeholder="Type to add…" autocomplete="off"></div>
@@ -2163,7 +2170,9 @@ function _buildPlatTabContent(g,plat){
       </div>
     </div>`;
   }
-  return html;
+
+  const gridCols=isSteam?'1.6fr 1.4fr 1.8fr':'1fr 1fr';
+  return`<div style="display:grid;grid-template-columns:${gridCols};gap:.8rem;align-items:start">${col1}${col2}${col3}</div>`;
 }
 
 function wirePlatTabContent(g,plat){
