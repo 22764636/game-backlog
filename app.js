@@ -3417,6 +3417,30 @@ function dispatchRender(){
 // ══════════════════════════════════════════
 //  URL HASH — persist view state across refreshes
 // ══════════════════════════════════════════
+function syncFilterBtns(){
+  function sb(btnId,badgeId,count){
+    const btn=document.getElementById(btnId);const bdg=document.getElementById(badgeId);
+    if(btn)btn.classList.toggle('active',count>0);
+    if(bdg){bdg.textContent=count;bdg.style.display=count>0?'':'none';}
+  }
+  function sl(togId,val,attr){
+    const tog=document.getElementById(togId);
+    if(tog)tog.querySelectorAll('.fpop-logic-btn').forEach(b=>b.classList.toggle('on',(b.dataset[attr||'l'])===val));
+  }
+  sb('genreFilterBtn','genreFilterBadge',fGenres.size);
+  sb('tagFilterBtn','tagFilterBadge',fTags.size);
+  sb('prioFilterBtn','prioFilterBadge',fPrios.size);
+  sl('genreLogicToggle',fGenreLogic);
+  sl('tagLogicToggle',fTagLogic);
+  sb('cGenreFilterBtn','cGenreFilterBadge',cfGenres.size);
+  sb('cPlayFilterBtn','cPlayFilterBadge',cfPlayStatus.size);
+  sb('cPlatFilterBtn','cPlatFilterBadge',cfPlats.size);
+  sb('cColFilterBtn','cColFilterBadge',cfSteamCol.size);
+  sl('cGenreColLogicToggle',cfGenreLogic);
+  sl('cColLogicToggle',cfSteamColLogic);
+  const exclTog=document.getElementById('cPlatExclToggle');
+  if(exclTog)exclTog.querySelectorAll('.fpop-logic-btn').forEach(b=>b.classList.toggle('on',b.dataset.m===(cfPlatExclusive?'excl':'any')));
+}
 function saveHash(){
   if(typeof URLSearchParams==='undefined')return;
   const p=new URLSearchParams();
@@ -3424,10 +3448,24 @@ function saveHash(){
   if(vm!=='grid')p.set('view',vm);
   const si=document.getElementById('searchInput');
   if(si&&si.value)p.set('q',si.value);
-  const ss=document.getElementById('sortSel');
-  if(ss&&ss.value&&ss.value!=='added')p.set('sort',ss.value);
-  const gs=document.getElementById('groupSel');
-  if(gs&&gs.value&&gs.value!=='none')p.set('group',gs.value);
+  if(appMode==='collection'){
+    const cs=document.getElementById('cSortSel');
+    if(cs&&cs.value&&cs.value!=='steamcol')p.set('csort',cs.value);
+    if(cfGenres.size){p.set('cg',[...cfGenres].join('|'));if(cfGenreLogic!=='or')p.set('cgl',cfGenreLogic);}
+    if(cfPlayStatus.size)p.set('cps',[...cfPlayStatus].join('|'));
+    if(cfPlats.size){p.set('cp',[...cfPlats].join('|'));if(cfPlatExclusive)p.set('cpe','1');}
+    if(cfSteamCol.size){p.set('cc',[...cfSteamCol].join('|'));if(cfSteamColLogic!=='or')p.set('ccl',cfSteamColLogic);}
+  } else {
+    const ss=document.getElementById('sortSel');
+    if(ss&&ss.value&&ss.value!=='added')p.set('sort',ss.value);
+    const gs=document.getElementById('groupSel');
+    if(gs&&gs.value&&gs.value!=='none')p.set('group',gs.value);
+    if(fGenres.size){p.set('g',[...fGenres].join('|'));if(fGenreLogic!=='or')p.set('gl',fGenreLogic);}
+    if(fTags.size){p.set('t',[...fTags].join('|'));if(fTagLogic!=='or')p.set('tl',fTagLogic);}
+    if(fPrios.size)p.set('pr',[...fPrios].join('|'));
+    if(hrMinVal>0)p.set('hmin',hrMinVal);
+    if(hrMaxVal<100)p.set('hmax',hrMaxVal);
+  }
   const h=p.toString();
   history.replaceState(null,'',h?('#'+h):(location.pathname+location.search));
 }
@@ -3439,9 +3477,7 @@ function restoreFromHash(){
   try{
     const p=new URLSearchParams(h);
     if(p.has('mode'))appMode=p.get('mode');
-    if(p.has('view')){
-      vm=p.get('view');
-    }
+    if(p.has('view'))vm=p.get('view');
     if(p.has('q')){
       const val=p.get('q');
       const si=document.getElementById('searchInput');
@@ -3451,8 +3487,28 @@ function restoreFromHash(){
     }
     if(p.has('sort')){const ss=document.getElementById('sortSel');if(ss)ss.value=p.get('sort');}
     if(p.has('group')){const gs=document.getElementById('groupSel');if(gs)gs.value=p.get('group');}
-    // Sync app mode UI — setAppMode renders, but data isn't loaded yet; renderAll is a no-op on empty games
+    if(p.has('csort')){const cs=document.getElementById('cSortSel');if(cs)cs.value=p.get('csort');}
+    if(p.has('g'))fGenres=new Set(p.get('g').split('|').filter(Boolean));
+    if(p.has('gl'))fGenreLogic=p.get('gl');
+    if(p.has('t'))fTags=new Set(p.get('t').split('|').filter(Boolean));
+    if(p.has('tl'))fTagLogic=p.get('tl');
+    if(p.has('pr'))fPrios=new Set(p.get('pr').split('|').filter(Boolean));
+    if(p.has('hmin'))hrMinVal=Math.max(0,Math.min(100,parseInt(p.get('hmin'))||0));
+    if(p.has('hmax'))hrMaxVal=Math.max(0,Math.min(100,parseInt(p.get('hmax'))||100));
+    if(p.has('hmin')||p.has('hmax')){
+      const minI=document.getElementById('hrMinInp');const maxI=document.getElementById('hrMaxInp');
+      if(minI)minI.value=hrMinVal;if(maxI)maxI.value=hrMaxVal;
+      if(_updateHotnessSlider)_updateHotnessSlider();
+    }
+    if(p.has('cg'))cfGenres=new Set(p.get('cg').split('|').filter(Boolean));
+    if(p.has('cgl'))cfGenreLogic=p.get('cgl');
+    if(p.has('cps'))cfPlayStatus=new Set(p.get('cps').split('|').filter(Boolean));
+    if(p.has('cp'))cfPlats=new Set(p.get('cp').split('|').filter(Boolean));
+    if(p.has('cpe'))cfPlatExclusive=true;
+    if(p.has('cc'))cfSteamCol=new Set(p.get('cc').split('|').filter(Boolean));
+    if(p.has('ccl'))cfSteamColLogic=p.get('ccl');
     if(appMode==='collection')setAppMode('collection');
+    syncFilterBtns();
   }catch(e){}
 }
 
@@ -3728,6 +3784,7 @@ function doImport(){
 // ══════════════════════════════════════════
 //  HOTNESS RANGE — dual thumb (desktop) + number inputs (mobile)
 // ══════════════════════════════════════════
+let _updateHotnessSlider=null;
 (function(){
   const minInp=document.getElementById('hrMinInp');
   const maxInp=document.getElementById('hrMaxInp');
@@ -3805,6 +3862,7 @@ function doImport(){
   }
   if(thumbMin)makeDraggable(thumbMin,true);
   if(thumbMax)makeDraggable(thumbMax,false);
+  _updateHotnessSlider=updateSliderUI;
   updateSliderUI();
 })();
 
