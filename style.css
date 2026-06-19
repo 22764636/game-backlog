@@ -7,20 +7,6 @@
   --bd:#14528f44;--bd2:#02b3fc44;
   --pw:600px;--hh:60px;--r:10px;--rl:16px;
 }
-[data-theme=light]{
-  --base:#eef4fb;--s1:#fff;--s3:#c8daf0;--cbg:#fff;--cbr:#02b3fc44;
-  --muted:#6b7c93;--text:#031329;--t2:#2a5080;--t3:#7090b0;--bd:#02b3fc33;--bd2:#02b3fc66;
-}
-/* ── SPLASH SCREEN ── */
-#btb-splash{position:fixed;inset:0;z-index:9999;
-  background:linear-gradient(170deg,#02b3fc 50%,#ff00aa 50%);
-  display:flex;align-items:center;justify-content:center;
-  transition:opacity .35s ease}
-#btb-splash.gone{opacity:0;pointer-events:none}
-#btb-splash-lbl{color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;
-  font-size:1.5rem;letter-spacing:.16em;text-transform:uppercase;
-  transform:rotate(-10deg);white-space:nowrap;
-  text-shadow:0 1px 10px rgba(0,0,0,.4)}
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
