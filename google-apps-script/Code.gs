@@ -135,7 +135,13 @@ function setAll(records) {
 
   // Preserve existing header row or build one from the first record
   const existing = sheet.getDataRange().getValues();
-  const headers = existing.length > 0 ? existing[0].map(String) : Object.keys(records[0]);
+  let headers = existing.length > 0 ? existing[0].map(String) : Object.keys(records[0]);
+
+  // Add any new fields from records not already in headers
+  const headerSet = new Set(headers);
+  records.forEach(r => Object.keys(r).forEach(k => {
+    if (!headerSet.has(k)) { headers.push(k); headerSet.add(k); }
+  }));
 
   const rows = [headers, ...records.map(r => headers.map(h => toCell(r[h])))];
   sheet.clearContents();
@@ -171,8 +177,9 @@ function getSheet(name) {
     sheet.appendRow([
       'id','title','status','playStatus','steamAppId','genres','platforms',
       'priority','hotness','releaseDate','tbaText','price','cost','purchaseDate',
-      'developer','publisher','cover','storeLink','type','parentAppId',
-      'steamCollection','myRating','myReview','added','cancelled','notes'
+      'developer','publisher','cover','storeLink','store','type','parentAppId',
+      'steamCollection','myRating','myReview','added','cancelled','notes',
+      'purchases','tags','shortDescription'
     ]);
   }
   return sheet;

@@ -268,53 +268,32 @@
 <div id="pov"></div>
 <div id="toast"></div>
 
-<!-- MOVE TO COLLECTION MODAL -->
+<!-- MOVE TO COLLECTION / ADD PLATFORM MODAL -->
 <div id="btcov">
   <div class="modal" style="max-width:480px">
-    <div class="mt" style="color:var(--green)">Move to Collection</div>
+    <div class="mt" id="btcModalTitle" style="color:var(--green)">Move to Collection</div>
     <div class="btc-game-title" id="btcTitle" style="font-size:.82rem;color:var(--t2);margin-bottom:.8rem;padding:.4rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--bd)"></div>
-    <!-- Store (single select dropdown) -->
+    <!-- Platform pills (populated by JS) -->
+    <div class="btc-plat-pills" id="btcPlatPills"></div>
+    <!-- Store (styled picker) -->
     <div class="fr">
       <label>Store</label>
-      <select id="btcStore">
-        <option value="">— select store —</option>
-        <option>Allyoucanplay</option><option>Amazon</option><option>CDKeys</option>
-        <option>Difmark</option><option>Driffle</option><option>Eneba</option>
-        <option>Epic Games</option><option>eTail.Market</option><option>Fanatical</option>
-        <option>G2A</option><option>G2Play</option><option>Gamebillet</option>
-        <option>GameSeal</option><option>Gamesplanet</option><option>Games for Play</option>
-        <option>Gamivo</option><option>Green Man Gaming</option><option>GOG</option>
-        <option>Humble Bundle</option><option>Indiegala</option><option>Instant Gaming</option>
-        <option>Keycense</option><option>Kinguin</option><option>K4G</option>
-        <option>Loaded</option><option>MMOGA</option><option>Nintendo EU</option>
-        <option>Nintendo US</option><option>Origin</option><option>Other</option>
-        <option>Playsum</option><option>PS EU</option><option>PS UK</option><option>PS US</option>
-        <option>Retail</option><option>Stadia</option><option>Steam</option>
-        <option>Target</option><option>Trading</option><option>Ubisoft</option>
-        <option>Voidu</option><option>WinGameStore</option><option>XBOX</option><option>Yuplay</option>
-      </select>
+      <input type="hidden" id="btcStore" value="">
+      <button type="button" class="store-pick-btn" id="btcStorePick"><span id="btcStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
     </div>
     <!-- Cost + Purchase date -->
     <div class="fg">
       <div class="fr"><label>Cost (€)</label><input type="number" id="btcCost" placeholder="0.00" step="0.01" min="0"></div>
       <div class="fr"><label>Purchase date</label><input type="date" id="btcDate"></div>
     </div>
-    <!-- Play status -->
+    <!-- Play status (styled button) -->
     <div class="fr">
       <label>Play status</label>
-      <select id="btcPlayStatus">
-        <option value="Unplayed" selected>Unplayed</option>
-        <option value="In Progress">In Progress</option>
-        <option value="Completed">Completed</option>
-        <option value="Superseded">Superseded</option>
-        <option value="Unfinishable">Unfinishable</option>
-        <option value="Played on Different Platform">Played on Different Platform</option>
-        <option value="Will Never Complete">Will Never Complete</option>
-        <option value="Will Never Play">Will Never Play</option>
-      </select>
+      <input type="hidden" id="btcPlayStatus" value="Unplayed">
+      <button type="button" id="btcPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
     </div>
-    <!-- Steam Collection (multi chip, prepopulated) -->
-    <div class="fr">
+    <!-- Steam Collection (hidden when non-Steam platform selected) -->
+    <div class="fr" id="btcColSection">
       <label>Steam Collection <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
       <div class="genre-wrap">
         <div class="ciw" id="btcColWrap"><input type="text" class="cir" id="btcColInput" placeholder="Type to filter…" autocomplete="off"></div>
@@ -509,23 +488,8 @@
       <!-- Store + Cost + Purchase date -->
       <div class="fr" style="margin-bottom:.5rem">
         <label>Store</label>
-        <select id="fColStore">
-          <option value="">— select store —</option>
-          <option>Allyoucanplay</option><option>Amazon</option><option>CDKeys</option>
-          <option>Difmark</option><option>Driffle</option><option>Eneba</option>
-          <option>Epic Games</option><option>eTail.Market</option><option>Fanatical</option>
-          <option>G2A</option><option>G2Play</option><option>Gamebillet</option>
-          <option>GameSeal</option><option>Gamesplanet</option><option>Games for Play</option>
-          <option>Gamivo</option><option>Green Man Gaming</option><option>GOG</option>
-          <option>Humble Bundle</option><option>Indiegala</option><option>Instant Gaming</option>
-          <option>Keycense</option><option>Kinguin</option><option>K4G</option>
-          <option>Loaded</option><option>MMOGA</option><option>Nintendo EU</option>
-          <option>Nintendo US</option><option>Origin</option><option>Other</option>
-          <option>Playsum</option><option>PS EU</option><option>PS UK</option><option>PS US</option>
-          <option>Retail</option><option>Stadia</option><option>Steam</option>
-          <option>Target</option><option>Trading</option><option>Ubisoft</option>
-          <option>Voidu</option><option>WinGameStore</option><option>XBOX</option><option>Yuplay</option>
-        </select>
+        <input type="hidden" id="fColStore" value="">
+        <button type="button" class="store-pick-btn" id="fColStorePick"><span id="fColStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
       </div>
       <div class="fg" style="margin-bottom:.5rem">
         <div class="fr"><label>Cost (€)</label><input type="number" id="fColCost" placeholder="0.00" step="0.01" min="0"></div>

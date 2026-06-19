@@ -173,6 +173,38 @@ function fetchMeta(force){
 }
 loadMetaCache();
 
+const PLATFORM_ORDER=['Steam','Epic Games','GOG','Other PC','Nintendo','PS','Xbox'];
+const PLATFORM_STORES={
+  'Steam':      ['Steam','Humble Bundle','Fanatical','Green Man Gaming','CDKeys','Instant Gaming','GameBillet','Gamesplanet','Gamivo','Indiegala','WinGameStore','G2A','Kinguin','Other'],
+  'Epic Games': ['Epic Games','Humble Bundle','CDKeys','Gamivo','G2A','Kinguin','Other'],
+  'GOG':        ['GOG','Humble Bundle','Fanatical','GameBillet','CDKeys','Other'],
+  'Other PC':   ['Origin / EA App','Battle.net','Ubisoft Connect','itch.io','Amazon','Other'],
+  'Nintendo':   ['Nintendo eShop','Amazon','Retail','CDKeys','Other'],
+  'PS':         ['PlayStation Store','Amazon','Retail','CDKeys','Eneba','Other'],
+  'Xbox':       ['Xbox Store','Amazon','Retail','CDKeys','Other'],
+};
+function getPlatformStores(plat){
+  return PLATFORM_STORES[plat]||['Steam','Epic Games','GOG','PlayStation Store','Xbox Store','Nintendo eShop','Amazon','Retail','Other'];
+}
+function syncLegacyFromPurchases(g){
+  const p0=g.purchases&&g.purchases[0];
+  g.cost=p0?p0.cost||'':'';
+  g.store=p0?p0.store||'':'';
+  g.purchaseDate=p0?p0.purchaseDate||'':'';
+  g.playStatus=p0?p0.playStatus||'Unplayed':'Unplayed';
+  const sp=g.purchases?g.purchases.find(p=>p.platform==='Steam'):null;
+  g.steamCollection=sp?sp.steamCollection||[]:[];
+}
+function gamePurchases(g){return Array.isArray(g.purchases)?g.purchases:[]}
+function ownedPlatforms(g){return gamePurchases(g).map(p=>p.platform)}
+function purchaseByPlat(g,plat){return gamePurchases(g).find(p=>p.platform===plat)||null}
+function gameTotalCost(g){return gamePurchases(g).reduce((s,p)=>s+(parseFloat(p.cost)||0),0)}
+function gameFilteredCost(g,platSet){
+  const ps=gamePurchases(g);
+  if(!platSet||!platSet.size)return ps.reduce((s,p)=>s+(parseFloat(p.cost)||0),0);
+  const matched=ps.filter(p=>platSet.has(p.platform));
+  return matched.length?matched.reduce((s,p)=>s+(parseFloat(p.cost)||0),0):null;
+}
 function normalise(g){
   if(!Array.isArray(g.genres)){
     if(g.genres&&typeof g.genres==='string'){try{g.genres=JSON.parse(g.genres)}catch(e){g.genres=g.genres.split(',').map(s=>s.trim()).filter(Boolean)}}
@@ -222,6 +254,19 @@ function normalise(g){
   if(g.parentAppId!==undefined&&g.parentAppId!==null&&g.parentAppId!=='')
     g.parentAppId=String(g.parentAppId);
   else g.parentAppId=null;
+  // purchases: parse JSON string or migrate from legacy flat fields
+  if(g.purchases&&typeof g.purchases==='string'){
+    try{g.purchases=JSON.parse(g.purchases)}catch(e){g.purchases=[]}
+  }
+  if(!Array.isArray(g.purchases))g.purchases=[];
+  if(!g.purchases.length&&(g.store||g.cost||g.purchaseDate||(g.steamCollection&&g.steamCollection.length)||g.playStatus)){
+    g.purchases=[{platform:'Steam',store:g.store||'',cost:g.cost||'',purchaseDate:g.purchaseDate||'',playStatus:g.playStatus||'Unplayed',steamCollection:[...(g.steamCollection||[])]}];
+  }
+  g.purchases.forEach(p=>{
+    if(!Array.isArray(p.steamCollection))p.steamCollection=typeof p.steamCollection==='string'?p.steamCollection.split(',').map(s=>s.trim()).filter(Boolean):[];
+    if(p.purchaseDate){const pf=fmtDate(String(p.purchaseDate));if(pf&&pf!==String(p.purchaseDate))p.purchaseDate=pf;}
+  });
+  syncLegacyFromPurchases(g);
   return g;
 }
 let games=[];
@@ -870,7 +915,8 @@ function collectionFiltered(){
       if(!genreMatch)return false;
     }
     if(cfPlats.size>0){
-      const gp=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);
+      const owned=ownedPlatforms(g);
+      const gp=owned.length?owned:(g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]));
       if(!gp.some(p=>cfPlats.has(p)))return false;
     }
     return true;
@@ -885,8 +931,8 @@ function collectionSorted(list){
       const order=['In Progress','Completed','Unplayed','Superseded','Unfinishable','Played on Different Platform','Will Never Complete','Will Never Play'];
       return(order.indexOf(a.playStatus||'Unplayed'))-(order.indexOf(b.playStatus||'Unplayed'));
     }
-    if(s==='cost-desc')return(parseFloat(b.cost)||0)-(parseFloat(a.cost)||0);
-    if(s==='cost-asc')return(parseFloat(a.cost)||0)-(parseFloat(b.cost)||0);
+    if(s==='cost-desc')return gameTotalCost(b)-gameTotalCost(a);
+    if(s==='cost-asc')return gameTotalCost(a)-gameTotalCost(b);
     if(s==='purchaseDate'){
       function _pdKey(d){if(!d)return'';const m=d.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:''}
       return _pdKey(b.purchaseDate).localeCompare(_pdKey(a.purchaseDate));
@@ -1207,21 +1253,29 @@ function colCardHTML(g){
   const ps=g.playStatus||'Unplayed';
   const psM=PS_META[ps]||{code:'UP',cls:'ps-UP'};
   const psBadgeCard=`<span class="col-ps-badge ${psM.cls} ps-card-badge" data-id="${gid_s}" title="Click to change status">${psM.code}<span class="ps-tip">${esc(ps)}</span></span>`;
-  const _costNum=g.cost!==undefined&&g.cost!==''?parseFloat(g.cost):null;
-  const costEl=_costNum===null
+  const _purchases=gamePurchases(g);
+  const _filtCostRaw=cfPlats.size>0?gameFilteredCost(g,cfPlats):gameTotalCost(g);
+  const _filtCost=_filtCostRaw===null?null:_filtCostRaw;
+  const costEl=!_purchases.length
     ?'<span class="cprice" style="color:var(--t3)">—</span>'
-    :_costNum===0
-      ?'<span class="cprice" style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>'
-      :'<span class="cprice">€'+_costNum.toFixed(2)+'</span>';
+    :_filtCost===null
+      ?'<span class="cprice" style="color:var(--t3)">—</span>'
+      :_filtCost===0
+        ?'<span class="cprice" style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>'
+        :'<span class="cprice">€'+_filtCost.toFixed(2)+'</span>';
   const dlcs=g.type!=='dlc'?findDlcs(g):[];
   const dlcBadge=dlcs.length?`<span class="dlc-count-badge" data-id="${gid_s}">DLC (${dlcs.length})</span>`:'';
 
+  const _ownedPlats=ownedPlatforms(g);
+  const _platBadges=_ownedPlats.length
+    ?`<div class="cc-plats">${_ownedPlats.map(p=>`<span class="b-plat" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}</span>`).join('')}</div>`
+    :platBadgesHTML(g);
   return`<div class="gc col-card st-bought" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}">
     <div class="cc">
       <div class="cph" ${phStyle}>🎮</div>${cImg}
       <div class="cg"></div>
       <div class="hb2" style="display:none"></div>
-      ${platBadgesHTML(g)}
+      ${_platBadges}
     </div>
     <div class="pb">${psBadgeCard}<div class="pb-r">${colTypeBadge(g)}</div></div>
     <div class="cb">
@@ -1234,6 +1288,7 @@ function colCardHTML(g){
           <a href="${sdbUrl}" class="qb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
           <button class="qb ba" title="Move back to Wishlist" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">↩</button>
           <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">✏</button>
+          <button class="qb" title="Add Platform" onclick="event.stopPropagation();openAddPlatformModal('${gid_s}')">⊕</button>
         </div>
       </div>
     </div>
@@ -1421,11 +1476,11 @@ function renderCollectionStats(list){
   const allCol=games.filter(g=>g.status==='bought');
   const totalGames=allCol.filter(g=>g.type!=='dlc').length;
   const totalDlcs=allCol.filter(g=>g.type==='dlc').length;
-  const totalCost=allCol.filter(g=>g.cost).reduce((s,g)=>s+parseFloat(g.cost),0);
+  const totalCost=allCol.reduce((s,g)=>s+gameTotalCost(g),0);
   const isFiltered=list.length!==allCol.length;
   const filtGames=list.filter(g=>g.type!=='dlc').length;
   const filtDlcs=list.filter(g=>g.type==='dlc').length;
-  const filtCost=list.filter(g=>g.cost).reduce((s,g)=>s+parseFloat(g.cost),0);
+  const filtCost=list.reduce((s,g)=>s+(cfPlats.size?gameFilteredCost(g,cfPlats)||0:gameTotalCost(g)),0);
   const gameChip=isFiltered
     ?`<span class="sc-chip"><b>${filtGames}</b>/<span style="color:var(--muted)">${totalGames}</span> games</span>`
     :`<span class="sc-chip"><b>${totalGames}</b> games</span>`;
@@ -1434,7 +1489,7 @@ function renderCollectionStats(list){
       ?`<span class="sc-chip"><b>${filtDlcs}</b>/<span style="color:var(--muted)">${totalDlcs}</span> DLC</span>`
       :`<span class="sc-chip"><b>${totalDlcs}</b> DLC</span>`)
     :'';
-  const costChip=totalCost
+  const costChip=totalCost>0
     ?(isFiltered
       ?`<span class="sc-chip"><b>${fmtEur(filtCost)}</b>/<span style="color:var(--muted)">${fmtEur(totalCost)}</span></span>`
       :`<span class="sc-chip"><b>${fmtEur(totalCost)}</b></span>`)
@@ -1517,7 +1572,7 @@ function renderCollection(){
         const yr = m ? m[3] : g.purchaseDate.slice(0,4) || 'Unknown';
         addToGroup(yr, g);
       } else if(sortBy === 'cost-desc' || sortBy === 'cost-asc') {
-        const c = parseFloat(g.cost) || 0;
+        const c = gameTotalCost(g);
         const bucket = c === 0 ? 'Free' : c < 10 ? '< €10' : c < 25 ? '€10–25' : c < 50 ? '€25–50' : '€50+';
         addToGroup(bucket, g);
       } else {
@@ -1715,7 +1770,7 @@ function handleMarkBought(id){
   if(g.status==='bought'){
     // One-click unmark → back to wishlist, clear collection fields
     g.status='wishlist';
-    delete g.store;delete g.cost;delete g.purchaseDate;delete g.playStatus;delete g.steamCollection;
+    delete g.store;delete g.cost;delete g.purchaseDate;delete g.playStatus;delete g.steamCollection;delete g.purchases;
     save(id);dispatchRender();if(openId===id)openPanel(id);return;
   }
   if(isGameUnreleased(g)){
@@ -1725,7 +1780,7 @@ function handleMarkBought(id){
   openCollectionModal(id);
 }
 
-let btcId=null,cBtcCol=[];
+let btcId=null,cBtcCol=[],btcAddPlatMode=false,btcSelPlat='Steam';
 
 const STEAM_COLLECTIONS=[
   '001_TO TRY NEXT','002A_STARTED',"002B_DOESN'T FINISH",'002C_ROGUELIKE',
@@ -1737,20 +1792,61 @@ const STEAM_COLLECTIONS=[
   '014A_WILL NEVER PLAY','014B_TRIED BUT NO','014C_NEW ITERATION'
 ];
 
-function openCollectionModal(id){
-  btcId=id;cBtcCol=[];
+function _syncBtcPsBtn(val){
+  const btn=document.getElementById('btcPlayStatusBtn');if(!btn)return;
+  const m=PS_META[val]||{code:'UP',cls:'ps-UP'};
+  btn.className='col-ps-badge '+m.cls;
+  btn.style.cssText='font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start';
+  btn.innerHTML=m.code+'<span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">'+esc(val)+'</span>';
+}
+function _btcSelectPlat(plat){
+  btcSelPlat=plat;
+  document.querySelectorAll('#btcPlatPills .btc-plat-pill').forEach(pill=>{
+    const active=pill.dataset.p===plat;
+    pill.classList.toggle('active',active);
+    pill.style.background=active?platColor(plat):'';
+    pill.style.color=active?platTextColor(plat):'';
+    pill.style.borderColor=active?'transparent':'';
+  });
+  const colSec=document.getElementById('btcColSection');
+  if(colSec)colSec.style.display=plat==='Steam'?'':'none';
+  const stores=getPlatformStores(plat);
+  const cur=document.getElementById('btcStore').value;
+  if(!stores.includes(cur)){
+    document.getElementById('btcStore').value=stores[0];
+    document.getElementById('btcStoreLabel').textContent=stores[0];
+  }
+}
+function _openBtcModal(id,addPlatMode){
+  btcId=id;cBtcCol=[];btcAddPlatMode=addPlatMode;
   const g=games.find(x=>x.id===id);
   document.getElementById('btcTitle').textContent=g?g.title:'';
-  document.getElementById('btcStore').value='Steam'; // sensible default
-  document.getElementById('btcCost').value='';
-  // Default purchase date to today
+  document.getElementById('btcModalTitle').textContent=addPlatMode?'Add Platform':'Move to Collection';
+  document.getElementById('btcConfirm').textContent=addPlatMode?'✓ Save Platform':'✓ Add to Collection';
+  const owned=g?ownedPlatforms(g):[];
+  const avail=addPlatMode?PLATFORM_ORDER.filter(p=>!owned.includes(p)):PLATFORM_ORDER;
+  btcSelPlat=avail[0]||'Steam';
+  const pills=document.getElementById('btcPlatPills');
+  pills.innerHTML=avail.map(p=>`<button class="btc-plat-pill" data-p="${esc(p)}">${esc(p)}</button>`).join('');
+  pills.querySelectorAll('.btc-plat-pill').forEach(pill=>{pill.onclick=()=>_btcSelectPlat(pill.dataset.p)});
   const n=new Date();
   document.getElementById('btcDate').value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+  document.getElementById('btcCost').value='0';
+  if(g&&g.price&&!addPlatMode)document.getElementById('btcCost').value=parseFloat(g.price).toFixed(2);
   document.getElementById('btcPlayStatus').value='Unplayed';
-  renderBtcCol();
+  _syncBtcPsBtn('Unplayed');
+  document.getElementById('btcStore').value='';
+  _btcSelectPlat(btcSelPlat);
+  cBtcCol=[];renderBtcCol();
   document.getElementById('btcov').classList.add('on');
-  // Pre-fill cost from game price if available
-  if(g&&g.price)document.getElementById('btcCost').value=parseFloat(g.price).toFixed(2);
+}
+function openCollectionModal(id){_openBtcModal(id,false)}
+function openAddPlatformModal(id){
+  const g=games.find(x=>x.id===id);if(!g)return;
+  const owned=ownedPlatforms(g);
+  const avail=PLATFORM_ORDER.filter(p=>!owned.includes(p));
+  if(!avail.length){showToast('Already own on all platforms');return;}
+  _openBtcModal(id,true);
 }
 
 // ── PLAY STATUS QUICK PICKER (item 7) ────────────────────────────────────────
@@ -1786,6 +1882,8 @@ function openPsPicker(badge,gameId){
       e.stopPropagation();
       const g2=games.find(x=>x.id===gameId);if(!g2)return;
       g2.playStatus=opt.dataset.s;
+      // Keep purchases[0] in sync so the change persists on next load
+      const _p0=gamePurchases(g2)[0];if(_p0)_p0.playStatus=opt.dataset.s;
       save(gameId);dispatchRender();if(openId===gameId)openPanel(gameId);
       picker.classList.remove('on');
     });
@@ -1846,6 +1944,102 @@ function _syncModalPsBtn(val){
   });
 })();
 
+// ── STORE PICKER (shared floating) ────────────────────────────────────────────
+let _storePicker=null;
+function getOrCreateStorePicker(){
+  if(_storePicker)return _storePicker;
+  const el=document.createElement('div');el.className='store-picker';
+  const si=document.createElement('input');si.type='text';si.className='store-picker-search';si.placeholder='Search stores…';
+  const lst=document.createElement('div');lst.className='store-picker-list';
+  el.appendChild(si);el.appendChild(lst);
+  document.body.appendChild(el);_storePicker=el;
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.store-picker')&&!e.target.closest('.store-pick-btn'))el.classList.remove('on');
+  });
+  return el;
+}
+function openStorePicker(btn,stores,currentVal,onSelect){
+  const picker=getOrCreateStorePicker();
+  const si=picker.querySelector('.store-picker-search');
+  const lst=picker.querySelector('.store-picker-list');
+  si.value='';
+  function buildList(q){
+    const f=q?stores.filter(s=>s.toLowerCase().includes(q.toLowerCase())):stores;
+    lst.innerHTML=f.map(s=>`<div class="store-pick-opt${s===currentVal?' active':''}" data-s="${esc(s)}">${esc(s)}</div>`).join('');
+    lst.querySelectorAll('.store-pick-opt').forEach(opt=>{
+      opt.onclick=e=>{e.stopPropagation();onSelect(opt.dataset.s);picker.classList.remove('on')};
+    });
+  }
+  buildList('');si.oninput=()=>buildList(si.value);
+  const rect=btn.getBoundingClientRect();
+  const pw=Math.min(260,window.innerWidth-16);
+  let left=rect.left;if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;if(left<8)left=8;
+  picker.style.cssText=`top:${rect.bottom+window.scrollY+4}px;left:${left}px;width:${pw}px`;
+  picker.classList.toggle('on');
+  if(picker.classList.contains('on'))setTimeout(()=>si.focus(),50);
+}
+
+// btcStorePick click
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('#btcStorePick');if(!btn)return;
+  e.stopPropagation();
+  openStorePicker(btn,getPlatformStores(btcSelPlat),document.getElementById('btcStore').value,val=>{
+    document.getElementById('btcStore').value=val;
+    document.getElementById('btcStoreLabel').textContent=val;
+  });
+});
+
+// fColStorePick click (add/edit modal)
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('#fColStorePick');if(!btn)return;
+  e.stopPropagation();
+  openStorePicker(btn,getPlatformStores('Steam'),document.getElementById('fColStore').value,val=>{
+    document.getElementById('fColStore').value=val;
+    document.getElementById('fColStoreLabel').textContent=val;
+  });
+});
+
+// btcPlayStatusBtn picker
+(function(){
+  let p=null;
+  function getBtcPsPicker(){
+    if(!p){
+      p=document.createElement('div');p.id='btcPsPicker';p.className='ps-picker';
+      document.body.appendChild(p);
+      document.addEventListener('click',e=>{
+        if(!e.target.closest('#btcPsPicker')&&!e.target.closest('#btcPlayStatusBtn'))p.classList.remove('on');
+      });
+    }
+    return p;
+  }
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest('#btcPlayStatusBtn');if(!btn)return;
+    const picker=getBtcPsPicker();
+    const cur=document.getElementById('btcPlayStatus').value||'Unplayed';
+    picker.innerHTML=Object.keys(PS_META).map(s=>{
+      const m=PS_META[s];
+      return'<div class="ps-pick-opt'+(s===cur?' active':'')+'" data-s="'+esc(s)+'">'+
+        '<span class="col-ps-badge '+m.cls+'" style="font-size:.52rem;padding:1px 5px;flex-shrink:0">'+m.code+'</span>'+
+        '<span class="ps-pick-label">'+esc(s)+'</span>'+
+      '</div>';
+    }).join('');
+    picker.querySelectorAll('.ps-pick-opt').forEach(opt=>{
+      opt.addEventListener('click',e2=>{
+        e2.stopPropagation();
+        const val=opt.dataset.s;
+        document.getElementById('btcPlayStatus').value=val;
+        _syncBtcPsBtn(val);
+        picker.classList.remove('on');
+      });
+    });
+    const rect=btn.getBoundingClientRect();
+    picker.style.top=(rect.bottom+window.scrollY+4)+'px';
+    picker.style.left=Math.min(rect.left+window.scrollX,window.innerWidth-220)+'px';
+    picker.classList.toggle('on');
+    e.stopPropagation();
+  });
+})();
+
 // Wire picker on rendered cards (called from bindNewCards)
 function bindPsPickerCards(container,start){
   const badges=container.querySelectorAll('.ps-card-badge');
@@ -1864,8 +2058,8 @@ function bindPsPickerCards(container,start){
 
 function closeCollectionModal(){
   document.getElementById('btcov').classList.remove('on');
-  document.getElementById('btcColDd').classList.remove('on');
-  btcId=null;cBtcCol=[];
+  const bdd=document.getElementById('btcColDd');if(bdd)bdd.classList.remove('on');
+  btcId=null;cBtcCol=[];btcAddPlatMode=false;
 }
 
 document.getElementById('btcCancel').onclick=closeCollectionModal;
@@ -1873,19 +2067,133 @@ document.getElementById('btcov').onclick=e=>{if(e.target===e.currentTarget)close
 
 document.getElementById('btcConfirm').onclick=()=>{
   const g=games.find(x=>x.id===btcId);if(!g)return;
-  g.status='bought';
-  g.store=document.getElementById('btcStore').value||'';
   const costRaw=document.getElementById('btcCost').value.trim();
-  g.cost=costRaw!==''?parseFloat(costRaw).toFixed(2):'';
-  g.purchaseDate=document.getElementById('btcDate').value||'';
-  g.playStatus=document.getElementById('btcPlayStatus').value||'Unplayed';
-  g.steamCollection=[...cBtcCol];
+  const cost=costRaw!==''?parseFloat(costRaw).toFixed(2):'0.00';
+  const dateRaw=document.getElementById('btcDate').value||'';
+  const newPurchase={
+    platform:btcSelPlat,
+    store:document.getElementById('btcStore').value||'',
+    cost,
+    purchaseDate:dateRaw?fmtDate(dateRaw)||dateRaw:'',
+    playStatus:document.getElementById('btcPlayStatus').value||'Unplayed',
+    steamCollection:btcSelPlat==='Steam'?[...cBtcCol]:[],
+  };
+  if(!btcAddPlatMode){
+    g.status='bought';
+    g.purchases=[newPurchase];
+  } else {
+    if(!Array.isArray(g.purchases))g.purchases=[];
+    const ei=g.purchases.findIndex(p=>p.platform===btcSelPlat);
+    if(ei>-1)g.purchases[ei]=newPurchase;else g.purchases.push(newPurchase);
+  }
+  syncLegacyFromPurchases(g);
   save(btcId);closeCollectionModal();dispatchRender();if(openId===btcId)openPanel(btcId);
 };
 
 // ══════════════════════════════════════════
 //  SIDE PANEL
 // ══════════════════════════════════════════
+
+function _buildPlatTabContent(g,plat){
+  const p=purchaseByPlat(g,plat)||{};
+  const ps=p.playStatus||'Unplayed';const psM=PS_META[ps]||{code:'UP',cls:'ps-UP'};
+  const cn=parseFloat(p.cost)||0;
+  const costStr=cn===0?`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`:`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`;
+  let html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:.28rem .55rem;margin-bottom:.5rem">
+    ${p.store?`<div><span style="color:var(--t3)">Store: </span>${esc(p.store)}</div>`:''}
+    <div><span style="color:var(--t3)">Cost: </span>${costStr}</div>
+    ${p.purchaseDate?`<div><span style="color:var(--t3)">Purchased: </span>${esc(p.purchaseDate)}</div>`:''}
+  </div>`;
+  html+=`<div style="margin-bottom:.45rem">
+    <div style="font-size:.62rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem">Play Status</div>
+    <div class="ps-inline-edit">
+      <button id="psInlineBtn" class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">
+        ${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span>
+      </button>
+      <input type="hidden" id="psInlineSel" value="${esc(ps)}">
+      <input type="hidden" id="psInlinePlat" value="${esc(plat)}">
+      <div class="ps-picker" id="psInlinePickerPanel" style="position:relative;box-shadow:none;border-color:var(--bd);margin-top:.3rem;display:none;flex-direction:column"></div>
+    </div>
+  </div>`;
+  if(plat==='Steam'){
+    const cols=(p.steamCollection||[]);
+    const chips=cols.map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff">${esc(colLabel(s))}</span>`).join('');
+    html+=`<div id="colInlineWrap">
+      <div style="font-size:.62rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem">Steam Collections</div>
+      <div style="display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.4rem" id="colInlineChips">${chips}</div>
+      <div class="genre-wrap">
+        <div class="ciw" id="colInlineWrapInput"><input type="text" class="cir" id="colInlineInput" placeholder="Type to add…" autocomplete="off"></div>
+        <div class="genre-dd" id="colInlineDd"></div>
+      </div>
+    </div>`;
+  }
+  return html;
+}
+
+function wirePlatTabContent(g,plat){
+  const psInlineBtn=document.getElementById('psInlineBtn');
+  const psInlinePickerPanel=document.getElementById('psInlinePickerPanel');
+  const psInlineSel=document.getElementById('psInlineSel');
+  if(psInlineBtn&&psInlinePickerPanel){
+    const _build=()=>{
+      const cur=psInlineSel?psInlineSel.value:'Unplayed';
+      psInlinePickerPanel.innerHTML=Object.keys(PS_META).map(s=>{
+        const m=PS_META[s];
+        return'<div class="ps-pick-opt'+(s===cur?' active':'')+'" data-s="'+esc(s)+'">'+
+          '<span class="col-ps-badge '+m.cls+'" style="font-size:.52rem;padding:1px 5px;flex-shrink:0">'+m.code+'</span>'+
+          '<span class="ps-pick-label">'+esc(s)+'</span>'+
+        '</div>';
+      }).join('');
+      psInlinePickerPanel.querySelectorAll('.ps-pick-opt').forEach(opt=>{
+        opt.addEventListener('click',()=>{
+          if(psInlineSel)psInlineSel.value=opt.dataset.s;
+          const m=PS_META[opt.dataset.s]||{code:'UP',cls:'ps-UP'};
+          psInlineBtn.className='col-ps-badge '+m.cls;
+          psInlineBtn.style.cssText='font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start';
+          psInlineBtn.innerHTML=m.code+' <span style="font-size:.68rem;font-weight:400;margin-left:4px">'+esc(opt.dataset.s)+'</span>';
+          psInlinePickerPanel.style.display='none';
+          const gg=games.find(x=>x.id===openId);
+          if(gg){const p=purchaseByPlat(gg,plat);if(p){p.playStatus=opt.dataset.s;syncLegacyFromPurchases(gg);save(openId);dispatchRender();}}
+          _build();
+        });
+      });
+    };
+    psInlineBtn.addEventListener('click',()=>{
+      const open=psInlinePickerPanel.style.display!=='none';
+      psInlinePickerPanel.style.display=open?'none':'flex';
+      if(!open)_build();
+    });
+    document.addEventListener('click',function _oc(e){
+      if(!psInlinePickerPanel.isConnected){document.removeEventListener('click',_oc);return;}
+      if(psInlinePickerPanel.style.display==='none')return;
+      if(!e.target.closest('#psInlinePickerPanel')&&!e.target.closest('#psInlineBtn'))psInlinePickerPanel.style.display='none';
+    });
+    _build();
+  }
+  const colInlineInput=document.getElementById('colInlineInput');
+  const colInlineDd=document.getElementById('colInlineDd');
+  if(colInlineInput&&colInlineDd){
+    let _panelCols=[...((purchaseByPlat(g,'Steam')||{}).steamCollection||[])];
+    const _save=()=>{const gg=games.find(x=>x.id===openId);if(gg){const p=purchaseByPlat(gg,'Steam');if(p){p.steamCollection=[..._panelCols];syncLegacyFromPurchases(gg);save(openId);dispatchRender();}}};
+    const _renderChips=()=>{
+      const w=document.getElementById('colInlineChips');if(!w)return;
+      w.innerHTML=_panelCols.map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff;cursor:pointer" data-col="${esc(s)}">${esc(colLabel(s))} <span style="opacity:.6;margin-left:2px">✕</span></span>`).join('');
+      w.querySelectorAll('.cich').forEach(chip=>{chip.addEventListener('click',()=>{_panelCols=_panelCols.filter(x=>x!==chip.dataset.col);_renderChips();_updateDd();_save();});});
+    };
+    const _updateDd=()=>{
+      const q=(colInlineInput.value||'').toLowerCase().trim();
+      const opts=allSteamCollections().filter(s=>!_panelCols.includes(s)&&(!q||s.toLowerCase().includes(q)));
+      if(!opts.length){colInlineDd.classList.remove('on');return}
+      colInlineDd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
+      colInlineDd.querySelectorAll('.genre-opt').forEach(el=>{el.addEventListener('click',()=>{_panelCols.push(el.dataset.v);colInlineInput.value='';_renderChips();colInlineDd.classList.remove('on');_save();});});
+      colInlineDd.classList.add('on');
+    };
+    _renderChips();
+    colInlineInput.addEventListener('input',_updateDd);
+    colInlineInput.addEventListener('focus',_updateDd);
+  }
+}
+
 function openPanel(id){
   const sid=String(id);
   const g=games.find(x=>String(x.id)===sid);if(!g)return;
@@ -1977,36 +2285,18 @@ function openPanel(id){
   }
   if(g.shortDescription)b+=`<div class="ps"><div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${esc(g.shortDescription)}</div></div>`;
   if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich" style="display:inline-flex;align-items:center;gap:.15rem">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div></div>`;
-  // Collection details — only for bought games (with inline edit for play status + steam collection)
+  // Collection details — platform tabs (only for bought games)
   if(g.status==='bought'){
-    const colDets=[];
-    if(g.store)colDets.push(`<div><span style="color:var(--t3)">Store: </span>${esc(g.store)}</div>`);
-    if(g.cost!==undefined&&g.cost!==''){
-      const cn=parseFloat(g.cost);
-      colDets.push(`<div><span style="color:var(--t3)">Cost: </span>${cn===0?`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`:`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`}</div>`);
+    const _gPurchases=gamePurchases(g);
+    if(_gPurchases.length){
+      const _ordP=[..._gPurchases].sort((a,b)=>PLATFORM_ORDER.indexOf(a.platform)-PLATFORM_ORDER.indexOf(b.platform));
+      const _firstPlat=_ordP[0].platform;
+      const _tabsHTML=_ordP.map((p,i)=>`<button class="plat-tab${i===0?' active':''}" data-plat="${esc(p.platform)}" style="${i===0?'background:'+platColor(p.platform)+';color:'+platTextColor(p.platform)+';border-color:transparent':''}">${esc(p.platform)}</button>`).join('');
+      b+=`<div class="ps"><div class="psl">Collection</div>
+        <div class="plat-tabs" id="platTabs">${_tabsHTML}</div>
+        <div id="platTabContent">${_buildPlatTabContent(g,_firstPlat)}</div>
+      </div>`;
     }
-    if(g.purchaseDate)colDets.push(`<div><span style="color:var(--t3)">Purchased: </span>${esc(g.purchaseDate)}</div>`);
-    if(colDets.length)b+=`<div class="ps"><div class="psl">Collection</div><div class="pv" style="display:grid;grid-template-columns:1fr 1fr;gap:.28rem .55rem">${colDets.join('')}</div></div>`;
-    // Inline editable: play status — styled picker button
-    const _curPs=g.playStatus||'Unplayed';
-    const _curPsM=PS_META[_curPs]||{code:'UP',cls:'ps-UP'};
-    b+=`<div class="ps" id="psInlineWrap"><div class="psl">Play Status</div>
-      <div class="ps-inline-edit">
-        <button id="psInlineBtn" class="col-ps-badge ${_curPsM.cls}" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">
-          ${_curPsM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(_curPs)}</span>
-        </button>
-        <input type="hidden" id="psInlineSel" value="${esc(_curPs)}">
-        <div class="ps-picker" id="psInlinePickerPanel" style="position:relative;box-shadow:none;border-color:var(--bd);margin-top:.3rem;display:none;flex-direction:column"></div>
-      </div></div>`;
-    // Inline editable: steam collection (chip input)
-    const colChips=(g.steamCollection||[]).map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff">${esc(colLabel(s))}</span>`).join('');
-    b+=`<div class="ps" id="colInlineWrap"><div class="psl">Steam Collections</div>
-      <div style="display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.4rem" id="colInlineChips">${colChips}</div>
-      <div class="genre-wrap">
-        <div class="ciw" id="colInlineWrapInput"><input type="text" class="cir" id="colInlineInput" placeholder="Type to add…" autocomplete="off"></div>
-        <div class="genre-dd" id="colInlineDd"></div>
-      </div>
-    </div>`;
   }
   // Notes — multi-note with add/edit/delete
   const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
@@ -2077,78 +2367,27 @@ function openPanel(id){
     el.addEventListener('click',()=>openPanel(el.dataset.did));
   });
 
-  // Inline play status save
-  const psInlineBtn=document.getElementById('psInlineBtn');
-  const psInlinePickerPanel=document.getElementById('psInlinePickerPanel');
-  const psInlineSel=document.getElementById('psInlineSel');
-  const psInlineSave=document.getElementById('psInlineSave');
-  if(psInlineBtn&&psInlinePickerPanel){
-    // Build picker options inline (not floating)
-    const _buildInlinePicker=()=>{
-      const cur=psInlineSel?psInlineSel.value:'Unplayed';
-      psInlinePickerPanel.innerHTML=Object.keys(PS_META).map(s=>{
-        const m=PS_META[s];
-        return'<div class="ps-pick-opt'+(s===cur?' active':'')+'" data-s="'+esc(s)+'">'+
-          '<span class="col-ps-badge '+m.cls+'" style="font-size:.52rem;padding:1px 5px;flex-shrink:0">'+m.code+'</span>'+
-          '<span class="ps-pick-label">'+esc(s)+'</span>'+
-        '</div>';
-      }).join('');
-      psInlinePickerPanel.querySelectorAll('.ps-pick-opt').forEach(opt=>{
-        opt.addEventListener('click',()=>{
-          if(psInlineSel)psInlineSel.value=opt.dataset.s;
-          const m=PS_META[opt.dataset.s]||{code:'UP',cls:'ps-UP'};
-          psInlineBtn.className='col-ps-badge '+m.cls+' '+'';
-          psInlineBtn.style.cssText='font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start';
-          psInlineBtn.innerHTML=m.code+' <span style="font-size:.68rem;font-weight:400;margin-left:4px">'+esc(opt.dataset.s)+'</span>';
-          psInlinePickerPanel.style.display='none';
-          // Auto-save immediately
-          const gg=games.find(x=>x.id===openId);if(gg){gg.playStatus=opt.dataset.s;save(openId);dispatchRender();}
-          _buildInlinePicker();
+  // Wire platform tabs + inline content
+  const _platTabsEl=document.getElementById('platTabs');
+  if(_platTabsEl){
+    const _gForPanel=g;
+    const _ordPPurchases=[...gamePurchases(_gForPanel)].sort((a,b)=>PLATFORM_ORDER.indexOf(a.platform)-PLATFORM_ORDER.indexOf(b.platform));
+    const _firstPlatPanel=_ordPPurchases[0]?_ordPPurchases[0].platform:'Steam';
+    wirePlatTabContent(_gForPanel,_firstPlatPanel);
+    _platTabsEl.querySelectorAll('.plat-tab').forEach(tab=>{
+      tab.addEventListener('click',()=>{
+        const plat=tab.dataset.plat;
+        _platTabsEl.querySelectorAll('.plat-tab').forEach(t=>{
+          const active=t.dataset.plat===plat;
+          t.classList.toggle('active',active);
+          t.style.background=active?platColor(plat):'';
+          t.style.color=active?platTextColor(plat):'';
+          t.style.borderColor=active?'transparent':'';
         });
+        const content=document.getElementById('platTabContent');
+        if(content){content.innerHTML=_buildPlatTabContent(_gForPanel,plat);wirePlatTabContent(_gForPanel,plat);}
       });
-    };
-    psInlineBtn.addEventListener('click',()=>{
-      const isOpen=psInlinePickerPanel.style.display!=='none';
-      psInlinePickerPanel.style.display=isOpen?'none':'flex';
-      if(!isOpen)_buildInlinePicker();
     });
-    // Close picker when clicking outside
-    document.addEventListener('click',function _psOutsideClick(e){
-      if(!psInlinePickerPanel.isConnected){document.removeEventListener('click',_psOutsideClick);return;}
-      if(psInlinePickerPanel.style.display==='none')return;
-      if(!e.target.closest('#psInlinePickerPanel')&&!e.target.closest('#psInlineBtn'))
-        psInlinePickerPanel.style.display='none';
-    });
-    _buildInlinePicker();
-  }
-  if(psInlineSave){psInlineSave.style.display='none';}
-
-  // Inline steam collection chip input
-  const colInlineInput=document.getElementById('colInlineInput');
-  const colInlineDd=document.getElementById('colInlineDd');
-  if(colInlineInput&&colInlineDd){
-    let _panelCols=[...(g.steamCollection||[])];
-    function _saveColsNow(){const gg=games.find(x=>x.id===openId);if(!gg)return;gg.steamCollection=[..._panelCols];save(openId);dispatchRender();}
-    function renderPanelColChips(){
-      const wrap=document.getElementById('colInlineChips');if(!wrap)return;
-      wrap.innerHTML=_panelCols.map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff;cursor:pointer" data-col="${esc(s)}">${esc(colLabel(s))} <span style="opacity:.6;margin-left:2px">✕</span></span>`).join('');
-      wrap.querySelectorAll('.cich').forEach(chip=>{
-        chip.addEventListener('click',()=>{_panelCols=_panelCols.filter(x=>x!==chip.dataset.col);renderPanelColChips();updatePanelColDd();_saveColsNow();});
-      });
-    }
-    function updatePanelColDd(){
-      const q=(colInlineInput.value||'').toLowerCase().trim();
-      const opts=allSteamCollections().filter(s=>!_panelCols.includes(s)&&(!q||s.toLowerCase().includes(q)));
-      if(!opts.length){colInlineDd.classList.remove('on');return}
-      colInlineDd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
-      colInlineDd.querySelectorAll('.genre-opt').forEach(el=>{
-        el.addEventListener('click',()=>{_panelCols.push(el.dataset.v);colInlineInput.value='';renderPanelColChips();colInlineDd.classList.remove('on');_saveColsNow();});
-      });
-      colInlineDd.classList.add('on');
-    }
-    renderPanelColChips();
-    colInlineInput.addEventListener('input',updatePanelColDd);
-    colInlineInput.addEventListener('focus',updatePanelColDd);
   }
 
   // Notes wiring
@@ -2790,16 +3029,20 @@ function openEdit(id){
   const colSec=document.getElementById('modalColSection');
   if(colSec&&g.status==='bought'){
     colSec.style.display='block';
-    const fcs=document.getElementById('fColStore');if(fcs)fcs.value=g.store||'Steam';
-    const fcc=document.getElementById('fColCost');if(fcc)fcc.value=g.cost||'';
+    const p0=gamePurchases(g)[0]||{};
+    const storeVal=p0.store||g.store||'';
+    const fcs=document.getElementById('fColStore');if(fcs)fcs.value=storeVal;
+    const fsLabel=document.getElementById('fColStoreLabel');if(fsLabel)fsLabel.textContent=storeVal||'— select store —';
+    const fcc=document.getElementById('fColCost');if(fcc)fcc.value=p0.cost!==undefined?p0.cost:(g.cost||'');
     const fcd=document.getElementById('fColDate');
     if(fcd){
-      const _pd=g.purchaseDate||'';
+      const _pd=p0.purchaseDate||g.purchaseDate||'';
       const _pdm=_pd.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       fcd.value=_pdm?`${_pdm[3]}-${_pdm[2]}-${_pdm[1]}`:_pd;
     }
-    const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value=g.playStatus||'Unplayed';_syncModalPsBtn(g.playStatus||'Unplayed');}
-    cModalCol=[...(g.steamCollection||[])];renderModalCol();
+    const psVal=p0.playStatus||g.playStatus||'Unplayed';
+    const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value=psVal;_syncModalPsBtn(psVal);}
+    cModalCol=[...(p0.steamCollection||g.steamCollection||[])];renderModalCol();
   }
   // Notes section — only shown when editing
   const mnSec=document.getElementById('modalNotesSection');
@@ -2966,7 +3209,18 @@ document.getElementById('msave').onclick=()=>{
         playStatus:document.getElementById('fColPlayStatus').value||'Unplayed',
         steamCollection:[...cModalCol],
       }:{store:games[i].store,cost:games[i].cost,purchaseDate:games[i].purchaseDate,playStatus:games[i].playStatus,steamCollection:games[i].steamCollection};
-      const preserved={notes:[..._modalNotes],status:games[i].status,added:games[i].added,removeNote:games[i].removeNote,myRating:games[i].myRating,myReview:games[i].myReview,shortDescription:data.shortDescription||games[i].shortDescription,...colFields};
+      // Update purchases array when editing collection fields
+      let updatedPurchases=gamePurchases(games[i]);
+      if(isColEdit){
+        if(updatedPurchases.length){
+          updatedPurchases=[...updatedPurchases];
+          updatedPurchases[0]={...updatedPurchases[0],store:colFields.store,cost:colFields.cost,purchaseDate:colFields.purchaseDate,playStatus:colFields.playStatus};
+          if(updatedPurchases[0].platform==='Steam')updatedPurchases[0].steamCollection=colFields.steamCollection;
+        } else {
+          updatedPurchases=[{platform:'Steam',store:colFields.store,cost:colFields.cost,purchaseDate:colFields.purchaseDate,playStatus:colFields.playStatus,steamCollection:colFields.steamCollection}];
+        }
+      }
+      const preserved={notes:[..._modalNotes],status:games[i].status,added:games[i].added,removeNote:games[i].removeNote,myRating:games[i].myRating,myReview:games[i].myReview,shortDescription:data.shortDescription||games[i].shortDescription,...colFields,purchases:updatedPurchases};
       // parentAppId comes from data object, not preserved
       games[i]={...games[i],...data,...preserved};
     }
@@ -2974,14 +3228,15 @@ document.getElementById('msave').onclick=()=>{
     const isCol=appMode==='collection';
     const initStatus=isCol?'bought':'wishlist';
     const newGame={...data,id:gid(),added:Date.now(),status:initStatus,notes:[]};
-    // If adding to collection, attach collection fields
+    // If adding to collection, build purchases array and sync legacy fields
     if(isCol){
-      newGame.store=document.getElementById('fColStore').value||'';
-      const cc=document.getElementById('fColCost').value.trim();
-      newGame.cost=cc!==''?parseFloat(cc).toFixed(2):'';
-      newGame.purchaseDate=document.getElementById('fColDate').value||'';
-      newGame.playStatus=document.getElementById('fColPlayStatus').value||'Unplayed';
-      newGame.steamCollection=[...cModalCol];
+      const _nStore=document.getElementById('fColStore').value||'';
+      const _nCostRaw=document.getElementById('fColCost').value.trim();
+      const _nCost=_nCostRaw!==''?parseFloat(_nCostRaw).toFixed(2):'';
+      const _nDate=document.getElementById('fColDate').value||'';
+      const _nPlayStatus=document.getElementById('fColPlayStatus').value||'Unplayed';
+      newGame.purchases=[{platform:'Steam',store:_nStore,cost:_nCost,purchaseDate:_nDate,playStatus:_nPlayStatus,steamCollection:[...cModalCol]}];
+      syncLegacyFromPurchases(newGame);
     }
     // Attach modal note if any
     newGame.notes=[..._modalNotes];
