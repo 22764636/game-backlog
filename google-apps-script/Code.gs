@@ -10,8 +10,9 @@
 //  4. Copy the deployment URL and paste it into app.js as SHEET_URL
 // ============================================================
 
-const SHEET_NAME = 'Games';   // Name of the sheet tab that stores games
-const META_SHEET = 'Meta';    // Optional: sheet tab for genre/tag metadata
+const SHEET_NAME = 'Games';         // Sheet tab that stores games
+const META_SHEET = 'Meta';          // Optional: sheet tab for genre/tag metadata
+const PLAT_STORES_SHEET = 'PlatformStores'; // Optional: platform → store mappings
 
 // ── Entry point ──────────────────────────────────────────────
 function doGet(e) {
@@ -22,9 +23,10 @@ function doGet(e) {
   let result;
   try {
     switch (action) {
-      case 'getAll':  result = getAll();  break;
-      case 'getMeta': result = getMeta(); break;
-      default:        result = { error: 'Unknown action: ' + action };
+      case 'getAll':      result = getAll();      break;
+      case 'getMeta':     result = getMeta();     break;
+      case 'getPlatStores': result = getPlatStores(); break;
+      default:            result = { error: 'Unknown action: ' + action };
     }
   } catch (err) {
     result = { error: err.message };
@@ -97,6 +99,26 @@ function getMeta() {
     });
     return obj;
   });
+}
+
+// ── Read platform → store mappings ──────────────────────────
+function getPlatStores() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(PLAT_STORES_SHEET);
+  if (!sheet) return {};
+
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length < 2) return {};
+
+  const result = {};
+  for (let i = 1; i < rows.length; i++) {
+    const platform = String(rows[i][0]).trim();
+    const store    = String(rows[i][1]).trim();
+    if (!platform || !store) continue;
+    if (!result[platform]) result[platform] = [];
+    result[platform].push(store);
+  }
+  return result;
 }
 
 // ── Serialise a record value to a sheet-safe scalar ─────────

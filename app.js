@@ -183,8 +183,30 @@ const PLATFORM_STORES={
   'PS':         ['PlayStation Store','Amazon','Retail','CDKeys','Eneba','Other'],
   'Xbox':       ['Xbox Store','Amazon','Retail','CDKeys','Other'],
 };
+let _dynPlatStores=null;
 function getPlatformStores(plat){
-  return PLATFORM_STORES[plat]||['Steam','Epic Games','GOG','PlayStation Store','Xbox Store','Nintendo eShop','Amazon','Retail','Other'];
+  if(_dynPlatStores&&_dynPlatStores[plat]&&_dynPlatStores[plat].length)return _dynPlatStores[plat];
+  return PLATFORM_STORES[plat]||['Steam','Other'];
+}
+function loadPlatformStores(){
+  if(!SHEET_URL)return;
+  if(USE_JSONP){
+    const cbName='_btbPS'+Date.now();
+    const script=document.createElement('script');
+    const timeout=setTimeout(()=>{delete window[cbName];try{document.head.removeChild(script)}catch(e){}},8000);
+    window[cbName]=data=>{
+      clearTimeout(timeout);delete window[cbName];try{document.head.removeChild(script)}catch(e){}
+      if(data&&typeof data==='object'&&!Array.isArray(data)&&!data.error)_dynPlatStores=data;
+    };
+    script.src=SHEET_URL+'?action=getPlatStores&callback='+cbName+'&_='+Date.now();
+    script.onerror=()=>{clearTimeout(timeout);delete window[cbName];};
+    document.head.appendChild(script);
+    return;
+  }
+  fetch(SHEET_URL+'?action=getPlatStores&_='+Date.now(),{mode:'cors'})
+    .then(r=>r.json())
+    .then(data=>{if(data&&typeof data==='object'&&!Array.isArray(data)&&!data.error)_dynPlatStores=data;})
+    .catch(()=>{});
 }
 function syncLegacyFromPurchases(g){
   const p0=g.purchases&&g.purchases[0];
@@ -205,6 +227,7 @@ function gameFilteredCost(g,platSet){
   const matched=ps.filter(p=>platSet.has(p.platform));
   return matched.length?matched.reduce((s,p)=>s+(parseFloat(p.cost)||0),0):null;
 }
+let _migrationHappened=false;
 function normalise(g){
   if(!Array.isArray(g.genres)){
     if(g.genres&&typeof g.genres==='string'){try{g.genres=JSON.parse(g.genres)}catch(e){g.genres=g.genres.split(',').map(s=>s.trim()).filter(Boolean)}}
@@ -255,12 +278,14 @@ function normalise(g){
     g.parentAppId=String(g.parentAppId);
   else g.parentAppId=null;
   // purchases: parse JSON string or migrate from legacy flat fields
+  const _purchasesRawEmpty=!g.purchases||(typeof g.purchases==='string'&&!g.purchases.trim());
   if(g.purchases&&typeof g.purchases==='string'){
     try{g.purchases=JSON.parse(g.purchases)}catch(e){g.purchases=[]}
   }
   if(!Array.isArray(g.purchases))g.purchases=[];
   if(!g.purchases.length&&(g.store||g.cost||g.purchaseDate||(g.steamCollection&&g.steamCollection.length)||g.playStatus)){
     g.purchases=[{platform:'Steam',store:g.store||'',cost:g.cost||'',purchaseDate:g.purchaseDate||'',playStatus:g.playStatus||'Unplayed',steamCollection:[...(g.steamCollection||[])]}];
+    if(_purchasesRawEmpty)_migrationHappened=true;
   }
   g.purchases.forEach(p=>{
     if(!Array.isArray(p.steamCollection))p.steamCollection=typeof p.steamCollection==='string'?p.steamCollection.split(',').map(s=>s.trim()).filter(Boolean):[];
@@ -736,13 +761,22 @@ async function initData(){
   setSyncStatus('syncing','Loading…');
   try{
     const data=await loadFromSheet();
+    _migrationHappened=false;
     games=data.map(g=>normalise(g));
     // Also cache locally for resilience
     localStorage.setItem(KEY,JSON.stringify(games));
     setSyncStatus('ok','Loaded');
     dispatchRender();
-    // Fetch metadata in background (non-blocking)
+    // Fetch metadata and platform stores in background (non-blocking)
     fetchMeta();
+    loadPlatformStores();
+    // If any games had empty purchases column and were migrated from flat fields, persist them
+    if(_migrationHappened){
+      _migrationHappened=false;
+      postToSheet({action:'setAll',data:JSON.stringify(games)})
+        .then(()=>setSyncStatus('ok','Purchases synced'))
+        .catch(()=>{});
+    }
   }catch(err){
     console.warn('BTB: Could not load from Sheet, falling back to localStorage.',err);
     games=loadOffline();
@@ -2098,14 +2132,16 @@ function _buildPlatTabContent(g,plat){
   const p=purchaseByPlat(g,plat)||{};
   const ps=p.playStatus||'Unplayed';const psM=PS_META[ps]||{code:'UP',cls:'ps-UP'};
   const cn=parseFloat(p.cost)||0;
-  const costStr=cn===0?`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`:`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`;
-  let html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:.28rem .55rem;margin-bottom:.5rem">
+  const costStr=cn===0
+    ?`<span style="color:var(--lime);font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`
+    :`€${cn.toFixed(2)}`;
+  let html=`<div class="pv" style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .6rem;margin-bottom:.6rem">
     ${p.store?`<div><span style="color:var(--t3)">Store: </span>${esc(p.store)}</div>`:''}
     <div><span style="color:var(--t3)">Cost: </span>${costStr}</div>
     ${p.purchaseDate?`<div><span style="color:var(--t3)">Purchased: </span>${esc(p.purchaseDate)}</div>`:''}
   </div>`;
-  html+=`<div style="margin-bottom:.45rem">
-    <div style="font-size:.62rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem">Play Status</div>
+  html+=`<div class="ps">
+    <div class="psl">Play Status</div>
     <div class="ps-inline-edit">
       <button id="psInlineBtn" class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">
         ${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span>
@@ -2118,8 +2154,8 @@ function _buildPlatTabContent(g,plat){
   if(plat==='Steam'){
     const cols=(p.steamCollection||[]);
     const chips=cols.map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff">${esc(colLabel(s))}</span>`).join('');
-    html+=`<div id="colInlineWrap">
-      <div style="font-size:.62rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem">Steam Collections</div>
+    html+=`<div class="ps" id="colInlineWrap">
+      <div class="psl">Steam Collections</div>
       <div style="display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.4rem" id="colInlineChips">${chips}</div>
       <div class="genre-wrap">
         <div class="ciw" id="colInlineWrapInput"><input type="text" class="cir" id="colInlineInput" placeholder="Type to add…" autocomplete="off"></div>
@@ -2210,7 +2246,10 @@ function openPanel(id){
   const sdbUrl=g.steamAppId?`https://www.steamdb.info/app/${g.steamAppId}/`:`https://www.steamdb.info/search/?q=${sl}`;
   const stUrl=g.storeLink||(g.steamAppId?`https://store.steampowered.com/app/${g.steamAppId}/`:`https://store.steampowered.com/search/?term=${sl}`);
   const sh=[1,2,3,4,5].map(i=>`<span class="star${cStars>=i?' on':''}" data-s="${i}">★</span>`).join('');
-  const _plats=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);
+  const _plats=g.status==='bought'&&ownedPlatforms(g).length
+    ?ownedPlatforms(g)
+    :(g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]));
+
   const genreD=(g.genres||[]).join(', ')||g.genre||'';
   const dateD=g.tbaText||fmtDate(g.releaseDate)||'—';
 
