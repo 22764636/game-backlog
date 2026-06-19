@@ -2133,8 +2133,8 @@ function _buildPlatTabContent(g,plat){
   const ps=p.playStatus||'Unplayed';const psM=PS_META[ps]||{code:'UP',cls:'ps-UP'};
   const cn=parseFloat(p.cost)||0;
   const costStr=cn===0
-    ?`<span style="color:var(--lime);font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`
-    :`€${cn.toFixed(2)}`;
+    ?`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`
+    :`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`;
   let html=`<div class="pv" style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .6rem;margin-bottom:.6rem">
     ${p.store?`<div><span style="color:var(--t3)">Store: </span>${esc(p.store)}</div>`:''}
     <div><span style="color:var(--t3)">Cost: </span>${costStr}</div>
