@@ -2150,7 +2150,7 @@ function _buildPlatTabContent(g,plat){
     <div class="pv pv-kv">
       ${p.store?`<span class="pv-kv-lbl">Store:</span><span>${esc(p.store)}</span>`:''}
       <span class="pv-kv-lbl">Cost:</span><span>${costStr}</span>
-      ${p.purchaseDate?`<span class="pv-kv-lbl">Date:</span><span>${esc(p.purchaseDate)}</span>`:''}
+      ${p.purchaseDate?`<span class="pv-kv-lbl">Date:</span><span>${esc(fmtDate(p.purchaseDate)||p.purchaseDate)}</span>`:''}
     </div>
   </div>`;
 
@@ -3330,7 +3330,7 @@ document.getElementById('msave').onclick=()=>{
       const colFields=isColEdit?{
         store:document.getElementById('fColStore').value||'',
         cost:(()=>{const v=document.getElementById('fColCost').value.trim();return v!==''?parseFloat(v).toFixed(2):''})(  ),
-        purchaseDate:document.getElementById('fColDate').value||'',
+        purchaseDate:fmtDate(document.getElementById('fColDate').value)||document.getElementById('fColDate').value||'',
         playStatus:document.getElementById('fColPlayStatus').value||'Unplayed',
         steamCollection:[...cModalCol],
       }:{};
@@ -3357,7 +3357,7 @@ document.getElementById('msave').onclick=()=>{
       const _nStore=document.getElementById('fColStore').value||'';
       const _nCostRaw=document.getElementById('fColCost').value.trim();
       const _nCost=_nCostRaw!==''?parseFloat(_nCostRaw).toFixed(2):'';
-      const _nDate=document.getElementById('fColDate').value||'';
+      const _nDate=fmtDate(document.getElementById('fColDate').value)||document.getElementById('fColDate').value||'';
       const _nPlayStatus=document.getElementById('fColPlayStatus').value||'Unplayed';
       newGame.purchases=[{platform:_modalColPlat,store:_nStore,cost:_nCost,purchaseDate:_nDate,playStatus:_nPlayStatus,steamCollection:_modalColPlat==='Steam'?[...cModalCol]:[]}];
       syncLegacyFromPurchases(newGame);
