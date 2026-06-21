@@ -561,5 +561,21 @@ if('serviceWorker' in navigator){
     .catch(e=>console.warn('BtB: SW failed',e));
 }
 </script>
+<script>
+(function(){
+  var isPWA=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+  if(!isPWA)return;
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a');
+    if(!a||!a.href)return;
+    try{
+      if(new URL(a.href).origin!==location.origin){
+        e.preventDefault();
+        window.open(a.href,'_blank','noopener,noreferrer');
+      }
+    }catch(err){}
+  });
+})();
+</script>
 </body>
 </html>
