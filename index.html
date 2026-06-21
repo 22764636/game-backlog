@@ -566,14 +566,26 @@ if('serviceWorker' in navigator){
   var modes=['standalone','minimal-ui','fullscreen'];
   var isPWA=window.navigator.standalone===true||modes.some(function(m){return window.matchMedia('(display-mode:'+m+')').matches;});
   if(!isPWA)return;
+  var isAndroid=/Android/i.test(navigator.userAgent);
   document.addEventListener('click',function(e){
     var a=e.target.closest('a');
     if(!a||!a.href)return;
     try{
-      if(new URL(a.href).origin!==location.origin){
+      var url=new URL(a.href);
+      if(url.origin!==location.origin){
         e.preventDefault();
-        var w=window.open(a.href,'_blank');
-        if(w)w.opener=null;
+        if(isAndroid){
+          // Hand off to Android's intent resolver so the default browser (e.g. Firefox) opens the URL
+          // instead of Chrome keeping it in a Custom Tab.
+          window.location.href='intent://'+a.href.replace(/^https?:\/\//,'')
+            +'#Intent;scheme='+url.protocol.slice(0,-1)
+            +';action=android.intent.action.VIEW'
+            +';category=android.intent.category.BROWSABLE'
+            +';end;';
+        }else{
+          var w=window.open(a.href,'_blank');
+          if(w)w.opener=null;
+        }
       }
     }catch(err){}
   });
