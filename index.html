@@ -563,7 +563,8 @@ if('serviceWorker' in navigator){
 </script>
 <script>
 (function(){
-  var isPWA=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+  var modes=['standalone','minimal-ui','fullscreen'];
+  var isPWA=window.navigator.standalone===true||modes.some(function(m){return window.matchMedia('(display-mode:'+m+')').matches;});
   if(!isPWA)return;
   document.addEventListener('click',function(e){
     var a=e.target.closest('a');
@@ -571,7 +572,8 @@ if('serviceWorker' in navigator){
     try{
       if(new URL(a.href).origin!==location.origin){
         e.preventDefault();
-        window.open(a.href,'_blank','noopener,noreferrer');
+        var w=window.open(a.href,'_blank');
+        if(w)w.opener=null;
       }
     }catch(err){}
   });
