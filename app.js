@@ -246,6 +246,14 @@ function normalise(g){
     if(g.tags&&typeof g.tags==='string'){try{g.tags=JSON.parse(g.tags)}catch(e){g.tags=g.tags.split(',').map(s=>s.trim()).filter(Boolean)}}
     else{g.tags=[]}
   }
+  if(!Array.isArray(g.developer)){
+    if(g.developer&&typeof g.developer==='string'){try{g.developer=JSON.parse(g.developer)}catch(e){g.developer=g.developer.split(',').map(s=>s.trim()).filter(Boolean)}}
+    else{g.developer=g.developer?[String(g.developer)]:[]}
+  }
+  if(!Array.isArray(g.publisher)){
+    if(g.publisher&&typeof g.publisher==='string'){try{g.publisher=JSON.parse(g.publisher)}catch(e){g.publisher=g.publisher.split(',').map(s=>s.trim()).filter(Boolean)}}
+    else{g.publisher=g.publisher?[String(g.publisher)]:[]}
+  }
   if(g.status)g.status=String(g.status).toLowerCase().trim();
   if(!g.status)g.status='wishlist';
   // Migrate legacy tbaText
@@ -939,7 +947,11 @@ function allGenres(){
 }
 function allDevPub(field){
   const set=new Set();
-  games.forEach(g=>{if(g[field])set.add(g[field])});
+  games.forEach(g=>{
+    const v=g[field];
+    if(Array.isArray(v))v.forEach(s=>{if(s)set.add(s)});
+    else if(v&&typeof v==='string')set.add(v);
+  });
   return[...set].sort();
 }
 function allTagsSorted(){
@@ -2722,31 +2734,31 @@ document.getElementById('tagsInput').addEventListener('input',updateTagsDd);
 document.getElementById('tagsInput').addEventListener('focus',updateTagsDd);
 document.addEventListener('click',e=>{
   if(!e.target.closest('.genre-wrap')){document.getElementById('genreDd').classList.remove('on');document.getElementById('tagsDd').classList.remove('on');const bdd=document.getElementById('btcColDd');if(bdd)bdd.classList.remove('on');const mdd=document.getElementById('fColColDd');if(mdd)mdd.classList.remove('on');const idd=document.getElementById('colInlineDd');if(idd)idd.classList.remove('on');}
-  if(!e.target.closest('#fDev')&&!e.target.closest('#devDd'))document.getElementById('devDd').classList.remove('on');
-  if(!e.target.closest('#fPub')&&!e.target.closest('#pubDd'))document.getElementById('pubDd').classList.remove('on');
+  if(!e.target.closest('#devGWrap'))document.getElementById('devDd').classList.remove('on');
+  if(!e.target.closest('#pubGWrap'))document.getElementById('pubDd').classList.remove('on');
 });
 
 // ══════════════════════════════════════════
-//  DEV / PUB AUTOCOMPLETE
+//  DEV / PUB CHIP AUTOCOMPLETE
 // ══════════════════════════════════════════
-function makeAcField(inputId,ddId,field){
-  const inp=document.getElementById(inputId);
+let cDev=[],cPub=[];
+function _updateDevPubDd(ddId,field,arr,renderFn,inputId){
   const dd=document.getElementById(ddId);
-  function update(){
-    const q=inp.value.toLowerCase();
-    const opts=allDevPub(field).filter(v=>v.toLowerCase().includes(q)&&v!==inp.value);
-    if(!opts.length){dd.classList.remove('on');return}
-    dd.innerHTML=opts.map(v=>`<div class="ac-opt">${esc(v)}</div>`).join('');
-    dd.classList.add('on');
-    dd.querySelectorAll('.ac-opt').forEach(el=>{
-      el.onclick=()=>{inp.value=el.textContent;dd.classList.remove('on')};
-    });
-  }
-  inp.addEventListener('input',update);
-  inp.addEventListener('focus',update);
+  const q=(document.getElementById(inputId).value||'').toLowerCase().trim();
+  const all=allDevPub(field).filter(v=>!arr.includes(v)&&(!q||v.toLowerCase().includes(q)));
+  if(!all.length){dd.classList.remove('on');return}
+  dd.innerHTML=all.map(v=>`<div class="genre-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
+  dd.classList.add('on');
+  dd.querySelectorAll('.genre-opt').forEach(el=>{
+    el.onclick=()=>{arr.push(el.dataset.v);document.getElementById(inputId).value='';renderFn();dd.classList.remove('on')};
+  });
 }
-makeAcField('fDev','devDd','developer');
-makeAcField('fPub','pubDd','publisher');
+const renderDev=makeChip('devWrap','fDev',()=>cDev,v=>{cDev=v},()=>_updateDevPubDd('devDd','developer',cDev,renderDev,'fDev'));
+const renderPub=makeChip('pubWrap','fPub',()=>cPub,v=>{cPub=v},()=>_updateDevPubDd('pubDd','publisher',cPub,renderPub,'fPub'));
+document.getElementById('fDev').addEventListener('input',()=>_updateDevPubDd('devDd','developer',cDev,renderDev,'fDev'));
+document.getElementById('fDev').addEventListener('focus',()=>_updateDevPubDd('devDd','developer',cDev,renderDev,'fDev'));
+document.getElementById('fPub').addEventListener('input',()=>_updateDevPubDd('pubDd','publisher',cPub,renderPub,'fPub'));
+document.getElementById('fPub').addEventListener('focus',()=>_updateDevPubDd('pubDd','publisher',cPub,renderPub,'fPub'));
 
 // ══════════════════════════════════════════
 //  COVER PREVIEW
@@ -2868,13 +2880,16 @@ async function steamAutoFill(appId,{fromUrl=false}={}){
       if(added.length){cGenres.push(...added);renderGenres();filled.push('genres')}
     }
 
-    // Developer (all, comma-separated)
-    const devEl=document.getElementById('fDev');
-    if(!devEl.value.trim()&&d.developers&&d.developers.length){devEl.value=d.developers.join(', ');filled.push('developer')}
-
-    // Publisher (all, comma-separated)
-    const pubEl=document.getElementById('fPub');
-    if(!pubEl.value.trim()&&d.publishers&&d.publishers.length){pubEl.value=d.publishers.join(', ');filled.push('publisher')}
+    // Developer — push into chip array
+    if(!cDev.length&&d.developers&&d.developers.length){
+      d.developers.forEach(v=>{if(v&&!cDev.includes(v))cDev.push(v)});
+      renderDev();filled.push('developer');
+    }
+    // Publisher — push into chip array
+    if(!cPub.length&&d.publishers&&d.publishers.length){
+      d.publishers.forEach(v=>{if(v&&!cPub.includes(v))cPub.push(v)});
+      renderPub();filled.push('publisher');
+    }
 
     // Release date
     const isTba=d.release_date&&d.release_date.coming_soon;
@@ -3054,7 +3069,7 @@ function clearModal(){
   document.getElementById('appIdErr').classList.remove('on');
   document.getElementById('fAppId').classList.remove('err');
   setTbaState(false);
-  cGenres=[];cTags=[];cModalCol=[];renderGenres();renderTags();renderModalCol();
+  cGenres=[];cTags=[];cDev=[];cPub=[];cModalCol=[];renderGenres();renderTags();renderDev();renderPub();renderModalCol();
   _modalNotes=[];renderModalNoteList();
   // Reset collection fields
   const fcs=document.getElementById('fColStore');if(fcs)fcs.value='';
@@ -3128,9 +3143,34 @@ function _renderModalColPlatPills(){
 }
 function _setModalColPlat(plat){
   _modalColPlat=plat;_renderModalColPlatPills();
-  const lbl=document.getElementById('fColStoreLabel');if(lbl)lbl.textContent='— select store —';
-  const inp=document.getElementById('fColStore');if(inp)inp.value='';
   const stCol=document.getElementById('fColSteamSection');if(stCol)stCol.style.display=plat==='Steam'?'':'none';
+  const lbl=document.getElementById('fColStoreLabel');
+  const inp=document.getElementById('fColStore');
+  if(editId){
+    // Load existing purchase data for this platform when editing
+    const g=games.find(x=>x.id===editId);
+    const p=g?gamePurchases(g).find(x=>x.platform===plat):null;
+    if(p){
+      if(lbl)lbl.textContent=p.store||'— select store —';
+      if(inp)inp.value=p.store||'';
+      const fcc=document.getElementById('fColCost');if(fcc)fcc.value=p.cost!==undefined&&p.cost!==''?parseFloat(p.cost).toFixed(2):'';
+      const fcd=document.getElementById('fColDate');
+      if(fcd){const _norm=normaliseDate(p.purchaseDate||'');fcd.value=/^\d{4}-\d{2}-\d{2}$/.test(_norm)?_norm:'';}
+      const psVal=p.playStatus||'Unplayed';
+      const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value=psVal;_syncModalPsBtn(psVal);}
+      cModalCol=[...(p.steamCollection||[])];renderModalCol();
+    } else {
+      if(lbl)lbl.textContent='— select store —';
+      if(inp)inp.value='';
+      const fcc=document.getElementById('fColCost');if(fcc)fcc.value='';
+      const fcd=document.getElementById('fColDate');if(fcd){const n=new Date();fcd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;}
+      const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value='Unplayed';_syncModalPsBtn('Unplayed');}
+      cModalCol=[];renderModalCol();
+    }
+  } else {
+    if(lbl)lbl.textContent='— select store —';
+    if(inp)inp.value='';
+  }
 }
 function _syncSteamWishlistBtn(){
   const btn=document.getElementById('steamWishlistToggle');if(!btn)return;
@@ -3143,8 +3183,9 @@ function openEdit(id){
   document.getElementById('modalTitle').textContent=`Edit: ${esc(g.title)}`;
   document.getElementById('fTitle').value=g.title||'';
   document.getElementById('fAppId').value=g.steamAppId||'';
-  document.getElementById('fDev').value=g.developer||'';
-  document.getElementById('fPub').value=g.publisher||'';
+  cDev=[...(Array.isArray(g.developer)?g.developer:[])];
+  cPub=[...(Array.isArray(g.publisher)?g.publisher:[])];
+  renderDev();renderPub();
   document.getElementById('fPrice').value=g.price||'';
   _setPriority(g.priority||'medium');
   document.getElementById('fHotness').value=(g.hotness===null||g.hotness===undefined)?'':g.hotness;
@@ -3351,8 +3392,8 @@ document.getElementById('msave').onclick=()=>{
   const data={
     title,steamAppId:appId,
     genres:[...cGenres],genre:cGenres.join(', '),
-    developer:document.getElementById('fDev').value.trim(),
-    publisher:document.getElementById('fPub').value.trim(),
+    developer:[...cDev],
+    publisher:[...cPub],
     releaseDate,
     price:document.getElementById('fPrice').value.trim(),
     priority:document.getElementById('fPriority').value,
@@ -3380,12 +3421,13 @@ document.getElementById('msave').onclick=()=>{
       // Update purchases array when editing collection fields
       let updatedPurchases=gamePurchases(games[i]);
       if(isColEdit){
-        if(updatedPurchases.length){
-          updatedPurchases=[...updatedPurchases];
-          updatedPurchases[0]={...updatedPurchases[0],store:colFields.store,cost:colFields.cost,purchaseDate:colFields.purchaseDate,playStatus:colFields.playStatus};
-          if(updatedPurchases[0].platform==='Steam')updatedPurchases[0].steamCollection=[...cModalCol];
+        updatedPurchases=[...updatedPurchases];
+        const idx=updatedPurchases.findIndex(p=>p.platform===_modalColPlat);
+        if(idx>-1){
+          updatedPurchases[idx]={...updatedPurchases[idx],store:colFields.store,cost:colFields.cost,purchaseDate:colFields.purchaseDate,playStatus:colFields.playStatus};
+          if(updatedPurchases[idx].platform==='Steam')updatedPurchases[idx].steamCollection=[...cModalCol];
         } else {
-          updatedPurchases=[{platform:_modalColPlat,store:colFields.store,cost:colFields.cost,purchaseDate:colFields.purchaseDate,playStatus:colFields.playStatus,steamCollection:_modalColPlat==='Steam'?[...cModalCol]:[]}];
+          updatedPurchases.push({platform:_modalColPlat,store:colFields.store,cost:colFields.cost,purchaseDate:colFields.purchaseDate,playStatus:colFields.playStatus,steamCollection:_modalColPlat==='Steam'?[...cModalCol]:[]});
         }
       }
       const preserved={notes:[..._modalNotes],status:games[i].status,added:games[i].added,removeNote:games[i].removeNote,myRating:games[i].myRating,myReview:games[i].myReview,shortDescription:data.shortDescription||games[i].shortDescription,steamWishlist:_modalSteamWishlist,...colFields,purchases:updatedPurchases};
