@@ -2742,23 +2742,34 @@ document.addEventListener('click',e=>{
 //  DEV / PUB CHIP AUTOCOMPLETE
 // ══════════════════════════════════════════
 let cDev=[],cPub=[];
-function _updateDevPubDd(ddId,field,arr,renderFn,inputId){
-  const dd=document.getElementById(ddId);
-  const q=(document.getElementById(inputId).value||'').toLowerCase().trim();
-  const all=allDevPub(field).filter(v=>!arr.includes(v)&&(!q||v.toLowerCase().includes(q)));
+function updateDevDd(){
+  const dd=document.getElementById('devDd');
+  const q=(document.getElementById('fDev').value||'').toLowerCase().trim();
+  const all=allDevPub('developer').filter(v=>!cDev.includes(v)&&(!q||v.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
   dd.innerHTML=all.map(v=>`<div class="genre-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
   dd.classList.add('on');
   dd.querySelectorAll('.genre-opt').forEach(el=>{
-    el.onclick=()=>{arr.push(el.dataset.v);document.getElementById(inputId).value='';renderFn();dd.classList.remove('on')};
+    el.onclick=()=>{cDev.push(el.dataset.v);document.getElementById('fDev').value='';renderDev();updateDevDd();};
   });
 }
-const renderDev=makeChip('devWrap','fDev',()=>cDev,v=>{cDev=v},()=>_updateDevPubDd('devDd','developer',cDev,renderDev,'fDev'));
-const renderPub=makeChip('pubWrap','fPub',()=>cPub,v=>{cPub=v},()=>_updateDevPubDd('pubDd','publisher',cPub,renderPub,'fPub'));
-document.getElementById('fDev').addEventListener('input',()=>_updateDevPubDd('devDd','developer',cDev,renderDev,'fDev'));
-document.getElementById('fDev').addEventListener('focus',()=>_updateDevPubDd('devDd','developer',cDev,renderDev,'fDev'));
-document.getElementById('fPub').addEventListener('input',()=>_updateDevPubDd('pubDd','publisher',cPub,renderPub,'fPub'));
-document.getElementById('fPub').addEventListener('focus',()=>_updateDevPubDd('pubDd','publisher',cPub,renderPub,'fPub'));
+function updatePubDd(){
+  const dd=document.getElementById('pubDd');
+  const q=(document.getElementById('fPub').value||'').toLowerCase().trim();
+  const all=allDevPub('publisher').filter(v=>!cPub.includes(v)&&(!q||v.toLowerCase().includes(q)));
+  if(!all.length){dd.classList.remove('on');return}
+  dd.innerHTML=all.map(v=>`<div class="genre-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
+  dd.classList.add('on');
+  dd.querySelectorAll('.genre-opt').forEach(el=>{
+    el.onclick=()=>{cPub.push(el.dataset.v);document.getElementById('fPub').value='';renderPub();updatePubDd();};
+  });
+}
+const renderDev=makeChip('devWrap','fDev',()=>cDev,v=>{cDev=v},updateDevDd);
+const renderPub=makeChip('pubWrap','fPub',()=>cPub,v=>{cPub=v},updatePubDd);
+document.getElementById('fDev').addEventListener('input',updateDevDd);
+document.getElementById('fDev').addEventListener('focus',updateDevDd);
+document.getElementById('fPub').addEventListener('input',updatePubDd);
+document.getElementById('fPub').addEventListener('focus',updatePubDd);
 
 // ══════════════════════════════════════════
 //  COVER PREVIEW
