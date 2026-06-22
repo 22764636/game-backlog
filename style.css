@@ -448,9 +448,9 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   border:1px solid var(--bd);border-radius:var(--r);
   padding:0 .4rem;cursor:text;min-height:34px;transition:border-color .15s}
 .ciw:focus-within{border-color:var(--blue)}
-.cich{background:var(--s3);border:1px solid var(--bd2);color:var(--blue);border-radius:4px;
+.cich{background:#02b3fc22;border:1px solid var(--blue);color:var(--blue);border-radius:4px;
   padding:2px 6px;font-size:.66rem;font-weight:500;display:flex;align-items:center;gap:.18rem}
-.cich button{background:none;border:none;color:var(--t3);cursor:pointer;padding:0;font-size:.7rem;line-height:1}
+.cich button{background:none;border:none;color:#02b3fc99;cursor:pointer;padding:0;font-size:.7rem;line-height:1}
 .cich button:hover{color:var(--pink)}
 .cir{background:transparent;border:none;outline:none;color:var(--text);font-size:.76rem;flex:1;min-width:60px;padding:0}
 
@@ -486,9 +486,9 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .tba-btn.on{background:var(--blue);border-color:var(--blue);color:#031329}
 
 /* overlays */
-#riov,#rmov,#btcov,#rdcov,#wlovConfirm{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
+#riov,#rmov,#btcov,#rdcov,#wlovConfirm,#preorderConfirm{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
   z-index:300;align-items:center;justify-content:center;padding:1rem}
-#riov.on,#rmov.on,#btcov.on,#rdcov.on,#wlovConfirm.on{display:flex}
+#riov.on,#rmov.on,#btcov.on,#rdcov.on,#wlovConfirm.on,#preorderConfirm.on{display:flex}
 #rdcLog{max-height:300px;overflow-y:auto;font-size:.72rem;font-family:monospace;line-height:1.7;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);padding:.5rem .7rem}
 #rdcLog .rdc-ok{color:var(--green)}
 #rdcLog .rdc-skip{color:var(--t3)}

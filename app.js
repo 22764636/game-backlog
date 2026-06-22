@@ -1831,20 +1831,31 @@ function bindTilt(card){
 // ══════════════════════════════════════════
 //  MARK BOUGHT — with unreleased warning
 // ══════════════════════════════════════════
+let _preorderPendingId=null;
 function handleMarkBought(id){
   const g=games.find(x=>x.id===id);if(!g)return;
   if(g.status==='bought'){
-    // One-click unmark → back to wishlist, clear collection fields
     g.status='wishlist';
     delete g.store;delete g.cost;delete g.purchaseDate;delete g.playStatus;delete g.steamCollection;delete g.purchases;
     save(id);dispatchRender();if(openId===id)openPanel(id);return;
   }
   if(isGameUnreleased(g)){
-    const ok=confirm(`"${g.title}" hasn't been released yet.\n\nAdd to Collection? It will show as PRE-ORDER until the release date.`);
-    if(!ok)return;
+    _preorderPendingId=id;
+    const ttl=document.getElementById('preorderGameTitle');if(ttl)ttl.textContent=g.title||'';
+    _pushModalHistory();
+    document.getElementById('preorderConfirm').classList.add('on');
+    return;
   }
   openCollectionModal(id);
 }
+document.getElementById('preorderCancel').onclick=()=>history.back();
+document.getElementById('preorderConfirm').onclick=e=>{if(e.target===e.currentTarget)history.back()};
+document.getElementById('preorderConfirmBtn').onclick=()=>{
+  const id=_preorderPendingId;_preorderPendingId=null;
+  document.getElementById('preorderConfirm').classList.remove('on');
+  _popModalHistory();
+  if(id)openCollectionModal(id);
+};
 
 let btcId=null,cBtcCol=[],btcAddPlatMode=false,btcSelPlat='Steam';
 
@@ -2532,6 +2543,8 @@ window.addEventListener('popstate',function(){
   if(rmov&&rmov.classList.contains('on')){rmov.classList.remove('on');return;}
   const riov=document.getElementById('riov');
   if(riov&&riov.classList.contains('on')){riov.classList.remove('on');return;}
+  const preov=document.getElementById('preorderConfirm');
+  if(preov&&preov.classList.contains('on')){preov.classList.remove('on');_preorderPendingId=null;return;}
   const wlov=document.getElementById('wlovConfirm');
   if(wlov&&wlov.classList.contains('on')){wlov.classList.remove('on');return;}
   if(document.getElementById('panel').classList.contains('on')){
