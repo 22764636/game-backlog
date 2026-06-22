@@ -1891,6 +1891,22 @@ function openAddPlatformModal(id){
   _openBtcModal(id,true);
 }
 
+// ── SHARED POPUP ANCHOR UTILITY ──────────────────────────────────────────────
+// Positions a fixed popup below its anchor; flips above if there's more room.
+function _anchorBelow(popup, anchor, gap){
+  gap=gap||4;
+  popup.style.maxHeight='';popup.style.overflowY='';
+  const r=anchor.getBoundingClientRect();
+  const ph=popup.getBoundingClientRect().height;
+  const vh=window.innerHeight;
+  const margin=8;
+  const spaceBelow=vh-r.bottom-gap-margin;
+  const spaceAbove=r.top-gap-margin;
+  popup.style.top=(ph<=spaceBelow||spaceBelow>=spaceAbove)
+    ?(r.bottom+gap)+'px'
+    :Math.max(margin,r.top-ph-gap)+'px';
+}
+
 // ── PLAY STATUS QUICK PICKER (item 7) ────────────────────────────────────────
 // Single shared picker element — positioned near the clicked badge
 let _psPicker=null;
@@ -1930,14 +1946,10 @@ function openPsPicker(badge,gameId){
       picker.classList.remove('on');
     });
   });
-  // Position near badge, flipping upward if insufficient space below
   const rect=badge.getBoundingClientRect();
-  picker.style.top=(rect.bottom+4)+'px';
   picker.style.left=Math.min(rect.left,window.innerWidth-200)+'px';
   picker.classList.add('on');
-  const ph=picker.getBoundingClientRect().height;
-  if(rect.bottom+4+ph>window.innerHeight)
-    picker.style.top=Math.max(4,rect.top-ph-4)+'px';
+  _anchorBelow(picker,badge,4);
 }
 
 // Modal play status fancy picker
@@ -1982,14 +1994,9 @@ function _syncModalPsBtn(val){
       });
     });
     const rect=btn.getBoundingClientRect();
-    picker.style.top=(rect.bottom+4)+'px';
     picker.style.left=Math.min(rect.left,window.innerWidth-220)+'px';
     picker.classList.toggle('on');
-    if(picker.classList.contains('on')){
-      const ph=picker.getBoundingClientRect().height;
-      if(rect.bottom+4+ph>window.innerHeight)
-        picker.style.top=Math.max(4,rect.top-ph-4)+'px';
-    }
+    if(picker.classList.contains('on'))_anchorBelow(picker,btn,4);
     e.stopPropagation();
   });
 })();
@@ -2024,9 +2031,9 @@ function openStorePicker(btn,stores,currentVal,onSelect){
   const rect=btn.getBoundingClientRect();
   const pw=Math.min(260,window.innerWidth-16);
   let left=rect.left;if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;if(left<8)left=8;
-  picker.style.cssText=`top:${rect.bottom+window.scrollY+4}px;left:${left}px;width:${pw}px`;
+  picker.style.left=left+'px';picker.style.width=pw+'px';
   picker.classList.toggle('on');
-  if(picker.classList.contains('on'))setTimeout(()=>si.focus(),50);
+  if(picker.classList.contains('on')){_anchorBelow(picker,btn,4);setTimeout(()=>si.focus(),50);}
 }
 
 // btcStorePick click
@@ -2083,14 +2090,9 @@ document.addEventListener('click',e=>{
       });
     });
     const rect=btn.getBoundingClientRect();
-    picker.style.top=(rect.bottom+4)+'px';
     picker.style.left=Math.min(rect.left,window.innerWidth-220)+'px';
     picker.classList.toggle('on');
-    if(picker.classList.contains('on')){
-      const ph=picker.getBoundingClientRect().height;
-      if(rect.bottom+4+ph>window.innerHeight)
-        picker.style.top=Math.max(4,rect.top-ph-4)+'px';
-    }
+    if(picker.classList.contains('on'))_anchorBelow(picker,btn,4);
     e.stopPropagation();
   });
 })();
@@ -3395,9 +3397,9 @@ function positionFpop(btn,pop){
   let left=r.left;
   if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;
   if(left<8)left=8;
-  pop.style.top=(r.bottom+5)+'px';
   pop.style.left=left+'px';
   pop.style.width=pw+'px';
+  _anchorBelow(pop,btn,5);
 }
 
 // ══════════════════════════════════════════
