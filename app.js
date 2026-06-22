@@ -2000,6 +2000,7 @@ function _syncModalPsBtn(val){
   }
   document.addEventListener('click',e=>{
     const btn=e.target.closest('#fColPlayStatusBtn');if(!btn)return;
+    _modalPsPickerActiveBtn=btn;
     const picker=getModalPicker();
     const cur=document.getElementById('fColPlayStatus').value||'Unplayed';
     picker.innerHTML=Object.keys(PS_META).map(s=>{
@@ -2028,6 +2029,7 @@ function _syncModalPsBtn(val){
 
 // ── STORE PICKER (shared floating) ────────────────────────────────────────────
 let _storePicker=null;
+let _storePickerActiveBtn=null,_btcPsPickerActiveBtn=null,_modalPsPickerActiveBtn=null;
 function getOrCreateStorePicker(){
   if(_storePicker)return _storePicker;
   const el=document.createElement('div');el.className='store-picker';
@@ -2041,6 +2043,7 @@ function getOrCreateStorePicker(){
   return el;
 }
 function openStorePicker(btn,stores,currentVal,onSelect){
+  _storePickerActiveBtn=btn;
   const picker=getOrCreateStorePicker();
   const si=picker.querySelector('.store-picker-search');
   const lst=picker.querySelector('.store-picker-list');
@@ -2096,6 +2099,7 @@ document.addEventListener('click',e=>{
   }
   document.addEventListener('click',e=>{
     const btn=e.target.closest('#btcPlayStatusBtn');if(!btn)return;
+    _btcPsPickerActiveBtn=btn;
     const picker=getBtcPsPicker();
     const cur=document.getElementById('btcPlayStatus').value||'Unplayed';
     picker.innerHTML=Object.keys(PS_META).map(s=>{
@@ -3246,8 +3250,8 @@ function openEdit(id){
     const fcd=document.getElementById('fColDate');
     if(fcd){
       const _pd=p0.purchaseDate||g.purchaseDate||'';
-      const _pdm=_pd.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      fcd.value=_pdm?`${_pdm[3]}-${_pdm[2]}-${_pdm[1]}`:_pd;
+      const _norm=normaliseDate(_pd);
+      fcd.value=/^\d{4}-\d{2}-\d{2}$/.test(_norm)?_norm:'';
     }
     const psVal=p0.playStatus||g.playStatus||'Unplayed';
     const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value=psVal;_syncModalPsBtn(psVal);}
@@ -4343,12 +4347,23 @@ function _closeAllFloating(){
   document.querySelectorAll('.store-picker.on').forEach(el=>el.classList.remove('on'));
   document.querySelectorAll('.fpop.open').forEach(el=>el.classList.remove('open'));
 }
+function _reanchorModalPickers(){
+  if(_storePicker&&_storePicker.classList.contains('on')&&_storePickerActiveBtn)_anchorBelow(_storePicker,_storePickerActiveBtn,4);
+  const bp=document.getElementById('btcPsPicker');
+  if(bp&&bp.classList.contains('on')&&_btcPsPickerActiveBtn)_anchorBelow(bp,_btcPsPickerActiveBtn,4);
+  const mp=document.getElementById('modalPsPicker');
+  if(mp&&mp.classList.contains('on')&&_modalPsPickerActiveBtn)_anchorBelow(mp,_modalPsPickerActiveBtn,4);
+}
+function _onModalScroll(){
+  document.querySelectorAll('.fpop.open').forEach(el=>el.classList.remove('open'));
+  _reanchorModalPickers();
+}
 (function(){
   ['#content','.pb2'].forEach(sel=>{
     const el=document.querySelector(sel);
     if(el)el.addEventListener('scroll',_closeAllFloating,{passive:true});
   });
-  document.querySelectorAll('.modal').forEach(el=>el.addEventListener('scroll',_closeAllFloating,{passive:true}));
+  document.querySelectorAll('.modal').forEach(el=>el.addEventListener('scroll',_onModalScroll,{passive:true}));
 })();
 
 // ══════════════════════════════════════════
