@@ -3306,7 +3306,7 @@ makeFilterPopover({
   getLogic:()=>fGenreLogic,setLogic:l=>{fGenreLogic=l},
   getOptions:()=>{
     const freq={};
-    games.forEach(g=>{const gs=g.genres&&g.genres.length?g.genres:(g.genre?[g.genre]:[]);gs.forEach(x=>{if(x)freq[x]=(freq[x]||0)+1})});
+    games.filter(g=>g.status!=='bought').forEach(g=>{(g.genres||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1})});
     return Object.keys(freq).sort().map(v=>({value:v,count:freq[v]}));
   },
 });
@@ -3317,7 +3317,7 @@ makeFilterPopover({
   getLogic:()=>fTagLogic,setLogic:l=>{fTagLogic=l},
   getOptions:()=>{
     const freq={};
-    games.forEach(g=>(g.tags||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1}));
+    games.filter(g=>g.status!=='bought').forEach(g=>(g.tags||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1}));
     return Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b)).map(v=>({value:v,count:freq[v]}));
   },
 });
