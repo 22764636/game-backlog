@@ -314,13 +314,11 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   .gg.lv .cq{width:auto}
   .qb.qr{display:none}
 }
-/* Mobile grid view: full-width tap bar at card bottom */
-@media(max-width:640px){
-  .gg:not(.lv) .cq{gap:0;margin:.25rem -.65rem -.55rem;width:calc(100% + 1.3rem);border-top:1px solid var(--bd)}
-  .gg:not(.lv) .qb{flex:1;height:40px;border-radius:0;border:none;border-left:1px solid var(--bd);font-size:.82rem}
-  .gg:not(.lv) .qb:first-child{border-left:none}
-  .gg:not(.lv) .qb img{width:16px;height:16px}
-}
+/* Grid view: full-width tap bar at card bottom (all screen sizes) */
+.gg:not(.lv) .cq{gap:0;margin:.25rem -.65rem -.55rem;width:calc(100% + 1.3rem);border-top:1px solid var(--bd)}
+.gg:not(.lv) .qb{flex:1;height:40px;border-radius:0;border:none;border-left:1px solid var(--bd);font-size:.82rem}
+.gg:not(.lv) .qb:first-child{border-left:none}
+.gg:not(.lv) .qb img{width:16px;height:16px}
 
 /* empty */
 .empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--t3)}
