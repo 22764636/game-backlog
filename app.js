@@ -4175,6 +4175,21 @@ function _openSharePicker(url){
 }
 
 // ══════════════════════════════════════════
+//  CLOSE FLOATING PICKERS ON SCROLL
+// ══════════════════════════════════════════
+function _closeAllFloating(){
+  document.querySelectorAll('.ps-picker.on').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.store-picker.on').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.fpop.open').forEach(el=>el.classList.remove('open'));
+}
+(function(){
+  ['#content','.modal','.pb2'].forEach(sel=>{
+    const el=document.querySelector(sel);
+    if(el)el.addEventListener('scroll',_closeAllFloating,{passive:true});
+  });
+})();
+
+// ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
 restoreFromHash();
