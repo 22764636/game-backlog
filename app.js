@@ -710,7 +710,7 @@ async function initData(){
 // ══════════════════════════════════════════
 let af='all',vm='grid',openId=null,editId=null,rmId=null,riId=null;
 let appMode='wishlist'; // 'wishlist' | 'collection'
-let cfPlayStatus=new Set(),cfSteamCol=new Set();
+let cfPlayStatus=new Set(),cfSteamCol=new Set(),cfSteamColLogic='or';
 let hrMinVal=0,hrMaxVal=100;
 
 let cGenres=[],cTags=[],cStars=0;
@@ -843,12 +843,13 @@ function collectionFiltered(){
     if(cfPlayStatus.size>0&&!cfPlayStatus.has(g.playStatus||'Unplayed'))return false;
     if(cfSteamCol.size>0){
       const gc2=g.steamCollection||[];
-      if(![...cfSteamCol].some(c=>gc2.includes(c)))return false;
+      const colMatch=cfSteamColLogic==='and'?[...cfSteamCol].every(c=>gc2.includes(c)):[...cfSteamCol].some(c=>gc2.includes(c));
+      if(!colMatch)return false;
     }
-
     if(fGenres.size>0){
       const gg=g.genres&&g.genres.length?g.genres:(g.genre?[g.genre]:[]);
-      if(![...fGenres].some(x=>gg.includes(x)))return false;
+      const genreMatch=fGenreLogic==='and'?[...fGenres].every(x=>gg.includes(x)):[...fGenres].some(x=>gg.includes(x));
+      if(!genreMatch)return false;
     }
     return true;
   });
@@ -1461,9 +1462,7 @@ function renderCollection(){
     sorted2.forEach(g=>{
       if(g.type==='dlc'&&findParentGame(g))return; // skip — will render under parent
       const keys=(g.steamCollection&&g.steamCollection.length)?g.steamCollection:['Uncategorised'];
-      const k=keys[0];
-      if(!groups[k])groups[k]=[];
-      groups[k].push(g);
+      keys.forEach(k=>{if(!groups[k])groups[k]=[];groups[k].push(g)});
     });
     Object.keys(groups).sort().forEach(k=>{
       const html=makeSection(k,groups[k],'gg');
@@ -2451,12 +2450,8 @@ async function steamAutoFill(appId,{fromUrl=false}={}){
     }
 
     // Type — game / dlc (auto from Steam)
-    const typeEl=document.getElementById('fType');
     if(d.type&&(d.type==='game'||d.type==='dlc')){
-      typeEl.value=d.type;
-      // Show/hide parentAppId field
-      const parRow=document.getElementById('parentAppIdRow');
-      if(parRow)parRow.style.display=d.type==='dlc'?'':'none';
+      setGameType(d.type);
       // Auto-populate parentAppId from fullgame.appid
       if(d.type==='dlc'&&d.fullgame&&d.fullgame.appid){
         const parAppId=String(d.fullgame.appid);
@@ -2512,6 +2507,17 @@ function setTbaState(on){
 document.getElementById('tbaBtn').addEventListener('click',()=>setTbaState(true));
 document.getElementById('tbaBtnOff').addEventListener('click',()=>setTbaState(false));
 
+function setGameType(v){
+  document.getElementById('fType').value=v;
+  document.getElementById('fTypeGame').classList.toggle('on',v!=='dlc');
+  document.getElementById('fTypeDlc').classList.toggle('on',v==='dlc');
+  const parRow=document.getElementById('parentAppIdRow');
+  if(parRow)parRow.style.display=v==='dlc'?'':'none';
+  if(v!=='dlc'){const ps=document.getElementById('fParentSearch');const ph=document.getElementById('fParentAppId');if(ps)ps.value='';if(ph)ph.value='';}
+}
+document.getElementById('fTypeGame').onclick=()=>setGameType('game');
+document.getElementById('fTypeDlc').onclick=()=>setGameType('dlc');
+
 // ══════════════════════════════════════════
 //  STEAM STORE LINK PARSER
 // ══════════════════════════════════════════
@@ -2543,11 +2549,6 @@ function updatePrioLbl(){
 }
 document.getElementById('fPriority').addEventListener('change',updatePrioLbl);
 
-document.getElementById('fType').addEventListener('change',function(){
-  const isDlc=this.value==='dlc';
-  document.getElementById('parentAppIdRow').style.display=isDlc?'':'none';
-  if(!isDlc){document.getElementById('fParentSearch').value='';document.getElementById('fParentAppId').value='';}
-});
 
 // parentAppId autocomplete
 (function(){
@@ -2590,8 +2591,7 @@ function clearModal(){
   if(nd){const n=new Date();nd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
   document.getElementById('fHotness').value='';
   document.getElementById('fPriority').value='medium';
-  document.getElementById('fType').value='game';
-  const _pr=document.getElementById('parentAppIdRow');if(_pr)_pr.style.display='none';
+  setGameType('game');
   const _fsd3=document.getElementById('fShortDesc');if(_fsd3)_fsd3.value='';
   const _ps=document.getElementById('fParentSearch');if(_ps)_ps.value='';
   const _ph=document.getElementById('fParentAppId');if(_ph)_ph.value='';
@@ -2644,22 +2644,14 @@ function openEdit(id){
   document.getElementById('fHotness').value=(g.hotness===null||g.hotness===undefined)?'':g.hotness;
   document.getElementById('fStore').value=g.storeLink||'';
   const _fsdEl=document.getElementById('fShortDesc');if(_fsdEl)_fsdEl.value=g.shortDescription||'';
-  document.getElementById('fType').value=g.type||'game';
-  // Show/populate parentAppId field for DLCs
-  const parRow=document.getElementById('parentAppIdRow');
-  if(parRow){
-    const isDlc=(g.type||'game')==='dlc';
-    parRow.style.display=isDlc?'':'none';
-    const parSearch=document.getElementById('fParentSearch');
+  setGameType(g.type||'game');
+  // Populate parentAppId for DLCs (setGameType already shows/hides the row)
+  if((g.type||'game')==='dlc'&&g.parentAppId){
     const parHidden=document.getElementById('fParentAppId');
-    if(isDlc&&g.parentAppId){
-      parHidden.value=g.parentAppId;
-      const par=games.find(x=>x.steamAppId&&String(x.steamAppId)===String(g.parentAppId));
-      if(parSearch)parSearch.value=par?par.title:g.parentAppId;
-    } else {
-      if(parSearch)parSearch.value='';
-      if(parHidden)parHidden.value='';
-    }
+    const parSearch=document.getElementById('fParentSearch');
+    if(parHidden)parHidden.value=g.parentAppId;
+    const par=games.find(x=>x.steamAppId&&String(x.steamAppId)===String(g.parentAppId));
+    if(parSearch)parSearch.value=par?par.title:g.parentAppId;
   }
   if(g.tbaText){setTbaState(true);document.getElementById('fTbaText').value=g.tbaText}
   else{document.getElementById('fDate').value=g.releaseDate||''}
@@ -2996,107 +2988,41 @@ document.getElementById('cListBtn').onclick=()=>{
 // Collection sort
 document.getElementById('cSortSel').onchange=renderCollection;
 
-// Play status filter
-(function(){
-  const btn=document.getElementById('cPlayFilterBtn');
-  const pop=document.getElementById('cPlayFilterPop');
-  const list=document.getElementById('cPlayFilterList');
-  const badge=document.getElementById('cPlayFilterBadge');
-  const clear=document.getElementById('cPlayFilterClear');
-  const statuses=['Unplayed','In Progress','Completed','Superseded','Unfinishable',
-    'Played on Different Platform','Will Never Complete','Will Never Play'];
-  function renderPop(){
-    list.innerHTML=statuses.map(s=>`
-      <label class="fpop-opt">
-        <input type="checkbox" value="${esc(s)}"${cfPlayStatus.has(s)?' checked':''}>
-        <span class="fpop-opt-label">${esc(s)}</span>
-      </label>`).join('');
-    list.querySelectorAll('input').forEach(cb=>{
-      cb.onchange=()=>{
-        if(cb.checked)cfPlayStatus.add(cb.value);else cfPlayStatus.delete(cb.value);
-        badge.style.display=cfPlayStatus.size?'':'none';
-        badge.textContent=cfPlayStatus.size;
-        btn.classList.toggle('active',cfPlayStatus.size>0);
-        renderCollection();
-      };
-    });
-  }
-  btn.onclick=e=>{e.stopPropagation();document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});renderPop();const op=!pop.classList.contains('open');pop.classList.toggle('open',op);if(op)positionFpop(btn,pop);};
-  clear.onclick=()=>{cfPlayStatus.clear();badge.style.display='none';btn.classList.remove('active');renderPop();renderCollection();};
-})();
-
-// Steam Collection filter
-(function(){
-  const btn=document.getElementById('cColFilterBtn');
-  const pop=document.getElementById('cColFilterPop');
-  const listEl=document.getElementById('cColFilterList');
-  const badge=document.getElementById('cColFilterBadge');
-  const clear=document.getElementById('cColFilterClear');
-  function getUsedCols(){
-    const s=new Set();
-    games.filter(g=>g.status==='bought').forEach(g=>{(g.steamCollection||[]).forEach(c=>s.add(c))});
-    return [...s].sort();
-  }
-  function renderPop(){
-    const cols=getUsedCols();
-    listEl.innerHTML=cols.map(c=>`
-      <label class="fpop-opt">
-        <input type="checkbox" value="${esc(c)}"${cfSteamCol.has(c)?' checked':''}>
-        <span class="fpop-opt-label">${esc(colLabel(c))}</span>
-      </label>`).join('');
-    listEl.querySelectorAll('input').forEach(cb=>{
-      cb.onchange=()=>{
-        if(cb.checked)cfSteamCol.add(cb.value);else cfSteamCol.delete(cb.value);
-        badge.style.display=cfSteamCol.size?'':'none';
-        badge.textContent=cfSteamCol.size;
-        btn.classList.toggle('active',cfSteamCol.size>0);
-        renderCollection();
-      };
-    });
-  }
-  btn.onclick=e=>{e.stopPropagation();document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});renderPop();const op2=!pop.classList.contains('open');pop.classList.toggle('open',op2);if(op2)positionFpop(btn,pop);};
-  clear.onclick=()=>{cfSteamCol.clear();badge.style.display='none';btn.classList.remove('active');renderPop();renderCollection();};
-})();
-
-// Collection genre filter reuses fGenres from wishlist but triggers renderCollection
-(function(){
-  const btn=document.getElementById('cGenreFilterBtn');
-  const pop=document.getElementById('cGenreFilterPop');
-  const listEl=document.getElementById('cGenreFilterList');
-  const badge=document.getElementById('cGenreFilterBadge');
-  const clear=document.getElementById('cGenreFilterClear');
-  function getUsedGenres(){
-    const s=new Set();
-    games.filter(g=>g.status==='bought').forEach(g=>{(g.genres||[]).forEach(x=>{if(x)s.add(x)})});
-    return [...s].sort();
-  }
-  function renderPop(){
-    const genres=getUsedGenres();
-    listEl.innerHTML=genres.map(g2=>`
-      <label class="fpop-opt">
-        <input type="checkbox" value="${esc(g2)}"${fGenres.has(g2)?' checked':''}>
-        <span class="fpop-opt-label">${esc(g2)}</span>
-      </label>`).join('');
-    listEl.querySelectorAll('input').forEach(cb=>{
-      cb.onchange=()=>{
-        if(cb.checked)fGenres.add(cb.value);else fGenres.delete(cb.value);
-        badge.style.display=fGenres.size?'':'none';
-        badge.textContent=fGenres.size;
-        btn.classList.toggle('active',fGenres.size>0);
-        renderCollection();
-      };
-    });
-  }
-  btn.onclick=e=>{e.stopPropagation();document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});renderPop();const op3=!pop.classList.contains('open');pop.classList.toggle('open',op3);if(op3)positionFpop(btn,pop);};
-  clear.onclick=()=>{fGenres.clear();badge.style.display='none';btn.classList.remove('active');renderPop();renderCollection();};
-})();
-
-// Close collection filter popovers on outside click
-document.addEventListener('click',e=>{
-  ['cPlayFilterPop','cColFilterPop','cGenreFilterPop'].forEach(id=>{
-    const p=document.getElementById(id);
-    if(p&&!e.target.closest(`#${id}`)&&!e.target.closest(`[id="${id.replace('Pop','Btn')}"]`))p.classList.remove('open');
-  });
+makeFilterPopover({
+  btnId:'cPlayFilterBtn',popId:'cPlayFilterPop',badgeId:'cPlayFilterBadge',
+  clearId:'cPlayFilterClear',listId:'cPlayFilterList',showTip:false,
+  getSelected:()=>cfPlayStatus,setSelected:s=>{cfPlayStatus=s},
+  getOptions:()=>{
+    const order=['Unplayed','In Progress','Completed','Superseded','Unfinishable','Played on Different Platform','Will Never Complete','Will Never Play'];
+    const freq={};order.forEach(s=>{freq[s]=0});
+    games.filter(g=>g.status==='bought').forEach(g=>{const s=g.playStatus||'Unplayed';if(freq[s]!==undefined)freq[s]++;else freq[s]=1;});
+    return order.filter(s=>freq[s]>0).map(v=>({value:v,count:freq[v]}));
+  },
+  renderFn:renderCollection,
+});
+makeFilterPopover({
+  btnId:'cColFilterBtn',popId:'cColFilterPop',badgeId:'cColFilterBadge',
+  clearId:'cColFilterClear',listId:'cColFilterList',logicToggleId:'cColLogicToggle',showTip:false,
+  getSelected:()=>cfSteamCol,setSelected:s=>{cfSteamCol=s},
+  getLogic:()=>cfSteamColLogic,setLogic:l=>{cfSteamColLogic=l},
+  getOptions:()=>{
+    const freq={};
+    games.filter(g=>g.status==='bought').forEach(g=>{(g.steamCollection||[]).forEach(c=>{if(c)freq[c]=(freq[c]||0)+1})});
+    return Object.keys(freq).sort().map(v=>({value:colLabel(v),count:freq[v]}));
+  },
+  renderFn:renderCollection,
+});
+makeFilterPopover({
+  btnId:'cGenreFilterBtn',popId:'cGenreFilterPop',badgeId:'cGenreFilterBadge',
+  clearId:'cGenreFilterClear',listId:'cGenreFilterList',logicToggleId:'cGenreColLogicToggle',
+  getSelected:()=>fGenres,setSelected:s=>{fGenres=s},
+  getLogic:()=>fGenreLogic,setLogic:l=>{fGenreLogic=l},
+  getOptions:()=>{
+    const freq={};
+    games.filter(g=>g.status==='bought').forEach(g=>{(g.genres||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1})});
+    return Object.keys(freq).sort().map(v=>({value:v,count:freq[v]}));
+  },
+  renderFn:renderCollection,
 });
 
 // Search also triggers collection render when in collection mode
@@ -3325,13 +3251,14 @@ document.getElementById('impBtn').onclick=()=>{
 // ══════════════════════════════════════════
 //  GENRE & TAG FILTER POPOVERS
 // ══════════════════════════════════════════
-function makeFilterPopover({btnId,popId,badgeId,clearId,listId,logicToggleId,getSelected,setSelected,getLogic,setLogic,getOptions}){
+function makeFilterPopover({btnId,popId,badgeId,clearId,listId,logicToggleId,getSelected,setSelected,getLogic,setLogic,getOptions,renderFn,showTip=true}){
   const btn=document.getElementById(btnId);
   const pop=document.getElementById(popId);
   const badge=document.getElementById(badgeId);
   const clearBtn=document.getElementById(clearId);
   const list=document.getElementById(listId);
-  const logicWrap=document.getElementById(logicToggleId);
+  const logicWrap=logicToggleId?document.getElementById(logicToggleId):null;
+  const doRender=renderFn||renderAll;
   function updateBtn(){
     const sel=getSelected();const active=sel.size>0;
     btn.classList.toggle('active',active);
@@ -3340,23 +3267,29 @@ function makeFilterPopover({btnId,popId,badgeId,clearId,listId,logicToggleId,get
   function renderList(){
     const opts=getOptions();const sel=getSelected();
     if(!opts.length){list.innerHTML=`<div class="fpop-empty">No options available</div>`;return}
-    list.innerHTML=opts.map(({value,count})=>`
+    list.innerHTML=opts.map(({value,count,color})=>`
       <label class="fpop-opt">
         <input type="checkbox" value="${esc(value)}"${sel.has(value)?' checked':''}>
-        <span class="fpop-opt-label">${esc(value)}${metaTipHTML(value)}</span>
-        <span class="fpop-opt-count">${count}</span>
+        <span class="fpop-opt-label">${color?`<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${color};flex-shrink:0;margin-right:.3rem"></span>`:''}${esc(value)}${showTip?metaTipHTML(value):''}</span>
+        ${count!=null?`<span class="fpop-opt-count">${count}</span>`:''}
       </label>`).join('');
     list.querySelectorAll('input[type=checkbox]').forEach(cb=>{
-      cb.onchange=()=>{const s=getSelected();cb.checked?s.add(cb.value):s.delete(cb.value);setSelected(s);updateBtn();renderAll()};
+      cb.onchange=()=>{const s=getSelected();cb.checked?s.add(cb.value):s.delete(cb.value);setSelected(s);updateBtn();doRender()};
+    });
+    if(logicWrap&&getLogic){
+      const cur=getLogic();
+      logicWrap.querySelectorAll('.fpop-logic-btn').forEach(x=>x.classList.toggle('on',x.dataset.l===cur));
+    }
+  }
+  if(logicWrap){
+    logicWrap.addEventListener('click',e=>{
+      const b=e.target.closest('.fpop-logic-btn');if(!b||!setLogic)return;
+      setLogic(b.dataset.l);
+      logicWrap.querySelectorAll('.fpop-logic-btn').forEach(x=>x.classList.toggle('on',x.dataset.l===b.dataset.l));
+      if(getSelected().size>0)doRender();
     });
   }
-  logicWrap.addEventListener('click',e=>{
-    const b=e.target.closest('.fpop-logic-btn');if(!b)return;
-    setLogic(b.dataset.l);
-    logicWrap.querySelectorAll('.fpop-logic-btn').forEach(x=>x.classList.toggle('on',x.dataset.l===b.dataset.l));
-    if(getSelected().size>0)renderAll();
-  });
-  clearBtn.onclick=()=>{setSelected(new Set());updateBtn();renderList();renderAll()};
+  clearBtn.onclick=()=>{setSelected(new Set());updateBtn();renderList();doRender()};
   btn.addEventListener('click',e=>{
     e.stopPropagation();
     document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
@@ -3403,6 +3336,8 @@ makeFilterPopover({
     badge.textContent=fPrios.size;badge.style.display=active?'':'none';
   }
   function renderList(){
+    const freq={high:0,medium:0,low:0};
+    games.filter(g=>g.status!=='bought').forEach(g=>{const p=g.priority||'medium';freq[p]=(freq[p]||0)+1;});
     list.innerHTML=PRIOS.map(({value,label})=>`
       <label class="fpop-opt">
         <input type="checkbox" value="${value}"${fPrios.has(value)?' checked':''}>
@@ -3410,6 +3345,7 @@ makeFilterPopover({
           <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${prioColor(value)};flex-shrink:0"></span>
           ${label}
         </span>
+        <span class="fpop-opt-count">${freq[value]||0}</span>
       </label>`).join('');
     list.querySelectorAll('input[type=checkbox]').forEach(cb=>{
       cb.onchange=()=>{cb.checked?fPrios.add(cb.value):fPrios.delete(cb.value);updateBtn();renderAll()};
