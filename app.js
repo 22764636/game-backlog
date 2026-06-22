@@ -763,19 +763,22 @@ async function initData(){
     dispatchRender();
     return;
   }
-  setSyncStatus('syncing','Loading…');
+  // Cache-first: show local data immediately, sync in background
+  const cached=loadOffline();
+  if(cached.length){
+    games=cached;
+    dispatchRender();
+  }
+  setSyncStatus('syncing','Syncing…');
   try{
     const data=await loadFromSheet();
     _migrationHappened=false;
     games=data.map(g=>normalise(g));
-    // Also cache locally for resilience
     localStorage.setItem(KEY,JSON.stringify(games));
     setSyncStatus('ok','Loaded');
     dispatchRender();
-    // Fetch metadata and platform stores in background (non-blocking)
     fetchMeta();
     loadPlatformStores();
-    // If any games had empty purchases column and were migrated from flat fields, persist them
     if(_migrationHappened){
       _migrationHappened=false;
       postToSheet({action:'setAll',data:JSON.stringify(games.map(toSheetRecord))})
@@ -784,16 +787,15 @@ async function initData(){
     }
   }catch(err){
     console.warn('BTB: Could not load from Sheet, falling back to localStorage.',err);
-    games=loadOffline();
+    if(!cached.length){games=loadOffline();dispatchRender();}
     setSyncStatus('err','Sheet unavailable — using local cache');
-    dispatchRender();
   }
 }
 
 // ══════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════
-let af='all',vm='grid',openId=null,editId=null,rmId=null,riId=null;
+let af='all',vm='grid',openId=null,editId=null,rmId=null,riId=null,wlovId=null;
 let appMode='wishlist'; // 'wishlist' | 'collection'
 let cfPlayStatus=new Set(),cfSteamCol=new Set(),cfSteamColLogic='or';
 let hrMinVal=0,hrMaxVal=100;
@@ -1346,7 +1348,7 @@ function colCardHTML(g){
         <div class="cq">
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
           <a href="${sdbUrl}" class="qb qb-sdb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
-          <button class="qb qb-wl ba" title="Move back to Wishlist" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">${IC.backWl}</button>
+          <button class="qb qb-wl ba" title="Move back to Wishlist" onclick="event.stopPropagation();startMoveToWishlist('${gid_s}')">${IC.backWl}</button>
           <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">${IC.edit}</button>
           <button class="qb qb-ap" title="Add Platform" onclick="event.stopPropagation();openAddPlatformModal('${gid_s}')">${IC.plus}</button>
         </div>
@@ -1373,6 +1375,8 @@ function colRowHTML(g){
     <span class="col-row-title">${esc(g.title)}</span>
     <div class="col-row-tags">${tags}</div>
     ${psBadgeHTML(ps)}
+    <div class="swipe-hint-r">${IC.hintPlus}</div>
+    <div class="swipe-hint-l">${IC.hintBack}</div>
   </div>`;
 }
 
@@ -1900,6 +1904,7 @@ function _openBtcModal(id,addPlatMode){
   document.getElementById('btcStore').value='';
   _btcSelectPlat(btcSelPlat);
   cBtcCol=[];renderBtcCol();
+  _pushModalHistory();
   document.getElementById('btcov').classList.add('on');
 }
 function openCollectionModal(id){_openBtcModal(id,false)}
@@ -2133,14 +2138,15 @@ function bindPsPickerCards(container,start){
   });
 }
 
-function closeCollectionModal(){
+function _rawCloseCollectionModal(){
   document.getElementById('btcov').classList.remove('on');
   const bdd=document.getElementById('btcColDd');if(bdd)bdd.classList.remove('on');
   btcId=null;cBtcCol=[];btcAddPlatMode=false;
 }
+function closeCollectionModal(){_rawCloseCollectionModal();_popModalHistory();}
 
-document.getElementById('btcCancel').onclick=closeCollectionModal;
-document.getElementById('btcov').onclick=e=>{if(e.target===e.currentTarget)closeCollectionModal()};
+document.getElementById('btcCancel').onclick=()=>history.back();
+document.getElementById('btcov').onclick=e=>{if(e.target===e.currentTarget)history.back()};
 
 document.getElementById('btcConfirm').onclick=()=>{
   const g=games.find(x=>x.id===btcId);if(!g)return;
@@ -2543,8 +2549,50 @@ function closePanel(){
   setTimeout(()=>pov.classList.remove('on'),290);
   if(history.state&&history.state.panelOpen){history.back();}
 }
-// Android back-swipe / browser back closes panel instead of exiting
+// ── MODAL HISTORY HELPERS ─────────────────
+let _popSuppressed=false;
+function _pushModalHistory(){history.pushState({modal:true},'','');}
+function _popModalHistory(){
+  if(history.state&&history.state.modal){
+    _popSuppressed=true;history.back();setTimeout(()=>{_popSuppressed=false;},200);
+  }
+}
+
+// ── MOVE TO WISHLIST CONFIRM ───────────────
+function startMoveToWishlist(id){
+  wlovId=id;
+  const g=games.find(x=>x.id===id);if(!g)return;
+  const ttl=document.getElementById('wlovGameTitle');if(ttl)ttl.textContent=g.title||'';
+  _pushModalHistory();
+  document.getElementById('wlovConfirm').classList.add('on');
+}
+document.getElementById('wlovCancel').onclick=()=>history.back();
+document.getElementById('wlovConfirm').onclick=e=>{if(e.target===e.currentTarget)history.back()};
+document.getElementById('wlovConfirmBtn').onclick=()=>{
+  const g=games.find(x=>x.id===wlovId);
+  if(g){
+    g.status='wishlist';
+    delete g.store;delete g.cost;delete g.purchaseDate;delete g.playStatus;delete g.steamCollection;delete g.purchases;
+    save(wlovId);
+  }
+  document.getElementById('wlovConfirm').classList.remove('on');
+  _popModalHistory();
+  dispatchRender();
+};
+
+// Android back-swipe / browser back closes overlay modals instead of exiting
 window.addEventListener('popstate',function(){
+  if(_popSuppressed)return;
+  const mov=document.getElementById('mov');
+  if(mov&&mov.classList.contains('on')){_rawCloseModal();return;}
+  const btcov=document.getElementById('btcov');
+  if(btcov&&btcov.classList.contains('on')){_rawCloseCollectionModal();return;}
+  const rmov=document.getElementById('rmov');
+  if(rmov&&rmov.classList.contains('on')){rmov.classList.remove('on');return;}
+  const riov=document.getElementById('riov');
+  if(riov&&riov.classList.contains('on')){riov.classList.remove('on');return;}
+  const wlov=document.getElementById('wlovConfirm');
+  if(wlov&&wlov.classList.contains('on')){wlov.classList.remove('on');return;}
   if(document.getElementById('panel').classList.contains('on')){
     const pov=document.getElementById('pov');
     document.getElementById('panel').classList.remove('on');
@@ -2611,19 +2659,19 @@ document.getElementById('pov').onclick=closePanel;
 // ══════════════════════════════════════════
 //  REMOVE / REINSTATE
 // ══════════════════════════════════════════
-function startRemove(id){rmId=id;document.getElementById('rmNote').value='';document.getElementById('rmov').classList.add('on')}
-document.getElementById('rmCancel').onclick=()=>document.getElementById('rmov').classList.remove('on');
+function startRemove(id){rmId=id;document.getElementById('rmNote').value='';_pushModalHistory();document.getElementById('rmov').classList.add('on')}
+document.getElementById('rmCancel').onclick=()=>history.back();
 document.getElementById('rmConfirm').onclick=()=>{
   const g=games.find(x=>x.id===rmId);
   if(g){g.status='removed';g.removeNote=document.getElementById('rmNote').value.trim();save()}
-  document.getElementById('rmov').classList.remove('on');closePanel();renderAll();
+  document.getElementById('rmov').classList.remove('on');_popModalHistory();closePanel();renderAll();
 };
-function startReinstate(id){riId=id;document.getElementById('riov').classList.add('on')}
-document.getElementById('riCancel').onclick=()=>document.getElementById('riov').classList.remove('on');
+function startReinstate(id){riId=id;_pushModalHistory();document.getElementById('riov').classList.add('on')}
+document.getElementById('riCancel').onclick=()=>history.back();
 function doReinstate(status){
   const g=games.find(x=>x.id===riId);
   if(g){g.status=status;delete g.removeNote;save()}
-  document.getElementById('riov').classList.remove('on');closePanel();renderAll();
+  document.getElementById('riov').classList.remove('on');_popModalHistory();closePanel();renderAll();
 }
 document.getElementById('riWl').onclick=()=>doReinstate('wishlist');
 document.getElementById('riBt').onclick=()=>doReinstate('bought');
@@ -3092,6 +3140,7 @@ function openAddWishlist(){
   const swRow=document.getElementById('steamWishlistRow');if(swRow)swRow.style.display='none';
   _modalAddType='wishlist';
   const mnSec=document.getElementById('modalNotesSection');if(mnSec)mnSec.style.display='';
+  _pushModalHistory();
   document.getElementById('mov').classList.add('on');
 }
 function openAddCollection(){
@@ -3109,6 +3158,7 @@ function openAddCollection(){
   const swRow=document.getElementById('steamWishlistRow');if(swRow)swRow.style.display='none';
   _modalAddType='collection';
   const mnSec=document.getElementById('modalNotesSection');if(mnSec)mnSec.style.display='';
+  _pushModalHistory();
   document.getElementById('mov').classList.add('on');
 }
 function _renderModalColPlatPills(){
@@ -3192,7 +3242,7 @@ function openEdit(id){
     const storeVal=p0.store||g.store||'';
     const fcs=document.getElementById('fColStore');if(fcs)fcs.value=storeVal;
     const fsLabel=document.getElementById('fColStoreLabel');if(fsLabel)fsLabel.textContent=storeVal||'— select store —';
-    const fcc=document.getElementById('fColCost');if(fcc)fcc.value=p0.cost!==undefined?p0.cost:(g.cost||'');
+    const fcc=document.getElementById('fColCost');if(fcc)fcc.value=p0.cost!==undefined?parseFloat(p0.cost).toFixed(2):(g.cost?parseFloat(g.cost).toFixed(2):'');
     const fcd=document.getElementById('fColDate');
     if(fcd){
       const _pd=p0.purchaseDate||g.purchaseDate||'';
@@ -3208,6 +3258,7 @@ function openEdit(id){
   const mnList=document.getElementById('fNoteList');
   if(mnSec)mnSec.style.display='';
   renderModalNotes(g);
+  _pushModalHistory();
   document.getElementById('mov').classList.add('on');
 }
 function renderModalNotes(g){
@@ -3260,7 +3311,8 @@ function renderModalNotes(g){
     };
   });
 }
-function closeModal(){document.getElementById('mov').classList.remove('on');steamStatus('');['genreDd','tagsDd','devDd','pubDd'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on')});window._pendingShortDesc=null;}
+function _rawCloseModal(){document.getElementById('mov').classList.remove('on');steamStatus('');['genreDd','tagsDd','devDd','pubDd'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on')});window._pendingShortDesc=null;}
+function closeModal(){_rawCloseModal();_popModalHistory();}
 // Modal notes: full note list with add/edit/delete (works in both add and edit mode)
 let _modalNotes=[]; // in-memory note list for the open modal
 function renderModalNoteList(){
@@ -3329,8 +3381,8 @@ document.getElementById('steamWishlistToggle').onclick=()=>{_modalSteamWishlist=
 document.addEventListener('click',e=>{
   if(_addPickOpen&&!e.target.closest('#addPickPop')&&!e.target.closest('#addBtn')){_closeAddPick();}
 });
-document.getElementById('mcancel').onclick=closeModal;
-document.getElementById('mov').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
+document.getElementById('mcancel').onclick=()=>history.back();
+document.getElementById('mov').onclick=e=>{if(e.target===e.currentTarget)history.back()};
 
 document.getElementById('msave').onclick=()=>{
   const title=document.getElementById('fTitle').value.trim();
@@ -4052,9 +4104,11 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
     const openPop=document.querySelector('.fpop.open');
     if(openPop){openPop.classList.remove('open');return}
-    if(document.getElementById('mov').classList.contains('on')){closeModal();return}
-    if(document.getElementById('rmov').classList.contains('on')){document.getElementById('rmov').classList.remove('on');return}
-    if(document.getElementById('riov').classList.contains('on')){document.getElementById('riov').classList.remove('on');return}
+    if(document.getElementById('mov').classList.contains('on')){history.back();return}
+    if(document.getElementById('btcov').classList.contains('on')){history.back();return}
+    if(document.getElementById('rmov').classList.contains('on')){history.back();return}
+    if(document.getElementById('riov').classList.contains('on')){history.back();return}
+    if(document.getElementById('wlovConfirm').classList.contains('on')){history.back();return}
     if(document.getElementById('calOv').style.display!=='none'){closeCalendar();return}
     if(document.getElementById('panel').classList.contains('on')){closePanel();return}
     return;
@@ -4206,7 +4260,7 @@ function _openSharePicker(url){
   let sw=null; // active swipe state
 
   document.addEventListener('touchstart',e=>{
-    const card=e.target.closest('.gc');
+    const card=e.target.closest('.gc,.col-row');
     if(!card)return;
     const id=card.dataset.id;if(!id)return;
     const g=games.find(x=>String(x.id)===id);
@@ -4252,7 +4306,7 @@ function _openSharePicker(url){
     if(!live)return;
     e.preventDefault();
     if(isBought){
-      // Collection: right = add platform, left = back to wishlist
+      // Collection: right = add platform, left = back to wishlist (with confirm)
       if(dx>THRESHOLD){
         _resetCard(card);
         openAddPlatformModal(id);
@@ -4260,7 +4314,7 @@ function _openSharePicker(url){
         card.style.transition='transform .25s ease,opacity .25s ease';
         card.style.transform='translateX(-110%)';
         card.style.opacity='0';
-        setTimeout(()=>{card.style.transform='';card.style.opacity='';_clearHints(card);handleMarkBought(id);},250);
+        setTimeout(()=>{card.style.transform='';card.style.opacity='';_clearHints(card);startMoveToWishlist(id);},250);
       } else {
         _resetCard(card);
       }

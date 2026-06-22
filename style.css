@@ -191,7 +191,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 @media(max-width:640px){.col-list{grid-template-columns:1fr}}
 .col-row{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;
   background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
-  cursor:pointer;transition:background .12s;min-width:0}
+  cursor:pointer;transition:background .12s;min-width:0;position:relative;overflow:hidden}
 .col-row:hover{background:var(--s3);border-color:var(--bd2)}
 .col-row-thumb{width:36px;height:36px;object-fit:cover;border-radius:3px;flex-shrink:0;background:var(--s3)}
 .col-row-thumb-ph{width:36px;height:36px;border-radius:3px;flex-shrink:0;background:var(--s3);
