@@ -2549,16 +2549,15 @@ async function steamAutoFill(appId,{fromUrl=false}={}){
     const isTba=d.release_date&&d.release_date.coming_soon;
     const dateStr=d.release_date&&d.release_date.date;
     if(dateStr){
-      if(isTba){
+      const isoDate=parseSteamDateStr(dateStr);
+      if(isoDate){
+        setTbaState(false);
+        const dateEl=document.getElementById('fDate');
+        if(!dateEl.value){dateEl.value=isoDate;filled.push('release');}
+      } else {
         setTbaState(true);
         const tbaEl=document.getElementById('fTbaText');
-        if(!tbaEl.value.trim()){tbaEl.value=dateStr;filled.push('release')}
-      } else {
-        const dateEl=document.getElementById('fDate');
-        if(!dateEl.value){
-          const iso=parseSteamDateStr(dateStr);
-          if(iso){dateEl.value=iso;filled.push('release');}
-        }
+        if(!tbaEl.value.trim()){tbaEl.value=dateStr;filled.push('release');}
       }
     }
 
@@ -3606,13 +3605,10 @@ document.addEventListener('keydown',function(e){
   // Parse a Steam release_date object into {releaseDate, tbaText}
   function parseSteamDate(relObj){
     if(!relObj)return{releaseDate:'',tbaText:''};
-    const coming=!!relObj.coming_soon;
     const raw=(relObj.date||'').trim();
     if(!raw)return{releaseDate:'',tbaText:''};
-    if(!coming){
-      const iso=parseSteamDateStr(raw);
-      if(iso)return{releaseDate:iso,tbaText:''};
-    }
+    const iso=parseSteamDateStr(raw);
+    if(iso)return{releaseDate:iso,tbaText:''};
     return{releaseDate:'',tbaText:raw};
   }
 
