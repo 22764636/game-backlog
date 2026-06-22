@@ -288,8 +288,8 @@
     </div>
     <!-- Cost + Purchase date -->
     <div class="fg">
-      <div class="fr"><label>Cost (€)</label><input type="number" id="btcCost" placeholder="0.00" step="0.01" min="0"></div>
-      <div class="fr"><label>Purchase date</label><input type="date" id="btcDate"></div>
+      <div class="fr"><label>Cost (€)</label><input type="number" id="btcCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
+      <div class="fr"><label>Purchase date</label><input type="date" id="btcDate" autocomplete="off"></div>
     </div>
     <!-- Play status (styled button) -->
     <div class="fr">
@@ -428,7 +428,7 @@
         <!-- Overlay container: date and tba text occupy same space -->
         <div class="date-overlay-wrap">
           <div class="date-row" id="dateRow">
-            <input type="date" id="fDate">
+            <input type="date" id="fDate" autocomplete="off">
             <button type="button" class="tba-btn" id="tbaBtn">UNRELEASED</button>
           </div>
           <div class="date-row" id="tbaTxtRow" style="display:none">
@@ -437,7 +437,7 @@
           </div>
         </div>
       </div>
-      <div class="fr"><label>Price (€)</label><input type="number" id="fPrice" placeholder="29.99" step="0.01" min="0"></div>
+      <div class="fr"><label>Price (€)</label><input type="number" id="fPrice" placeholder="29.99" step="0.01" min="0" autocomplete="off"></div>
       <div class="fr">
         <label>Priority</label>
         <div class="prio-row">
@@ -454,7 +454,7 @@
     <div class="fg">
       <div class="fr">
         <label>Hotness <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">1–100 · blank = to review</span></label>
-        <input type="number" id="fHotness" placeholder="blank = to review" min="1" max="100">
+        <input type="number" id="fHotness" placeholder="blank = to review" min="1" max="100" autocomplete="off">
       </div>
       <div class="fr">
         <label>Type</label>
@@ -487,8 +487,8 @@
         <button type="button" class="store-pick-btn" id="fColStorePick"><span id="fColStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
       </div>
       <div class="fg" style="margin-bottom:.5rem">
-        <div class="fr"><label>Cost (€)</label><input type="number" id="fColCost" placeholder="0.00" step="0.01" min="0"></div>
-        <div class="fr"><label>Purchase date</label><input type="date" id="fColDate"></div>
+        <div class="fr"><label>Cost (€)</label><input type="number" id="fColCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
+        <div class="fr"><label>Purchase date</label><input type="date" id="fColDate" autocomplete="off"></div>
       </div>
       <div class="fr" style="margin-bottom:.5rem">
         <label>Play status</label>

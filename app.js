@@ -835,6 +835,9 @@ function normaliseDate(raw){
   // Google Visualization API date format: "Date(2024,3,25)" — month is 0-based
   const gv=String(raw).match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
   if(gv){const[,y,mo,d]=gv;return`${y}-${String(Number(mo)+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+  // "25 Nov 2019" display format produced by fmtDate
+  const dm=String(raw).match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);
+  if(dm){const MM={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};const[,d,mo,y]=dm;const moN=MM[mo.charAt(0).toUpperCase()+mo.slice(1,3).toLowerCase()];if(moN)return`${y}-${String(moN).padStart(2,'0')}-${d.padStart(2,'0')}`;}
   // Last resort: try native Date parsing (handles "Mon Apr 25 2024 ..." etc.)
   const fd=new Date(String(raw));
   if(!isNaN(fd)&&fd.getFullYear()>1900){return`${fd.getFullYear()}-${String(fd.getMonth()+1).padStart(2,'0')}-${String(fd.getDate()).padStart(2,'0')}`}
@@ -856,7 +859,11 @@ function isTodayDate(raw){return normaliseDate(raw)===todayISO()}
 function fmtDate(d){
   if(!d)return'';
   const n=normaliseDate(d);
-  if(/^\d{4}-\d{2}-\d{2}$/.test(n)){const[y,mo,dd]=n.split('-');return`${dd}/${mo}/${y}`}
+  if(/^\d{4}-\d{2}-\d{2}$/.test(n)){
+    const[y,mo,dd]=n.split('-');
+    const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return`${dd} ${M[Number(mo)-1]} ${y}`;
+  }
   return '';
 }
 function parseDate(raw){return normaliseDate(raw)}
@@ -4123,7 +4130,52 @@ document.addEventListener('keydown',function(e){
 })();
 
 // ══════════════════════════════════════════
+//  WEB SHARE TARGET
+// ══════════════════════════════════════════
+function handleShareTarget(){
+  const p=new URLSearchParams(location.search);
+  const raw=p.get('share_url')||p.get('share_text')||'';
+  if(!raw)return;
+  const m=raw.match(/https?:\/\/store\.steampowered\.com\/app\/\d+[^\s]*/);
+  if(!m)return;
+  const steamUrl=m[0];
+  // Strip share params from the browser URL so back/refresh are clean
+  history.replaceState(null,'',location.pathname+location.hash);
+  _openSharePicker(steamUrl);
+}
+
+function _openSharePicker(url){
+  const parsed=parseStoreLink(url);
+  const title=parsed?parsed.title:'this game';
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(3,19,41,.92);backdrop-filter:blur(4px);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem';
+  ov.innerHTML=`
+    <div style="background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);padding:1.3rem;width:100%;max-width:400px">
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.1rem;color:var(--green);margin-bottom:.25rem">Add Game</div>
+      <div style="font-size:.82rem;color:var(--t2);margin-bottom:1.1rem;line-height:1.4">${esc(title)}</div>
+      <div style="display:flex;flex-direction:column;gap:.45rem">
+        <button id="_spWish" class="mb2" style="padding:.6rem .9rem;text-align:left">Add to Wishlist</button>
+        <button id="_spCol" class="mb2" style="padding:.6rem .9rem;text-align:left">Add to Collection</button>
+        <button id="_spCancel" class="mb2 c" style="padding:.45rem .9rem">Cancel</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  function pick(openFn){
+    close();
+    openFn();
+    const fStore=document.getElementById('fStore');
+    if(fStore){fStore.value=url;fStore.dispatchEvent(new Event('blur'));}
+  }
+  document.getElementById('_spWish').onclick=()=>pick(openAddWishlist);
+  document.getElementById('_spCol').onclick=()=>pick(openAddCollection);
+  document.getElementById('_spCancel').onclick=close;
+  ov.addEventListener('click',e=>{if(e.target===ov)close();});
+}
+
+// ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
 restoreFromHash();
+handleShareTarget();
 initData();
