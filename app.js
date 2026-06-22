@@ -1232,7 +1232,7 @@ function cardHTML(g){
         <div class="cq">
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
           <a href="${ggUrl}" class="qb" title="gg.deals" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_GG,'gg')}</a>
-          <a href="${sdbUrl}" class="qb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
+          <a href="${sdbUrl}" class="qb qb-sdb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
           <button class="qb${ba}" title="${t('mBt')}" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">✓</button>
           <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">✏</button>
           ${rmBtn}
@@ -1327,7 +1327,7 @@ function colCardHTML(g){
         ${dlcBadge}
         <div class="cq">
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
-          <a href="${sdbUrl}" class="qb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
+          <a href="${sdbUrl}" class="qb qb-sdb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
           <button class="qb ba" title="Move back to Wishlist" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">↩</button>
           <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">✏</button>
           <button class="qb" title="Add Platform" onclick="event.stopPropagation();openAddPlatformModal('${gid_s}')">⊕</button>
