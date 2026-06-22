@@ -1808,8 +1808,11 @@ document.getElementById('btcConfirm').onclick=()=>{
 //  SIDE PANEL
 // ══════════════════════════════════════════
 function openPanel(id){
-  const g=games.find(x=>x.id===id);if(!g)return;
+  const sid=String(id);
+  const g=games.find(x=>String(x.id)===sid);if(!g)return;
+  id=g.id; // normalise to stored type
   openId=id;
+  if(!(history.state&&history.state.panelOpen)){history.pushState({panelOpen:true},'');}
   const _ctb=document.getElementById("ctb");if(_ctb)_ctb.style.zIndex="80";cStars=g.myRating||0;
   const cu=g.cover||(g.steamAppId?sc(g.steamAppId):'');
   const pi=document.getElementById('pimg'),pp=document.getElementById('pph');
@@ -2125,9 +2128,18 @@ function closePanel(){
   const panel=document.getElementById('panel');
   panel.classList.remove('on');
   openId=null;
-  // Wait for slide-out transition (280ms) before hiding overlay so it covers toolbar during animation
   setTimeout(()=>pov.classList.remove('on'),290);
+  if(history.state&&history.state.panelOpen){history.back();}
 }
+// Android back-swipe / browser back closes panel instead of exiting
+window.addEventListener('popstate',function(){
+  if(document.getElementById('panel').classList.contains('on')){
+    const pov=document.getElementById('pov');
+    document.getElementById('panel').classList.remove('on');
+    openId=null;
+    setTimeout(()=>pov.classList.remove('on'),290);
+  }
+});
 
 // ── PANEL DRAG RESIZE (desktop only) ──────────────────────────
 (function(){
@@ -3540,7 +3552,7 @@ makeFilterPopover({
 
   function showTooltip(badge){
     const id=badge.dataset.id;
-    const g=games.find(x=>x.id===id);if(!g)return;
+    const g=games.find(x=>String(x.id)===String(id));if(!g)return;
     const dlcs=findDlcs(g);if(!dlcs.length)return;
     tooltip.innerHTML=buildTooltipContent(dlcs);
     tooltip.querySelectorAll('[data-did]').forEach(el=>{
@@ -3553,7 +3565,7 @@ makeFilterPopover({
 
   function openSheet(badge){
     const id=badge.dataset.id;
-    const g=games.find(x=>x.id===id);if(!g)return;
+    const g=games.find(x=>String(x.id)===String(id));if(!g)return;
     const dlcs=findDlcs(g);if(!dlcs.length)return;
     sheetTitle.textContent=`DLCs for ${g.title}`;
     sheetBody.innerHTML=dlcs.map(dlcCardFull).join('');
