@@ -54,8 +54,8 @@
       <button class="mode-btn" id="modeCollection">Collection</button>
     </div>
     <button class="hb p" id="addBtn">＋<span class="hb-label"> Add game</span></button>
-    <button class="hb hb-desk" id="dhBtn" title="More options" style="font-size:1rem;padding:0 .5rem">☰</button>
-    <button class="hb hb-mob" id="hamburgerBtn" style="font-size:1rem;padding:0 .5rem" title="Menu">☰</button>
+    <button class="hb hb-desk accent" id="dhBtn" title="More options" style="font-size:1rem;padding:0 .5rem">☰</button>
+    <button class="hb hb-mob accent" id="hamburgerBtn" style="font-size:1rem;padding:0 .5rem" title="Menu">☰</button>
   </div>
 </header>
 
@@ -82,6 +82,7 @@
 <div id="hmenu">
   <button class="hmi" id="hmCalBtn">Release Calendar</button>
   <div class="hmi-theme"><span class="hmi-theme-label">Theme</span><div class="mode-tog" id="hmThemeTog"><button class="mode-btn" id="hmThemeLight" title="Light theme">☀</button><button class="mode-btn" id="hmThemeDark" title="Dark theme">🌙</button></div></div>
+  <div class="hmi-theme"><span class="hmi-theme-label">View</span><div class="mode-tog" id="hmViewTog"><button class="mode-btn on" id="hmViewGrid" title="Grid view">⊞</button><button class="mode-btn" id="hmViewList" title="List view">☰</button></div></div>
   <button class="hmi" id="hmExpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg> Export</button>
   <button class="hmi" id="hmImpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg> Import</button>
   <button class="hmi" id="hmCollectionBtn">Collection</button>
@@ -91,6 +92,7 @@
 <!-- Desktop dropdown menu -->
 <div id="dhmenu">
   <div class="hmi-theme"><span class="hmi-theme-label">Theme</span><div class="mode-tog" id="dhThemeTog"><button class="mode-btn" id="dhThemeLight" title="Light theme">☀</button><button class="mode-btn" id="dhThemeDark" title="Dark theme">🌙</button></div></div>
+  <div class="hmi-theme"><span class="hmi-theme-label">View</span><div class="mode-tog" id="dhViewTog"><button class="mode-btn on" id="dhViewGrid" title="Grid view">⊞</button><button class="mode-btn" id="dhViewList" title="List view">☰</button></div></div>
   <button class="hmi" id="dhMetaBtn">⟳ Refresh genre &amp; tag data</button>
   <button class="hmi" id="dhDatesBtn">↻ Check release dates</button>
   <button class="hmi" id="dhExpBtn">⬇ Export</button>
@@ -168,6 +170,17 @@
       <div class="fpop-list" id="tagFilterList"></div>
     </div>
   </div>
+  <!-- Platform filter -->
+  <div class="fpop-wrap">
+    <button class="fpop-btn" id="platFilterBtn">Platform <span class="fpop-badge" id="platFilterBadge" style="display:none"></span></button>
+    <div class="fpop" id="platFilterPop">
+      <div class="fpop-header">
+        <span class="fpop-title">Platform</span>
+        <button class="fpop-clear" id="platFilterClear">Clear</button>
+      </div>
+      <div class="fpop-list" id="platFilterList"></div>
+    </div>
+  </div>
   <!-- Priority filter -->
   <div class="fpop-wrap">
     <button class="fpop-btn" id="prioFilterBtn">Priority <span class="fpop-badge" id="prioFilterBadge" style="display:none"></span></button>
@@ -228,6 +241,17 @@
     <div class="fpop" id="cPlayFilterPop">
       <div class="fpop-header"><span class="fpop-title">Play Status</span><button class="fpop-clear" id="cPlayFilterClear">Clear</button></div>
       <div class="fpop-list" id="cPlayFilterList"></div>
+    </div>
+  </div>
+  <!-- Platform filter (collection) -->
+  <div class="fpop-wrap">
+    <button class="fpop-btn" id="cPlatFilterBtn">Platform <span class="fpop-badge" id="cPlatFilterBadge" style="display:none"></span></button>
+    <div class="fpop" id="cPlatFilterPop">
+      <div class="fpop-header">
+        <span class="fpop-title">Platform</span>
+        <button class="fpop-clear" id="cPlatFilterClear">Clear</button>
+      </div>
+      <div class="fpop-list" id="cPlatFilterList"></div>
     </div>
   </div>
   <!-- Steam Collection filter -->
@@ -421,8 +445,11 @@
       <div class="fr">
         <label>Platform</label>
         <div class="pcks" id="pcks">
-          <label class="pck"><input type="checkbox" value="PC" checked> PC</label>
-          <label class="pck"><input type="checkbox" value="PlayStation"> PS</label>
+          <label class="pck"><input type="checkbox" value="Steam" checked> Steam</label>
+          <label class="pck"><input type="checkbox" value="Epic Games"> Epic</label>
+          <label class="pck"><input type="checkbox" value="GOG"> GOG</label>
+          <label class="pck"><input type="checkbox" value="Other PC"> Other PC</label>
+          <label class="pck"><input type="checkbox" value="PS"> PS</label>
           <label class="pck"><input type="checkbox" value="Xbox"> Xbox</label>
           <label class="pck"><input type="checkbox" value="Nintendo"> Nintendo</label>
         </div>

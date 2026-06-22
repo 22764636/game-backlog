@@ -45,6 +45,10 @@ function applyTheme(){
 }
 applyTheme();
 function toggleTheme(){theme=theme==='dark'?'light':'dark';localStorage.setItem('btb_theme',theme);applyTheme()}
+function applyVm(){
+  ['hmViewGrid','dhViewGrid'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',vm==='grid');});
+  ['hmViewList','dhViewList'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',vm==='list');});
+}
 
 // ══════════════════════════════════════════
 //  SYNC STATUS UI
@@ -711,9 +715,9 @@ let cfPlayStatus=new Set(),cfSteamCol=new Set(),cfSteamColLogic='or';
 let hrMinVal=0,hrMaxVal=100;
 
 let cGenres=[],cTags=[],cStars=0;
-let fGenres=new Set(),fTags=new Set(),fPrios=new Set();
+let fGenres=new Set(),fTags=new Set(),fPrios=new Set(),fPlats=new Set();
 let fGenreLogic='or',fTagLogic='or';
-let cfGenres=new Set(),cfGenreLogic='or';
+let cfGenres=new Set(),cfGenreLogic='or',cfPlats=new Set();
 
 // ══════════════════════════════════════════
 //  HELPERS
@@ -857,6 +861,10 @@ function collectionFiltered(){
       const genreMatch=cfGenreLogic==='and'?[...cfGenres].every(x=>gg.includes(x)):[...cfGenres].some(x=>gg.includes(x));
       if(!genreMatch)return false;
     }
+    if(cfPlats.size>0){
+      const gp=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);
+      if(!gp.some(p=>cfPlats.has(p)))return false;
+    }
     return true;
   });
 }
@@ -915,6 +923,10 @@ function filtered(){
     if(fPrios.size>0){
       const p=g.priority||'medium';
       if(!fPrios.has(p))return false;
+    }
+    if(fPlats.size>0){
+      const gp=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);
+      if(!gp.some(p=>fPlats.has(p)))return false;
     }
     return true;
   });
@@ -1331,19 +1343,15 @@ function bindNewCards(container,count){
   }
 }
 
-function makeSection(label,cards,gcls,showToggle=false){
+function makeSection(label,cards,gcls){
   const collapsed=getCollapsed().has(label);
   const bodyH=collapsed?'max-height:0':'';
   const displayLabel=colLabel(label);
-  const toggleHTML=showToggle
-    ?`<span class="sl-line"></span><div class="vt sl-vt" onclick="event.stopPropagation()"><button class="vtb${vm==='grid'?' on':''}" title="Grid" onclick="vm='grid';document.querySelectorAll('.sl-vt .vtb').forEach((b,i)=>{b.classList.toggle('on',i%2===0)});renderAll()">⊞</button><button class="vtb${vm==='list'?' on':''}" title="List" onclick="vm='list';document.querySelectorAll('.sl-vt .vtb').forEach((b,i)=>{b.classList.toggle('on',i%2===1)});renderAll()">☰</button></div><span class="sl-line"></span>`
-    :`<span class="sl-line"></span>`;
   return`<div class="sb${collapsed?' collapsed':''}" data-section="${esc(label)}">
-    <div class="sl${showToggle?' sl-sticky':''}">
+    <div class="sl">
       ${displayLabel}
       <span class="sl-count" style="font-family:'Inter',sans-serif;font-size:.6rem;font-weight:400;letter-spacing:0;text-transform:none;color:var(--t3)">${cards.length}</span>
       <span class="sl-toggle">▾</span>
-      ${toggleHTML}
     </div>
     <div class="sb-body" style="${bodyH}"><div class="${gcls}"></div></div>
   </div>`;
@@ -1461,10 +1469,8 @@ function renderCollection(){
       const keys=(g.steamCollection&&g.steamCollection.length)?g.steamCollection:['Uncategorised'];
       keys.forEach(k=>{if(!groups[k])groups[k]=[];groups[k].push(g)});
     });
-    let _firstColSec=true;
     Object.keys(groups).sort().forEach(k=>{
-      const html=makeSection(k,groups[k],'gg',_firstColSec);
-      _firstColSec=false;
+      const html=makeSection(k,groups[k],'gg');
       const tmp=document.createElement('div');tmp.innerHTML=html;
       const sb=tmp.firstElementChild;
       gc.appendChild(sb);
@@ -1500,10 +1506,8 @@ function renderAll(){
   initBatchObserver();
 
   // Helper: build section HTML, insert into gc, then init batch rendering
-  let _firstSec=true;
   function addSection(label,cards){
-    const html=makeSection(label,cards,gcls,_firstSec);
-    _firstSec=false;
+    const html=makeSection(label,cards,gcls);
     const tmp=document.createElement('div');
     tmp.innerHTML=html;
     const sb=tmp.firstElementChild;
@@ -2635,7 +2639,7 @@ document.getElementById('fPriority').addEventListener('change',updatePrioLbl);
 // ══════════════════════════════════════════
 function setPlatforms(vals){
   const arr=Array.isArray(vals)?vals:(vals||'').split(',').map(s=>s.trim()).filter(Boolean);
-  document.querySelectorAll('#pcks input').forEach(cb=>{cb.checked=arr.length===0?cb.value==='PC':arr.includes(cb.value)});
+  document.querySelectorAll('#pcks input').forEach(cb=>{cb.checked=arr.length===0?cb.value==='Steam':arr.includes(cb.value)});
 }
 function getPlatforms(){return Array.from(document.querySelectorAll('#pcks input:checked')).map(cb=>cb.value)}
 
@@ -2670,7 +2674,7 @@ function clearModal(){
   document.getElementById('modalColSection').style.display='none';
 }
 function openAdd(){
-  editId=null;clearModal();setPlatforms(['PC']);
+  editId=null;clearModal();setPlatforms(['Steam']);
   const isCol=appMode==='collection';
   document.getElementById('modalTitle').textContent=isCol?'Add to Collection':'Add game';
   document.getElementById('msave').textContent=isCol?'Save to Collection':'Save game';
@@ -2718,7 +2722,7 @@ function openEdit(id){
   if(savedCover)setCoverPreview(savedCover);
   else if(g.steamAppId)tryAutoFillCover(g.steamAppId);
   cGenres=[...(g.genres||[])];cTags=[...(g.tags||[])];
-  setPlatforms(g.platforms||[g.platform||'PC']);
+  setPlatforms(g.platforms||[g.platform||'Steam']);
   renderGenres();renderTags();updatePrioLbl();
   // Load existing notes into modal note list
   const _editG=games.find(x=>x.id===editId);
@@ -3102,6 +3106,33 @@ makeFilterPopover({
   },
   renderFn:renderCollection,
 });
+makeFilterPopover({
+  btnId:'platFilterBtn',popId:'platFilterPop',badgeId:'platFilterBadge',
+  clearId:'platFilterClear',listId:'platFilterList',
+  getSelected:()=>fPlats,setSelected:s=>{fPlats=s},
+  getOptions:()=>{
+    const freq={};
+    games.filter(g=>g.status!=='bought').forEach(g=>{
+      const gp=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);
+      gp.forEach(p=>{if(p)freq[p]=(freq[p]||0)+1});
+    });
+    return Object.keys(freq).sort().map(v=>({value:v,count:freq[v]}));
+  },
+});
+makeFilterPopover({
+  btnId:'cPlatFilterBtn',popId:'cPlatFilterPop',badgeId:'cPlatFilterBadge',
+  clearId:'cPlatFilterClear',listId:'cPlatFilterList',
+  getSelected:()=>cfPlats,setSelected:s=>{cfPlats=s},
+  getOptions:()=>{
+    const freq={};
+    games.filter(g=>g.status==='bought').forEach(g=>{
+      const gp=g.platforms&&g.platforms.length?g.platforms:(g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]);
+      gp.forEach(p=>{if(p)freq[p]=(freq[p]||0)+1});
+    });
+    return Object.keys(freq).sort().map(v=>({value:v,count:freq[v]}));
+  },
+  renderFn:renderCollection,
+});
 
 // Search also triggers collection render when in collection mode
 // (search inputs already call dispatchRender via renderAll override below)
@@ -3236,6 +3267,8 @@ function doImport(){
   document.getElementById('hmCalBtn').addEventListener('click',hm(openCalendar));
   document.getElementById('hmThemeLight').addEventListener('click',hm(()=>{if(theme!=='light'){theme='light';localStorage.setItem('btb_theme',theme);applyTheme();}}));
   document.getElementById('hmThemeDark').addEventListener('click',hm(()=>{if(theme!=='dark'){theme='dark';localStorage.setItem('btb_theme',theme);applyTheme();}}));
+  document.getElementById('hmViewGrid').addEventListener('click',()=>{if(vm!=='grid'){vm='grid';renderAll();applyVm();}});
+  document.getElementById('hmViewList').addEventListener('click',()=>{if(vm!=='list'){vm='list';renderAll();applyVm();}});
   document.getElementById('hmExpBtn').addEventListener('click',hm(doExport));
   document.getElementById('hmImpBtn').addEventListener('click',hm(doImport));
   document.getElementById('hmResyncBtn').addEventListener('click',hm(function(){if(!OFFLINE)resync();}));
@@ -3257,6 +3290,8 @@ function doImport(){
   function dh(fn){return function(){menu.classList.remove('on');fn();}}
   document.getElementById('dhThemeLight').addEventListener('click',dh(()=>{if(theme!=='light'){theme='light';localStorage.setItem('btb_theme',theme);applyTheme();}}));
   document.getElementById('dhThemeDark').addEventListener('click',dh(()=>{if(theme!=='dark'){theme='dark';localStorage.setItem('btb_theme',theme);applyTheme();}}));
+  document.getElementById('dhViewGrid').addEventListener('click',dh(()=>{if(vm!=='grid'){vm='grid';renderAll();applyVm();}}));
+  document.getElementById('dhViewList').addEventListener('click',dh(()=>{if(vm!=='list'){vm='list';renderAll();applyVm();}}));
   document.getElementById('dhMetaBtn').addEventListener('click',dh(async()=>{fetchMeta(true);showToast('Metadata refreshed.');}));
   document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>runReleaseDateCheck()));
   document.getElementById('dhExpBtn').addEventListener('click',dh(doExport));
