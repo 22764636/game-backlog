@@ -319,12 +319,16 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   .gg.lv .cq{width:auto}
   .qb.qr{display:none}
   .qb.qb-sdb{display:none}
+  .qb.qb-bt{display:none}
+  .qb.qb-wl{display:none}
+  .qb.qb-ap{display:none}
 }
 /* Grid view: full-width tap bar at card bottom (all screen sizes) */
 .gg:not(.lv) .cq{gap:0;margin:.25rem -.65rem -.55rem;width:calc(100% + 1.3rem);border-top:1px solid var(--bd)}
 .gg:not(.lv) .qb{flex:1;height:40px;border-radius:0;border:none;border-left:1px solid var(--bd);font-size:.82rem}
 .gg:not(.lv) .qb:first-child{border-left:none}
 .gg:not(.lv) .qb img{width:16px;height:16px}
+.gg:not(.lv) .qb svg{width:16px;height:16px}
 
 /* empty */
 .empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--t3)}
@@ -414,11 +418,15 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .mb2.c{background:transparent;color:var(--t2)}
 .mb2.c:hover{background:rgba(255,255,255,.05);color:var(--text)}
 
-/* priority select with label preview */
-.prio-row{display:flex;align-items:center;gap:.5rem}
-.prio-lbl-prev{font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-  padding:2px 6px;border-radius:4px;color:#031329;flex-shrink:0;white-space:nowrap}
-.prio-row select{flex:1}
+/* priority toggle buttons */
+.prio-btns{display:flex;gap:.35rem}
+.prio-btn{padding:.25rem .65rem;border-radius:20px;border:1.5px solid var(--bd);
+  background:transparent;color:var(--t2);font-size:.7rem;font-weight:700;cursor:pointer;
+  transition:all .15s;font-family:'Rajdhani',sans-serif;letter-spacing:.04em;text-transform:uppercase}
+.prio-btn:hover{border-color:var(--blue);color:var(--text)}
+.prio-btn[data-v="high"].prio-btn-on{background:var(--cyan);border-color:transparent;color:#031329}
+.prio-btn[data-v="medium"].prio-btn-on{background:var(--magenta);border-color:transparent;color:#031329}
+.prio-btn[data-v="low"].prio-btn-on{background:var(--lime);border-color:transparent;color:#031329}
 
 /* dev/pub autocomplete */
 .ac-wrap{position:relative}
@@ -760,7 +768,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 
 /* ── TILT CARD EFFECT ── */
 .gc{transform-style:preserve-3d;will-change:transform}
-.gg.lv .gc{transform-style:flat;transform:none!important}
+.gg.lv .gc{transform-style:flat}
+.gg.lv .gc:hover{transform:none}
 
 /* ── MODE PILL TOGGLE (Wishlist / Collection) ── */
 .mode-tog{display:flex;border-radius:var(--r);overflow:hidden;border:1px solid var(--bd);height:30px}

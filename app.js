@@ -35,6 +35,22 @@ const S={
 const t=k=>S[k]||k;
 
 // ══════════════════════════════════════════
+//  SVG ICONS
+// ══════════════════════════════════════════
+const IC={
+  edit:`<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3l2 2-8.5 8.5H3v-1.5L11 3z"/></svg>`,
+  check:`<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8l4 4L13.5 4"/></svg>`,
+  close:`<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>`,
+  backWl:`<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5H7m0 0l2.5 2.5M7 5l2.5-2.5M9 11h2a2 2 0 002-2V9"/></svg>`,
+  plus:`<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>`,
+  reinstate:`<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h8m0 0l-3-3m3 3l-3 3"/></svg>`,
+  hintCheck:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20l8 8L32 12"/></svg>`,
+  hintClose:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 12l16 16M28 12L12 28"/></svg>`,
+  hintPlus:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 8v24M8 20h24"/></svg>`,
+  hintBack:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M26 20H14m0 0l7-7m-7 7l7 7"/></svg>`,
+};
+
+// ══════════════════════════════════════════
 function applyVm(){
   ['hmViewGrid','dhViewGrid'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',vm==='grid');});
   ['hmViewList','dhViewList'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',vm==='list');});
@@ -1212,9 +1228,9 @@ function cardHTML(g){
   // Remove/Reinstate button: removed→reinstate, bought→disabled, else→remove
   let rmBtn='';
   if(g.status==='removed'){
-    rmBtn=`<button class="qb qri" title="Reinstate" onclick="event.stopPropagation();startReinstate('${gid_s}')">↩</button>`;
+    rmBtn=`<button class="qb qri" title="Reinstate" onclick="event.stopPropagation();startReinstate('${gid_s}')">${IC.reinstate}</button>`;
   } else if(g.status!=='bought'){
-    rmBtn=`<button class="qb qr" title="Remove" onclick="event.stopPropagation();startRemove('${gid_s}')">✕</button>`;
+    rmBtn=`<button class="qb qr" title="Remove" onclick="event.stopPropagation();startRemove('${gid_s}')">${IC.close}</button>`;
   }
 
   return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}${isCancelled(g)?' cancelled':''}" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}"${tip?` data-added-tip="${esc(tip)}"`:''}>
@@ -1233,14 +1249,14 @@ function cardHTML(g){
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
           <a href="${ggUrl}" class="qb" title="gg.deals" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_GG,'gg')}</a>
           <a href="${sdbUrl}" class="qb qb-sdb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
-          <button class="qb${ba}" title="${t('mBt')}" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">✓</button>
-          <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">✏</button>
+          <button class="qb qb-bt${ba}" title="${t('mBt')}" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">${IC.check}</button>
+          <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">${IC.edit}</button>
           ${rmBtn}
         </div>
       </div>
     </div>
-    <div class="swipe-hint-r">✓</div>
-    <div class="swipe-hint-l">✕</div>
+    <div class="swipe-hint-r">${IC.hintCheck}</div>
+    <div class="swipe-hint-l">${IC.hintClose}</div>
   </div>`;
 }
 
@@ -1330,12 +1346,14 @@ function colCardHTML(g){
         <div class="cq">
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
           <a href="${sdbUrl}" class="qb qb-sdb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
-          <button class="qb ba" title="Move back to Wishlist" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">↩</button>
-          <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">✏</button>
-          <button class="qb" title="Add Platform" onclick="event.stopPropagation();openAddPlatformModal('${gid_s}')">⊕</button>
+          <button class="qb qb-wl ba" title="Move back to Wishlist" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">${IC.backWl}</button>
+          <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">${IC.edit}</button>
+          <button class="qb qb-ap" title="Add Platform" onclick="event.stopPropagation();openAddPlatformModal('${gid_s}')">${IC.plus}</button>
         </div>
       </div>
     </div>
+    <div class="swipe-hint-r">${IC.hintPlus}</div>
+    <div class="swipe-hint-l">${IC.hintBack}</div>
   </div>`;
 }
 
@@ -2970,15 +2988,18 @@ document.getElementById('fStore').addEventListener('blur',()=>{
 });
 
 // ══════════════════════════════════════════
-//  PRIORITY LABEL PREVIEW IN MODAL
+//  PRIORITY BUTTONS IN MODAL
 // ══════════════════════════════════════════
-function updatePrioLbl(){
-  const v=document.getElementById('fPriority').value;
-  const el=document.getElementById('prioLblPrev');
-  el.style.background=prioColor(v);
-  el.textContent=prioLabel(v);
+function _setPriority(v){
+  document.getElementById('fPriority').value=v;
+  document.querySelectorAll('#prioBtns .prio-btn').forEach(b=>{
+    b.classList.toggle('prio-btn-on',b.dataset.v===v);
+  });
 }
-document.getElementById('fPriority').addEventListener('change',updatePrioLbl);
+document.getElementById('prioBtns').addEventListener('click',e=>{
+  const btn=e.target.closest('.prio-btn');
+  if(btn)_setPriority(btn.dataset.v);
+});
 
 
 // parentAppId autocomplete
@@ -3021,7 +3042,7 @@ function clearModal(){
   const nd=document.getElementById('fNoteDate');
   if(nd){const n=new Date();nd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
   document.getElementById('fHotness').value='';
-  document.getElementById('fPriority').value='medium';
+  _setPriority('medium');
   setGameType('game');
   const _fsd3=document.getElementById('fShortDesc');if(_fsd3)_fsd3.value='';
   const _ps=document.getElementById('fParentSearch');if(_ps)_ps.value='';
@@ -3031,7 +3052,6 @@ function clearModal(){
   document.getElementById('appIdErr').classList.remove('on');
   document.getElementById('fAppId').classList.remove('err');
   setTbaState(false);
-  updatePrioLbl();
   cGenres=[];cTags=[];cModalCol=[];renderGenres();renderTags();renderModalCol();
   _modalNotes=[];renderModalNoteList();
   // Reset collection fields
@@ -3122,7 +3142,7 @@ function openEdit(id){
   document.getElementById('fDev').value=g.developer||'';
   document.getElementById('fPub').value=g.publisher||'';
   document.getElementById('fPrice').value=g.price||'';
-  document.getElementById('fPriority').value=g.priority||'medium';
+  _setPriority(g.priority||'medium');
   document.getElementById('fHotness').value=(g.hotness===null||g.hotness===undefined)?'':g.hotness;
   document.getElementById('fStore').value=g.storeLink||'';
   const _fsdEl=document.getElementById('fShortDesc');if(_fsdEl)_fsdEl.value=g.shortDescription||'';
@@ -3147,7 +3167,7 @@ function openEdit(id){
   if(savedCover)setCoverPreview(savedCover);
   else if(g.steamAppId)tryAutoFillCover(g.steamAppId);
   cGenres=[...(g.genres||[])];cTags=[...(g.tags||[])];
-  renderGenres();renderTags();updatePrioLbl();
+  renderGenres();renderTags();
   // steamWishlist toggle — show only for bought games with no Steam purchase
   const swRow=document.getElementById('steamWishlistRow');
   if(swRow){
@@ -4190,8 +4210,8 @@ function _openSharePicker(url){
     if(!card)return;
     const id=card.dataset.id;if(!id)return;
     const g=games.find(x=>String(x.id)===id);
-    if(!g||g.status==='removed'||g.status==='bought')return;
-    sw={startX:e.touches[0].clientX,startY:e.touches[0].clientY,card,id,dx:0,live:false};
+    if(!g||g.status==='removed')return;
+    sw={startX:e.touches[0].clientX,startY:e.touches[0].clientY,card,id,dx:0,live:false,isBought:g.status==='bought'};
   },{passive:true});
 
   document.addEventListener('touchmove',e=>{
@@ -4222,22 +4242,41 @@ function _openSharePicker(url){
       el.style.transition='opacity .2s';el.style.opacity=0;
     });
   }
+  function _clearHints(card){
+    card.querySelectorAll('.swipe-hint-r,.swipe-hint-l').forEach(el=>el.style.opacity=0);
+  }
 
   document.addEventListener('touchend',e=>{
     if(!sw)return;
-    const{card,id,dx,live}=sw;sw=null;
+    const{card,id,dx,live,isBought}=sw;sw=null;
     if(!live)return;
     e.preventDefault();
-    if(dx>THRESHOLD){
-      card.style.transition='transform .25s ease,opacity .25s ease';
-      card.style.transform='translateX(110%)';
-      card.style.opacity='0';
-      setTimeout(()=>{card.style.transform='';card.style.opacity='';handleMarkBought(id);},250);
-    } else if(dx<-THRESHOLD){
-      _resetCard(card);
-      startRemove(id);
+    if(isBought){
+      // Collection: right = add platform, left = back to wishlist
+      if(dx>THRESHOLD){
+        _resetCard(card);
+        openAddPlatformModal(id);
+      } else if(dx<-THRESHOLD){
+        card.style.transition='transform .25s ease,opacity .25s ease';
+        card.style.transform='translateX(-110%)';
+        card.style.opacity='0';
+        setTimeout(()=>{card.style.transform='';card.style.opacity='';_clearHints(card);handleMarkBought(id);},250);
+      } else {
+        _resetCard(card);
+      }
     } else {
-      _resetCard(card);
+      // Wishlist: right = add to collection, left = remove
+      if(dx>THRESHOLD){
+        card.style.transition='transform .25s ease,opacity .25s ease';
+        card.style.transform='translateX(110%)';
+        card.style.opacity='0';
+        setTimeout(()=>{card.style.transform='';card.style.opacity='';_clearHints(card);handleMarkBought(id);},250);
+      } else if(dx<-THRESHOLD){
+        _resetCard(card);
+        startRemove(id);
+      } else {
+        _resetCard(card);
+      }
     }
   },{passive:false});
 })();
@@ -4251,10 +4290,11 @@ function _closeAllFloating(){
   document.querySelectorAll('.fpop.open').forEach(el=>el.classList.remove('open'));
 }
 (function(){
-  ['#content','.modal','.pb2'].forEach(sel=>{
+  ['#content','.pb2'].forEach(sel=>{
     const el=document.querySelector(sel);
     if(el)el.addEventListener('scroll',_closeAllFloating,{passive:true});
   });
+  document.querySelectorAll('.modal').forEach(el=>el.addEventListener('scroll',_closeAllFloating,{passive:true}));
 })();
 
 // ══════════════════════════════════════════
