@@ -1985,146 +1985,82 @@ function _syncModalPsBtn(val){
   btn.style.cssText='font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start';
   btn.innerHTML=m.code+'<span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">'+esc(val)+'</span>';
 }
-(function(){
-  function getModalPicker(){
-    let p=document.getElementById('modalPsPicker');
-    if(!p){
-      p=document.createElement('div');p.id='modalPsPicker';p.className='ps-picker';
-      document.body.appendChild(p);
-      document.addEventListener('click',e=>{
-        if(!e.target.closest('#modalPsPicker')&&!e.target.closest('#fColPlayStatusBtn'))
-          p.classList.remove('on');
-      });
-    }
-    return p;
-  }
-  document.addEventListener('click',e=>{
-    const btn=e.target.closest('#fColPlayStatusBtn');if(!btn)return;
-    _modalPsPickerActiveBtn=btn;
-    const picker=getModalPicker();
-    const cur=document.getElementById('fColPlayStatus').value||'Unplayed';
-    picker.innerHTML=Object.keys(PS_META).map(s=>{
-      const m=PS_META[s];
-      return'<div class="ps-pick-opt'+(s===cur?' active':'')+'" data-s="'+esc(s)+'">'+
-        '<span class="col-ps-badge '+m.cls+'" style="font-size:.52rem;padding:1px 5px;flex-shrink:0">'+m.code+'</span>'+
-        '<span class="ps-pick-label">'+esc(s)+'</span>'+
-      '</div>';
-    }).join('');
-    picker.querySelectorAll('.ps-pick-opt').forEach(opt=>{
-      opt.addEventListener('click',e2=>{
-        e2.stopPropagation();
-        const val=opt.dataset.s;
-        document.getElementById('fColPlayStatus').value=val;
-        _syncModalPsBtn(val);
-        picker.classList.remove('on');
-      });
-    });
-    const rect=btn.getBoundingClientRect();
-    picker.style.left=Math.min(rect.left,window.innerWidth-220)+'px';
-    picker.classList.toggle('on');
-    if(picker.classList.contains('on'))_anchorBelow(picker,btn,4);
-    e.stopPropagation();
-  });
-})();
+// fColPlayStatusBtn — inline picker
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('#fColPlayStatusBtn');if(!btn)return;
+  e.stopPropagation();
+  _toggleInlinePsPicker(document.getElementById('fColPsDd'),document.getElementById('fColPlayStatus'),_syncModalPsBtn);
+});
 
-// ── STORE PICKER (shared floating) ────────────────────────────────────────────
-let _storePicker=null;
-let _storePickerActiveBtn=null,_btcPsPickerActiveBtn=null,_modalPsPickerActiveBtn=null;
-function getOrCreateStorePicker(){
-  if(_storePicker)return _storePicker;
-  const el=document.createElement('div');el.className='store-picker';
-  const si=document.createElement('input');si.type='text';si.className='store-picker-search';si.placeholder='Search stores…';
+// ── INLINE MODAL PICKERS (store + play status) ───────────────────────────────
+function _toggleInlineStorePicker(dd,stores,currentVal,onSelect){
+  const wasOpen=dd.classList.contains('on');
+  document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));
+  if(wasOpen)return;
+  const si=document.createElement('input');
+  si.type='text';si.className='store-picker-search';si.placeholder='Search stores…';
   const lst=document.createElement('div');lst.className='store-picker-list';
-  el.appendChild(si);el.appendChild(lst);
-  document.body.appendChild(el);_storePicker=el;
-  document.addEventListener('click',e=>{
-    if(!e.target.closest('.store-picker')&&!e.target.closest('.store-pick-btn'))el.classList.remove('on');
-  });
-  return el;
-}
-function openStorePicker(btn,stores,currentVal,onSelect){
-  _storePickerActiveBtn=btn;
-  const picker=getOrCreateStorePicker();
-  const si=picker.querySelector('.store-picker-search');
-  const lst=picker.querySelector('.store-picker-list');
-  si.value='';
   function buildList(q){
     const f=q?stores.filter(s=>s.toLowerCase().includes(q.toLowerCase())):stores;
     lst.innerHTML=f.map(s=>`<div class="store-pick-opt${s===currentVal?' active':''}" data-s="${esc(s)}">${esc(s)}</div>`).join('');
     lst.querySelectorAll('.store-pick-opt').forEach(opt=>{
-      opt.onclick=e=>{e.stopPropagation();onSelect(opt.dataset.s);picker.classList.remove('on')};
+      opt.onclick=e=>{e.stopPropagation();onSelect(opt.dataset.s);dd.classList.remove('on')};
     });
   }
+  dd.innerHTML='';dd.appendChild(si);dd.appendChild(lst);
   buildList('');si.oninput=()=>buildList(si.value);
-  const rect=btn.getBoundingClientRect();
-  const pw=Math.min(260,window.innerWidth-16);
-  let left=rect.left;if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;if(left<8)left=8;
-  picker.style.left=left+'px';picker.style.width=pw+'px';
-  picker.classList.toggle('on');
-  if(picker.classList.contains('on')){_anchorBelow(picker,btn,4);setTimeout(()=>si.focus(),50);}
+  dd.classList.add('on');
+  setTimeout(()=>si.focus(),50);
+}
+function _toggleInlinePsPicker(dd,hiddenInput,syncFn){
+  const wasOpen=dd.classList.contains('on');
+  document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));
+  if(wasOpen)return;
+  const cur=hiddenInput.value||'Unplayed';
+  dd.innerHTML=Object.keys(PS_META).map(s=>{
+    const m=PS_META[s];
+    return'<div class="ps-pick-opt'+(s===cur?' active':'')+'" data-s="'+esc(s)+'">'+
+      '<span class="col-ps-badge '+m.cls+'" style="font-size:.52rem;padding:1px 5px;flex-shrink:0">'+m.code+'</span>'+
+      '<span class="ps-pick-label">'+esc(s)+'</span></div>';
+  }).join('');
+  dd.querySelectorAll('.ps-pick-opt').forEach(opt=>{
+    opt.addEventListener('click',e=>{
+      e.stopPropagation();
+      hiddenInput.value=opt.dataset.s;
+      syncFn(opt.dataset.s);
+      dd.classList.remove('on');
+    });
+  });
+  dd.classList.add('on');
 }
 
-// btcStorePick click
+// btcStorePick
 document.addEventListener('click',e=>{
   const btn=e.target.closest('#btcStorePick');if(!btn)return;
   e.stopPropagation();
-  openStorePicker(btn,getPlatformStores(btcSelPlat),document.getElementById('btcStore').value,val=>{
-    document.getElementById('btcStore').value=val;
-    document.getElementById('btcStoreLabel').textContent=val;
+  _toggleInlineStorePicker(document.getElementById('btcStoreDd'),getPlatformStores(btcSelPlat),document.getElementById('btcStore').value,val=>{
+    document.getElementById('btcStore').value=val;document.getElementById('btcStoreLabel').textContent=val;
   });
 });
-
-// fColStorePick click (add/edit modal)
+// fColStorePick
 document.addEventListener('click',e=>{
   const btn=e.target.closest('#fColStorePick');if(!btn)return;
   e.stopPropagation();
-  openStorePicker(btn,getPlatformStores(_modalColPlat||'Steam'),document.getElementById('fColStore').value,val=>{
-    document.getElementById('fColStore').value=val;
-    document.getElementById('fColStoreLabel').textContent=val;
+  _toggleInlineStorePicker(document.getElementById('fColStoreDd'),getPlatformStores(_modalColPlat||'Steam'),document.getElementById('fColStore').value,val=>{
+    document.getElementById('fColStore').value=val;document.getElementById('fColStoreLabel').textContent=val;
   });
 });
-
-// btcPlayStatusBtn picker
-(function(){
-  let p=null;
-  function getBtcPsPicker(){
-    if(!p){
-      p=document.createElement('div');p.id='btcPsPicker';p.className='ps-picker';
-      document.body.appendChild(p);
-      document.addEventListener('click',e=>{
-        if(!e.target.closest('#btcPsPicker')&&!e.target.closest('#btcPlayStatusBtn'))p.classList.remove('on');
-      });
-    }
-    return p;
-  }
-  document.addEventListener('click',e=>{
-    const btn=e.target.closest('#btcPlayStatusBtn');if(!btn)return;
-    _btcPsPickerActiveBtn=btn;
-    const picker=getBtcPsPicker();
-    const cur=document.getElementById('btcPlayStatus').value||'Unplayed';
-    picker.innerHTML=Object.keys(PS_META).map(s=>{
-      const m=PS_META[s];
-      return'<div class="ps-pick-opt'+(s===cur?' active':'')+'" data-s="'+esc(s)+'">'+
-        '<span class="col-ps-badge '+m.cls+'" style="font-size:.52rem;padding:1px 5px;flex-shrink:0">'+m.code+'</span>'+
-        '<span class="ps-pick-label">'+esc(s)+'</span>'+
-      '</div>';
-    }).join('');
-    picker.querySelectorAll('.ps-pick-opt').forEach(opt=>{
-      opt.addEventListener('click',e2=>{
-        e2.stopPropagation();
-        const val=opt.dataset.s;
-        document.getElementById('btcPlayStatus').value=val;
-        _syncBtcPsBtn(val);
-        picker.classList.remove('on');
-      });
-    });
-    const rect=btn.getBoundingClientRect();
-    picker.style.left=Math.min(rect.left,window.innerWidth-220)+'px';
-    picker.classList.toggle('on');
-    if(picker.classList.contains('on'))_anchorBelow(picker,btn,4);
-    e.stopPropagation();
-  });
-})();
+// btcPlayStatusBtn
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('#btcPlayStatusBtn');if(!btn)return;
+  e.stopPropagation();
+  _toggleInlinePsPicker(document.getElementById('btcPsDd'),document.getElementById('btcPlayStatus'),_syncBtcPsBtn);
+});
+// Close .pick-dd on click outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.pick-wrap'))
+    document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));
+});
 
 // Wire picker on rendered cards (called from bindNewCards)
 function bindPsPickerCards(container,start){
@@ -2145,6 +2081,7 @@ function bindPsPickerCards(container,start){
 function _rawCloseCollectionModal(){
   document.getElementById('btcov').classList.remove('on');
   const bdd=document.getElementById('btcColDd');if(bdd)bdd.classList.remove('on');
+  document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));
   btcId=null;cBtcCol=[];btcAddPlatMode=false;
 }
 function closeCollectionModal(){_rawCloseCollectionModal();_popModalHistory();}
@@ -3315,7 +3252,7 @@ function renderModalNotes(g){
     };
   });
 }
-function _rawCloseModal(){document.getElementById('mov').classList.remove('on');steamStatus('');['genreDd','tagsDd','devDd','pubDd'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on')});window._pendingShortDesc=null;}
+function _rawCloseModal(){document.getElementById('mov').classList.remove('on');steamStatus('');['genreDd','tagsDd','devDd','pubDd'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on')});document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));window._pendingShortDesc=null;}
 function closeModal(){_rawCloseModal();_popModalHistory();}
 // Modal notes: full note list with add/edit/delete (works in both add and edit mode)
 let _modalNotes=[]; // in-memory note list for the open modal
@@ -4344,26 +4281,18 @@ function _openSharePicker(url){
 // ══════════════════════════════════════════
 function _closeAllFloating(){
   document.querySelectorAll('.ps-picker.on').forEach(el=>el.classList.remove('on'));
-  document.querySelectorAll('.store-picker.on').forEach(el=>el.classList.remove('on'));
   document.querySelectorAll('.fpop.open').forEach(el=>el.classList.remove('open'));
-}
-function _reanchorModalPickers(){
-  if(_storePicker&&_storePicker.classList.contains('on')&&_storePickerActiveBtn)_anchorBelow(_storePicker,_storePickerActiveBtn,4);
-  const bp=document.getElementById('btcPsPicker');
-  if(bp&&bp.classList.contains('on')&&_btcPsPickerActiveBtn)_anchorBelow(bp,_btcPsPickerActiveBtn,4);
-  const mp=document.getElementById('modalPsPicker');
-  if(mp&&mp.classList.contains('on')&&_modalPsPickerActiveBtn)_anchorBelow(mp,_modalPsPickerActiveBtn,4);
-}
-function _onModalScroll(){
-  document.querySelectorAll('.fpop.open').forEach(el=>el.classList.remove('open'));
-  _reanchorModalPickers();
+  document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));
 }
 (function(){
   ['#content','.pb2'].forEach(sel=>{
     const el=document.querySelector(sel);
     if(el)el.addEventListener('scroll',_closeAllFloating,{passive:true});
   });
-  document.querySelectorAll('.modal').forEach(el=>el.addEventListener('scroll',_onModalScroll,{passive:true}));
+  // On modal scroll: close filter popovers only; inline pickers scroll with content
+  document.querySelectorAll('.modal').forEach(el=>el.addEventListener('scroll',()=>{
+    document.querySelectorAll('.fpop.open').forEach(p=>p.classList.remove('open'));
+  },{passive:true}));
 })();
 
 // ══════════════════════════════════════════

@@ -459,6 +459,12 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .genre-dd{position:absolute;top:100%;left:0;right:0;background:var(--s1);border:1px solid var(--bd2);
   border-radius:var(--r);z-index:50;max-height:160px;overflow-y:auto;display:none;margin-top:2px}
 .genre-dd.on{display:block}
+/* inline modal pickers (store + play status) — same inline pattern as genre-dd */
+.pick-wrap{position:relative;width:100%}
+.pick-dd{position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--s1);
+  border:1px solid var(--bd2);border-radius:var(--r);z-index:50;display:none;
+  flex-direction:column;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.4);max-height:220px}
+.pick-dd.on{display:flex}
 .genre-opt{padding:.35rem .65rem;font-size:.76rem;color:var(--t2);cursor:pointer;transition:background .1s}
 .genre-opt:hover{background:var(--s3);color:var(--text)}
 

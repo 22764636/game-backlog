@@ -283,7 +283,10 @@
     <div class="fr">
       <label>Store</label>
       <input type="hidden" id="btcStore" value="">
-      <button type="button" class="store-pick-btn" id="btcStorePick"><span id="btcStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
+      <div class="pick-wrap">
+        <button type="button" class="store-pick-btn" id="btcStorePick"><span id="btcStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
+        <div class="pick-dd" id="btcStoreDd"></div>
+      </div>
     </div>
     <!-- Cost + Purchase date -->
     <div class="fg">
@@ -294,7 +297,10 @@
     <div class="fr">
       <label>Play status</label>
       <input type="hidden" id="btcPlayStatus" value="Unplayed">
-      <button type="button" id="btcPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
+      <div class="pick-wrap">
+        <button type="button" id="btcPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
+        <div class="pick-dd" id="btcPsDd"></div>
+      </div>
     </div>
     <!-- Steam Collection (hidden when non-Steam platform selected) -->
     <div class="fr" id="btcColSection">
@@ -481,7 +487,10 @@
       <div class="fr" style="margin-bottom:.5rem">
         <label>Store</label>
         <input type="hidden" id="fColStore" value="">
-        <button type="button" class="store-pick-btn" id="fColStorePick"><span id="fColStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
+        <div class="pick-wrap">
+          <button type="button" class="store-pick-btn" id="fColStorePick"><span id="fColStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
+          <div class="pick-dd" id="fColStoreDd"></div>
+        </div>
       </div>
       <div class="fg" style="margin-bottom:.5rem">
         <div class="fr"><label>Cost (€)</label><input type="number" id="fColCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
@@ -490,7 +499,10 @@
       <div class="fr" style="margin-bottom:.5rem">
         <label>Play status</label>
         <input type="hidden" id="fColPlayStatus" value="Unplayed">
-        <button type="button" id="fColPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
+        <div class="pick-wrap">
+          <button type="button" id="fColPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
+          <div class="pick-dd" id="fColPsDd"></div>
+        </div>
       </div>
       <div class="fr" id="fColSteamSection">
         <label>Steam Collection <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
