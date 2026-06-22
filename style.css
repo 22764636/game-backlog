@@ -214,6 +214,11 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .gc{background:var(--cbg);border:1px solid var(--cbr);border-radius:var(--rl);overflow:hidden;
   cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;position:relative;display:flex;flex-direction:column}
 .gc:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 6px 20px #02b3fc12}
+.swipe-hint-r,.swipe-hint-l{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;opacity:0;pointer-events:none;z-index:10;border-radius:inherit}
+.swipe-hint-r{background:linear-gradient(135deg,#9cff0011,#9cff0044);color:var(--green)}
+.swipe-hint-l{background:linear-gradient(135deg,#ff00aa11,#ff00aa44);color:var(--pink)}
+@media(min-width:641px){.swipe-hint-r,.swipe-hint-l{display:none}}
 .gc.st-removed{opacity:.45;filter:grayscale(.6)}.gc.sb2{border-color:#9cff0044}
 /* Meta tooltip */
 .meta-tip{position:relative;display:inline-flex;align-items:center}

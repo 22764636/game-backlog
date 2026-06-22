@@ -1239,6 +1239,8 @@ function cardHTML(g){
         </div>
       </div>
     </div>
+    <div class="swipe-hint-r">✓</div>
+    <div class="swipe-hint-l">✕</div>
   </div>`;
 }
 
@@ -4173,6 +4175,72 @@ function _openSharePicker(url){
   document.getElementById('_spCancel').onclick=close;
   ov.addEventListener('click',e=>{if(e.target===ov)close();});
 }
+
+// ══════════════════════════════════════════
+//  MOBILE SWIPE ACTIONS ON CARDS
+// ══════════════════════════════════════════
+(function(){
+  const THRESHOLD=72;  // px to commit
+  const V_CANCEL=12;   // px vertical drift before we yield to scroll
+
+  let sw=null; // active swipe state
+
+  document.addEventListener('touchstart',e=>{
+    const card=e.target.closest('.gc');
+    if(!card)return;
+    const id=card.dataset.id;if(!id)return;
+    const g=games.find(x=>String(x.id)===id);
+    if(!g||g.status==='removed'||g.status==='bought')return;
+    sw={startX:e.touches[0].clientX,startY:e.touches[0].clientY,card,id,dx:0,live:false};
+  },{passive:true});
+
+  document.addEventListener('touchmove',e=>{
+    if(!sw)return;
+    const dx=e.touches[0].clientX-sw.startX;
+    const dy=e.touches[0].clientY-sw.startY;
+    if(!sw.live){
+      if(Math.abs(dy)>V_CANCEL&&Math.abs(dy)>Math.abs(dx)){sw=null;return;}
+      if(Math.abs(dx)<8)return;
+      sw.live=true;
+    }
+    e.preventDefault();
+    sw.dx=dx;
+    const {card}=sw;
+    card.style.transition='none';
+    card.style.transform=`translateX(${dx}px)`;
+    const prog=Math.min(Math.abs(dx)/THRESHOLD,1);
+    const hr=card.querySelector('.swipe-hint-r');
+    const hl=card.querySelector('.swipe-hint-l');
+    if(dx>0){if(hr)hr.style.opacity=prog;if(hl)hl.style.opacity=0;}
+    else    {if(hl)hl.style.opacity=prog;if(hr)hr.style.opacity=0;}
+  },{passive:false});
+
+  function _resetCard(card){
+    card.style.transition='transform .2s ease';
+    card.style.transform='';
+    card.querySelectorAll('.swipe-hint-r,.swipe-hint-l').forEach(el=>{
+      el.style.transition='opacity .2s';el.style.opacity=0;
+    });
+  }
+
+  document.addEventListener('touchend',e=>{
+    if(!sw)return;
+    const{card,id,dx,live}=sw;sw=null;
+    if(!live)return;
+    e.preventDefault();
+    if(dx>THRESHOLD){
+      card.style.transition='transform .25s ease,opacity .25s ease';
+      card.style.transform='translateX(110%)';
+      card.style.opacity='0';
+      setTimeout(()=>{card.style.transform='';card.style.opacity='';handleMarkBought(id);},250);
+    } else if(dx<-THRESHOLD){
+      _resetCard(card);
+      startRemove(id);
+    } else {
+      _resetCard(card);
+    }
+  },{passive:false});
+})();
 
 // ══════════════════════════════════════════
 //  CLOSE FLOATING PICKERS ON SCROLL
