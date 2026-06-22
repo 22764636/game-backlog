@@ -180,6 +180,10 @@ function normalise(g){
     if(g.platforms&&typeof g.platforms==='string'){try{g.platforms=JSON.parse(g.platforms)}catch(e){g.platforms=g.platforms.split(',').map(s=>s.trim()).filter(Boolean)}}
     else{g.platforms=g.platform?g.platform.split(',').map(s=>s.trim()).filter(Boolean):[]}
   }
+  if(!Array.isArray(g.tags)){
+    if(g.tags&&typeof g.tags==='string'){try{g.tags=JSON.parse(g.tags)}catch(e){g.tags=g.tags.split(',').map(s=>s.trim()).filter(Boolean)}}
+    else{g.tags=[]}
+  }
   if(g.status)g.status=String(g.status).toLowerCase().trim();
   if(!g.status)g.status='wishlist';
   g.id=g.id!==undefined&&g.id!==null&&g.id!==''?String(g.id):gid();
