@@ -908,3 +908,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   background:transparent;color:var(--t2);font-size:.7rem;font-weight:700;cursor:pointer;
   transition:all .15s;font-family:'Rajdhani',sans-serif;letter-spacing:.04em;text-transform:uppercase}
 .btc-plat-pill:hover{border-color:var(--blue);color:var(--text)}
+
+/* Add type picker */
+.add-pick-btn{display:block;width:100%;padding:.55rem .75rem;text-align:left;background:transparent;border:none;cursor:pointer;border-radius:var(--r);color:var(--text);}
+.add-pick-btn:hover{background:var(--s3);}
+.add-pick-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.85rem;letter-spacing:.02em;}
+.add-pick-sub{font-size:.65rem;color:var(--t3);margin-top:.1rem;}
