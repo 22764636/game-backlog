@@ -3638,8 +3638,8 @@ document.addEventListener('keydown',function(e){
         }
 
         const{releaseDate:newRd,tbaText:newTba}=parseSteamDate(entry.data.release_date);
-        const oldRd=g.releaseDate||'';
-        const oldTba=g.tbaText||'';
+        const oldRd=String(g.releaseDate||'');
+        const oldTba=String(g.tbaText||'');
 
         if(newRd!==oldRd||newTba!==oldTba){
           const gg=games.find(x=>x.id===g.id);
@@ -3650,7 +3650,7 @@ document.addEventListener('keydown',function(e){
           }
           const before=oldRd||oldTba||'(empty)';
           const after=newRd||newTba||'(empty)';
-          rdcLog(`✔ ${g.title}  ${before} → ${after} [rd:"${oldRd}"→"${newRd}" tba:"${oldTba}"→"${newTba}"]`,'rdc-ok');
+          rdcLog(`✔ ${g.title}  ${before} → ${after}`,'rdc-ok');
           updated++;
         }else{
           rdcLog(`— ${g.title}  ${oldRd||oldTba||'(empty)'}`,'rdc-skip');
