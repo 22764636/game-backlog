@@ -1,69 +1,80 @@
 # Building the Backlog
 
-A personal game backlog manager that runs entirely in the browser — no build step, no server, no framework. Track your wishlist, collection, and play progress with optional cloud sync via Google Sheets.
+A personal game backlog manager that runs entirely in the browser — no build step, no framework. Track your wishlist and collection with optional cloud sync via Google Sheets.
 
 ---
 
 ## Features
 
-### Wishlist & Collection
+### Wishlist
 - Add games with title, genres, platforms, release date, priority, and hotness (hype) score
-- Track purchase price and date
-- Move games between wishlist → pre-order → bought states
-- Soft-delete with a one-click reinstate option
+- Move games between wishlist → pre-order → bought
+- Soft-delete with one-click reinstate
 - DLC management — nest DLC under parent games with a mini-cover shelf
+- Hotness bar (0–100) for tracking current interest
 
-### Play Status Tracking
-Eight statuses for your collection:
-
-| Code | Meaning |
-|------|---------|
-| UP | Unplayed |
-| IP | In Progress |
-| COM | Completed |
-| SUP | Superseded (replaced by a better version) |
-| UF | Unfinishable |
-| PDP | Played on a Different Platform |
-| WNC | Will Never Complete |
-| WNP | Will Never Play |
+### Collection
+- Per-platform entries — each platform tracks its own store, cost, purchase date, and play status
+- Eight play statuses: `UP` · `IP` · `COM` · `SUP` · `UF` · `PDP` · `WNC` · `WNP`
+- Filter by platform (any / exclusive), Steam collection, genre, or play status
 
 ### Game Details
 - Steam cover art via App ID (or custom image URL)
-- Developer, publisher, store links (Steam, gg.deals, SteamDB)
+- Developer, publisher, and store links (Steam, gg.deals, SteamDB)
 - 5-star personal rating and written review
 - Timestamped notes per game
-- Hotness bar (0–100) for tracking current interest
+- Release date, added date, and purchase date all displayed as `dd mmm yyyy`
 
 ### Filtering & Sorting
-- Filter by status, genre (AND/OR), platform, tag, priority, hotness range
-- Special filters: Wishlist only, Unreleased, Pre-orders
-- Sort by hotness, priority, genre, platform, release date, added date, or Steam Collection
+- Wishlist: filter by genre (AND/OR), tag (AND/OR), priority, hotness range
+- Collection: filter by platform (any/exclusive), Steam collection (AND/OR), genre, play status
+- Sort by hotness, priority, title, release date, price, added date, or Steam collection
+- Group by priority, genre, platform, or year
+- All filter/sort/view state persisted in the URL hash — shareable and survives refresh
 
 ### Views
 - **Grid** — card layout with cover art
 - **List** — compact two-column view with thumbnails
 - **Calendar** — monthly release calendar with TBA list
-- **Dark / Light theme** toggle
 
 ### Data & Sync
-- **Google Sheets backend** — games live in a spreadsheet, synced via Google Apps Script (JSONP, works from `file://`)
-- **LocalStorage fallback** — works fully offline when no `SHEET_URL` is set
+- **Google Sheets backend** — games live in a spreadsheet, synced via Google Apps Script
+- **LocalStorage fallback** — works fully offline when no `SHEET_URL` is configured
 - Export / import JSON backups
 - Visual sync status indicator (idle / syncing / ok / error / offline)
 
 ### PWA
-- Installable as a home-screen app (inline manifest)
-- Service worker for offline caching (cache-first)
+- Installable as a home-screen app
+- Service worker for offline caching (cache-first for assets, always-fresh for HTML)
+- **Web Share Target** — share a Steam store URL from any Android app directly into BtB; a picker lets you add it to Wishlist or Collection
 
 ### Keyboard Shortcuts
 | Key | Action |
 |-----|--------|
 | `/` | Focus search |
-| `A` or `N` | Add game |
+| `A` | Add game |
 | `C` | Open calendar |
 | `G` | Grid view |
 | `L` | List view |
 | `Esc` | Close panel / modal |
+
+---
+
+## File Structure
+
+```
+index.html              — app shell and markup
+app.js                  — all application logic
+style.css               — styles (dark theme only)
+sw.js                   — service worker (caching)
+manifest.json           — PWA manifest
+btb-url.js              — runtime config: sets window.BTB_SHEET_URL (not committed)
+config.example.js       — template for local config
+google-apps-script/
+  Code.gs               — Google Apps Script backend
+.github/workflows/
+  pages.yml             — deploys to GitHub Pages, injects SHEET_URL secret into btb-url.js
+```
 
 ---
 
@@ -74,73 +85,83 @@ Eight statuses for your collection:
 1. Clone or download this repository.
 2. Open `index.html` in any modern browser.
 
-That's it. Games are saved in `localStorage` under the key `btb_v4`.
+Games are saved in `localStorage`. No network required.
 
 ### Option B — Cloud Sync via Google Sheets
 
-1. Create a Google Sheet to store your games.
-2. In the sheet, open **Extensions → Apps Script** and paste the companion Apps Script (see [Setting up the backend](#setting-up-the-backend)).
-3. Deploy the script as a **Web App** (Execute as: Me, Access: Anyone).
-4. Copy the deployment URL.
-5. Open `index.html`, find line ~1450, and replace the `SHEET_URL` constant:
+1. Create a Google Sheet.
+2. Open **Extensions → Apps Script**, paste the contents of `google-apps-script/Code.gs`, and save.
+3. Click **Deploy → New deployment** (Execute as: Me, Who has access: Anyone).
+4. Copy the Web App URL.
+5. Copy `config.example.js` to `btb-url.js` and paste your URL:
 
 ```js
-const SHEET_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+window.BTB_SHEET_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
 ```
 
-6. Open `index.html` in your browser. The sync indicator in the top bar will turn green when connected.
+6. Open `index.html`. The sync indicator turns green when connected.
+
+### Option C — GitHub Pages (hosted)
+
+1. Fork the repository.
+2. Go to **Settings → Secrets and variables → Actions** and create a secret named `SHEET_URL` with your Apps Script URL.
+3. Push to `main`. The `pages.yml` workflow injects the secret into `btb-url.js` and deploys to the `gh-pages` branch.
 
 ---
 
-## Setting up the Backend
+## Apps Script API
 
-The Apps Script web app must expose at minimum these actions over JSONP:
+The `Code.gs` web app handles these `action` values:
 
-| `action` param | Description |
-|----------------|-------------|
-| `getAll` | Returns all game records as JSON |
+| `action` | Description |
+|----------|-------------|
+| `getAll` | Returns all game records |
 | `getMeta` | Returns genre/tag metadata |
+| `getPlatStores` | Returns platform-specific store options |
 | `save` | Writes a single game record |
 | `delete` | Removes a game by ID |
 
-The app calls the endpoint with `?action=<action>&callback=<fn>&_=<timestamp>` query parameters.
+Requests use either JSONP (`?callback=fn`) or plain JSON (CORS), whichever the browser supports.
 
 ---
 
 ## Data Model
 
-Each game record contains:
-
 ```jsonc
 {
-  "id": "1700000000000",        // timestamp-based unique ID
+  "id": "1700000000000",
   "title": "Game Title",
-  "status": "wishlist",         // "wishlist" | "bought"
-  "playStatus": "Unplayed",     // see status table above
+  "status": "wishlist",           // "wishlist" | "bought"
   "steamAppId": 123456,
   "genres": ["RPG", "Action"],
   "platforms": ["PC", "PS5"],
-  "priority": "high",           // "high" | "medium" | "low"
-  "hotness": 85,                // 0–100
-  "releaseDate": "2025-11-15",  // ISO 8601, or "" for TBA
-  "tbaText": "Q4 2025",         // free-text when date is unknown
-  "price": "£49.99",
-  "cost": 29.99,                // actual amount paid
-  "purchaseDate": "15/06/2025",
+  "priority": "high",             // "high" | "medium" | "low"
+  "hotness": 85,                  // 0–100
+  "releaseDate": "2025-11-15",    // ISO 8601, or "" for TBA
+  "tbaText": "Q4 2025",
+  "price": "£49.99",              // listed price
   "developer": "Studio Name",
   "publisher": "Publisher Name",
-  "cover": "https://...",       // custom cover URL (overrides Steam art)
+  "cover": "https://...",         // custom cover URL (overrides Steam art)
   "storeLink": "https://...",
-  "type": "game",               // "game" | "dlc"
-  "parentAppId": 0,             // Steam App ID of parent (DLC only)
-  "steamCollection": ["Action RPGs"],
-  "myRating": 4,                // 1–5
+  "type": "game",                 // "game" | "dlc"
+  "parentAppId": 0,               // Steam App ID of parent (DLC only)
+  "tags": ["Coop", "Couch"],
+  "myRating": 4,                  // 1–5
   "myReview": "...",
-  "added": 1700000000000,       // epoch ms
+  "added": 1700000000000,         // epoch ms
   "cancelled": false,
   "notes": [
     { "id": "n1", "text": "...", "timestamp": 1700000000000 }
-  ]
+  ],
+  "platforms_data": {             // per-platform collection entries
+    "PC": {
+      "store": "Steam",
+      "cost": 29.99,
+      "purchaseDate": "15 Jun 2025",
+      "playStatus": "IP"
+    }
+  }
 }
 ```
 
@@ -148,23 +169,7 @@ Each game record contains:
 
 ## Browser Support
 
-Requires a modern browser with:
-- ES6 (modules not required — all inline)
-- LocalStorage
-- Fetch API
-- CSS Grid & Custom Properties
-- Service Workers (for offline; degrades gracefully without)
-
----
-
-## Architecture Notes
-
-- **Single-file** — all HTML, CSS, and JavaScript live in `index.html` for maximum portability. Copy one file to any host and it works.
-- **No build step** — zero npm, zero bundlers. Open and run.
-- **JSONP transport** — the Google Sheets backend is called via JSONP script tags so the app works from `file://` URLs with no CORS issues.
-- **Blob-based service worker** — the service worker is injected as a blob URL at runtime, so no separate `.js` file is needed.
-- **Inline PWA manifest** — the web app manifest is injected into the `<head>` at runtime, keeping the single-file design intact.
-- **Virtual/sentinel rendering** — game cards are rendered in batches using an IntersectionObserver sentinel for smooth scrolling over large collections.
+Requires a modern browser with ES6, LocalStorage, Fetch API, CSS Grid, and CSS Custom Properties. Service Workers add offline support but degrade gracefully without.
 
 ---
 
