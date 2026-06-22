@@ -365,10 +365,6 @@
         <div class="ferr" id="appIdErr">Already in your list.</div>
         <div id="steamStatus" style="display:none;font-size:.62rem;margin-top:.2rem"></div>
       </div>
-      <div class="fr">
-        <label>Short Description <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— auto-filled from Steam, editable</span></label>
-        <textarea id="fShortDesc" style="min-height:54px;resize:vertical" placeholder="Brief description of the game…"></textarea>
-      </div>
       <div class="fr" id="parentAppIdRow" style="display:none">
         <label>Base Game <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— required for DLC</span></label>
         <div class="ac-wrap">
@@ -384,6 +380,10 @@
     <div class="fr" style="margin-top:.35rem">
       <label>Cover URL <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">(auto-filled from App ID · or paste your own)</span></label>
       <input type="url" id="fCover" placeholder="https://…">
+    </div>
+    <div class="fr">
+      <label>Short Description <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— auto-filled from Steam, editable</span></label>
+      <textarea id="fShortDesc" style="min-height:54px;resize:vertical" placeholder="Brief description of the game…"></textarea>
     </div>
     <!-- Row 4: Platform + Genre side by side -->
     <div class="fg">
@@ -462,7 +462,7 @@
     <div class="fr">
       <label>Tags <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
       <div class="genre-wrap">
-        <div class="ciw" id="tagsWrap"><input type="text" class="cir" id="tagsInput" placeholder="co-op, birthday gift…"></div>
+        <div class="ciw" id="tagsWrap"><input type="text" class="cir" id="tagsInput" placeholder="Start typing…"></div>
         <div class="genre-dd" id="tagsDd"></div>
       </div>
     </div>

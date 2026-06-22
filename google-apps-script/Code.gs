@@ -99,6 +99,13 @@ function getMeta() {
   });
 }
 
+// ── Serialise a record value to a sheet-safe scalar ─────────
+function toCell(v) {
+  if (v === undefined || v === null) return '';
+  if (Array.isArray(v) || (typeof v === 'object')) return JSON.stringify(v);
+  return v;
+}
+
 // ── Write one or more rows (upsert by id) ────────────────────
 function setRows(records) {
   if (!Array.isArray(records)) records = [records];
@@ -110,7 +117,7 @@ function setRows(records) {
     const idCol = headers.indexOf('id');
     const existingRow = rows.findIndex((r, i) => i > 0 && String(r[idCol]) === String(record.id));
 
-    const rowData = headers.map(h => record[h] !== undefined ? record[h] : '');
+    const rowData = headers.map(h => toCell(record[h]));
     if (existingRow > 0) {
       sheet.getRange(existingRow + 1, 1, 1, headers.length).setValues([rowData]);
     } else {
@@ -130,7 +137,7 @@ function setAll(records) {
   const existing = sheet.getDataRange().getValues();
   const headers = existing.length > 0 ? existing[0].map(String) : Object.keys(records[0]);
 
-  const rows = [headers, ...records.map(r => headers.map(h => r[h] !== undefined ? r[h] : ''))];
+  const rows = [headers, ...records.map(r => headers.map(h => toCell(r[h])))];
   sheet.clearContents();
   sheet.getRange(1, 1, rows.length, headers.length).setValues(rows);
 
