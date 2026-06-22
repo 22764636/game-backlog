@@ -2182,8 +2182,7 @@ function _buildPlatTabContent(g,plat){
     </div>`;
   }
 
-  const gridCols=isSteam?'1.6fr 1.4fr 1.8fr':'1fr 1fr';
-  return`<div style="display:grid;grid-template-columns:${gridCols};gap:.8rem;align-items:start">${col1}${col2}${col3}</div>`;
+  return`<div class="plat-tab-grid${isSteam?' plat-tab-grid-3':''}">${col1}${col2}${col3}</div>`;
 }
 
 function wirePlatTabContent(g,plat){
@@ -2287,7 +2286,7 @@ function openPanel(id){
   else b+=`<div class="hr2"><div class="ht"><div class="htf" style="width:${h}%"></div></div><div class="hn">${h}</div></div>`;
   b+=`</div>`;
 
-  const det=[
+  const detLeft=[
     [t('pDev'), esc(g.developer||'—')],
     [t('pPub'), esc(g.publisher||'—')],
     [t('pRel'), (()=>{
@@ -2299,11 +2298,14 @@ function openPanel(id){
       }
       return relStr;
     })()],
+  ];
+  const detRight=[
     [t('pGenre'), genreD?genreD.split(',').map(s=>s.trim()).map(s=>`<span style="display:inline-flex;align-items:center;gap:.1rem">${esc(s)}${metaTipHTML(s)}</span>`).join(', '):'—'],
     [t('pPrice'), g.price?`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>`:`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`],
     ['Added', `<span style="color:var(--t2)">${fmtAdded(daysAgo(g.added),g.added)}</span>`],
   ];
-  b+=`<div class="ps"><div class="psl">${t('pDetails')}</div><div class="pv pv-kv">${det.map(([l,v])=>`<span class="pv-kv-lbl">${l}:</span><span>${v}</span>`).join('')}</div></div>`;
+  const _kvCol=items=>`<div class="pv pv-kv">${items.map(([l,v])=>`<span class="pv-kv-lbl">${l}:</span><span>${v}</span>`).join('')}</div>`;
+  b+=`<div class="ps"><div class="psl">${t('pDetails')}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem">${_kvCol(detLeft)}${_kvCol(detRight)}</div></div>`;
 
   // Base game link — shown for DLCs that have a parent in the collection
   if(g.type==='dlc'&&g.parentAppId){
