@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building the Backlog</title>
+<meta name="description" content="Building the Backlog — your personal game backlog manager. Track your wishlist, collection, and play progress.">
+<meta property="og:title" content="Building the Backlog">
+<meta property="og:description" content="Your personal game backlog manager. Track your wishlist, collection, and play progress.">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+  <!-- PWA Meta -->
+  <meta name="theme-color" content="#031329">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BtB">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<header id="hdr">
+  <!-- Full logo (desktop) -->
+  <svg class="logo-svg logo-full" viewBox="0 0 220 28" height="28" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <text y="22" font-family="Rajdhani,sans-serif" font-weight="700" font-size="20" letter-spacing=".4">
+      <tspan fill="#02b3fc">Building </tspan><tspan fill="#e8f4ff">the </tspan><tspan fill="#ff00aa">Backlog</tspan>
+    </text>
+  </svg>
+  <!-- Short logo (mobile) -->
+  <svg class="logo-svg logo-short" viewBox="0 0 52 28" height="28" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <text y="22" font-family="Rajdhani,sans-serif" font-weight="700" font-size="21" letter-spacing=".5">
+      <tspan fill="#02b3fc">B</tspan><tspan fill="#e8f4ff">t</tspan><tspan fill="#ff00aa">B</tspan>
+    </text>
+  </svg>
+  <div class="hs hs-desk">
+    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search…" autocomplete="off">
+    <button class="hs-clear" id="searchClear" tabindex="-1">Clear</button>
+  </div>
+  <div class="hs hs-mob">
+    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="searchInputMob" placeholder="Search…" autocomplete="off">
+    <button class="hs-clear" id="searchClearMob" tabindex="-1">Clear</button>
+  </div>
+  <span id="syncStatus" class="sync-hdr"></span>
+  <div class="hr">
+    <button class="hb hb-desk" id="themeBtn">☀️</button>
+    <button class="hb hb-desk" id="metaRefreshBtn" title="Refresh genre & tag descriptions">⟳ Meta</button>
+    <button class="hb hb-desk" id="calBtn" title="Release Calendar"><span class="hb-label">Calendar</span></button>
+    <button class="hb hb-desk" id="expBtn" title="Export"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg><span class="hb-label"> Export</span></button>
+    <button class="hb hb-desk" id="impBtn" title="Import"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg><span class="hb-label"> Import</span></button>
+    <button class="hb hb-desk kb-help-btn" id="kbHelpBtn" title="Keyboard shortcuts">?</button>
+    <button class="hb hb-desk" id="collectionToggleBtn">Collection</button>
+    <button class="hb p" id="addBtn">＋<span class="hb-label"> Add game</span></button>
+    <button class="hb hb-mob" id="hamburgerBtn" style="font-size:1rem;padding:0 .5rem" title="Menu">☰</button>
+  </div>
+</header>
+
+
+<!-- SHORTCUTS POPOVER (desktop) -->
+<div id="kbPop" class="kb-pop">
+  <div class="kb-pop-title">Keyboard Shortcuts</div>
+  <div class="kb-row"><span>Focus search</span><span class="kb-key">/</span></div>
+  <div class="kb-row"><span>Add game</span><span class="kb-key">A</span></div>
+  <div class="kb-row"><span>Release calendar</span><span class="kb-key">C</span></div>
+  <div class="kb-row"><span>Grid view</span><span class="kb-key">G</span></div>
+  <div class="kb-row"><span>List view</span><span class="kb-key">L</span></div>
+  <div class="kb-row"><span>Close / dismiss</span><span class="kb-key">Esc</span></div>
+</div>
+
+<!-- TODAY'S RELEASES TICKER -->
+<div id="todayTicker">
+  <div class="ticker-label">OUT TODAY</div>
+  <div class="ticker-track">
+    <div class="ticker-inner" id="tickerInner"></div>
+  </div>
+</div>
+<!-- Mobile dropdown menu — outside header to avoid overflow:hidden clipping -->
+<div id="hmenu">
+  <button class="hmi" id="hmCalBtn">Release Calendar</button>
+  <button class="hmi" id="hmThemeBtn">☀️ Toggle theme</button>
+  <button class="hmi" id="hmExpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg> Export</button>
+  <button class="hmi" id="hmImpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg> Import</button>
+  <button class="hmi" id="hmCollectionBtn">Collection</button>
+  <button class="hmi" id="hmResyncBtn" style="display:none">⟳ Re-sync</button>
+</div>
+
+<div id="tb">
+  <div style="display:flex;gap:.35rem;flex-wrap:nowrap" id="ftabs">
+    <button class="ft on" data-f="all">All</button>
+    <button class="ft" data-f="wishlist">Wishlist</button>
+    <button class="ft" data-f="cancelled">Cancelled</button>
+    <button class="ft" data-f="removed">Removed</button>
+    <button class="ft" data-f="review">To Review</button>
+    <button class="ft" data-f="unreleased">Unreleased</button>
+  </div>
+  <!-- Mobile filter-tab dropdown (replaces #ftabs on small screens) -->
+  <button id="ftabsDrop">
+    <span id="ftabsDropLabel">All</span>
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+  <div id="ftabsPop">
+    <div class="ftpop-opt on" data-f="all">All</div>
+    <div class="ftpop-opt" data-f="wishlist">Wishlist</div>
+    <div class="ftpop-opt" data-f="cancelled">Cancelled</div>
+    <div class="ftpop-opt" data-f="removed">Removed</div>
+    <div class="ftpop-opt" data-f="review">To Review</div>
+    <div class="ftpop-opt" data-f="unreleased">Unreleased</div>
+  </div>
+  <div class="tsep"></div>
+  <select class="ts" id="sortSel">
+    <option value="hotness">Hotness</option>
+    <option value="priority">Priority</option>
+    <option value="title">Title A–Z</option>
+    <option value="release-asc">Release ↑</option>
+    <option value="price-asc">Price ↑</option>
+    <option value="price-desc">Price ↓</option>
+    <option value="added" selected>Date added</option>
+  </select>
+  <select class="ts" id="groupSel">
+    <option value="none">No grouping</option>
+    <option value="priority">By priority</option>
+    <option value="genre">By genre</option>
+    <option value="platform">By platform</option>
+    <option value="year">By year</option>
+  </select>
+  <!-- Genre filter -->
+  <div class="fpop-wrap">
+    <button class="fpop-btn" id="genreFilterBtn">Genre <span class="fpop-badge" id="genreFilterBadge" style="display:none"></span></button>
+    <div class="fpop" id="genreFilterPop">
+      <div class="fpop-header">
+        <span class="fpop-title">Genre</span>
+        <div class="fpop-logic" id="genreLogicToggle">
+          <button class="fpop-logic-btn on" data-l="or">OR</button>
+          <button class="fpop-logic-btn" data-l="and">AND</button>
+        </div>
+        <button class="fpop-clear" id="genreFilterClear">Clear</button>
+      </div>
+      <div class="fpop-list" id="genreFilterList"></div>
+    </div>
+  </div>
+  <!-- Tag filter -->
+  <div class="fpop-wrap">
+    <button class="fpop-btn" id="tagFilterBtn">Tags <span class="fpop-badge" id="tagFilterBadge" style="display:none"></span></button>
+    <div class="fpop" id="tagFilterPop">
+      <div class="fpop-header">
+        <span class="fpop-title">Tags</span>
+        <div class="fpop-logic" id="tagLogicToggle">
+          <button class="fpop-logic-btn on" data-l="or">OR</button>
+          <button class="fpop-logic-btn" data-l="and">AND</button>
+        </div>
+        <button class="fpop-clear" id="tagFilterClear">Clear</button>
+      </div>
+      <div class="fpop-list" id="tagFilterList"></div>
+    </div>
+  </div>
+  <!-- Priority filter -->
+  <div class="fpop-wrap">
+    <button class="fpop-btn" id="prioFilterBtn">Priority <span class="fpop-badge" id="prioFilterBadge" style="display:none"></span></button>
+    <div class="fpop fpop-prio" id="prioFilterPop">
+      <div class="fpop-header">
+        <span class="fpop-title">Priority</span>
+        <button class="fpop-clear" id="prioFilterClear">Clear</button>
+      </div>
+      <div class="fpop-list" id="prioFilterList"></div>
+    </div>
+  </div>
+  <div class="hrange" title="Filter by hotness range">
+    <span class="hrange-label">Hotness</span>
+    <input type="number" class="hrange-num" id="hrMinInp" min="0" max="100" value="0" placeholder="0">
+    <span class="hrange-sep">–</span>
+    <input type="number" class="hrange-num" id="hrMaxInp" min="0" max="100" value="100" placeholder="100">
+    <div class="hrange-slider-wrap" id="hrSliderWrap">
+      <div class="hrange-track"></div>
+      <div class="hrange-fill" id="hrFill"></div>
+      <div class="hrange-thumb" id="hrThumbMin" title="Min hotness"><span class="hrange-tip" id="hrTipMin">0</span></div>
+      <div class="hrange-thumb" id="hrThumbMax" title="Max hotness"><span class="hrange-tip" id="hrTipMax">100</span></div>
+    </div>
+    <span class="hrange-vals" id="hrVals">0–100</span>
+    <button class="hrange-reset" id="hrReset" title="Reset hotness filter">×</button>
+  </div>
+  <div class="vt">
+    <button class="vtb on" id="gridBtn" title="Grid">⊞</button>
+    <button class="vtb" id="listBtn" title="List">☰</button>
+  </div>
+  <div class="sc" id="statChips"></div>
+</div>
+
+<!-- COLLECTION TOOLBAR (visible in collection mode only) -->
+<div id="ctb" style="display:none">
+  <select class="ts" id="cSortSel">
+    <option value="steamcol" selected>Steam Collection</option>
+    <option value="title">Title A–Z</option>
+    <option value="playstatus">Play Status</option>
+    <option value="cost-desc">Cost ↓</option>
+    <option value="cost-asc">Cost ↑</option>
+    <option value="purchaseDate">Purchase Date</option>
+  </select>
+  <!-- Genre filter (reuse existing genre filter pop) -->
+  <div class="fpop-wrap">
+    <button class="fpop-btn" id="cGenreFilterBtn">Genre <span class="fpop-badge" id="cGenreFilterBadge" style="display:none"></span></button>
+    <div class="fpop" id="cGenreFilterPop">
+      <div class="fpop-header"><span class="fpop-title">Genre</span><button class="fpop-clear" id="cGenreFilterClear">Clear</button></div>
+      <div class="fpop-list" id="cGenreFilterList"></div>
+    </div>
+  </div>
+  <!-- Play Status filter -->
+  <div class="fpop-wrap">
+    <button class="fpop-btn" id="cPlayFilterBtn">Play Status <span class="fpop-badge" id="cPlayFilterBadge" style="display:none"></span></button>
+    <div class="fpop" id="cPlayFilterPop">
+      <div class="fpop-header"><span class="fpop-title">Play Status</span><button class="fpop-clear" id="cPlayFilterClear">Clear</button></div>
+      <div class="fpop-list" id="cPlayFilterList"></div>
+    </div>
+  </div>
+  <!-- Steam Collection filter -->
+  <div class="fpop-wrap">
+    <button class="fpop-btn" id="cColFilterBtn">Steam Collection <span class="fpop-badge" id="cColFilterBadge" style="display:none"></span></button>
+    <div class="fpop" id="cColFilterPop">
+      <div class="fpop-header"><span class="fpop-title">Steam Collection</span><button class="fpop-clear" id="cColFilterClear">Clear</button></div>
+      <div class="fpop-list" id="cColFilterList"></div>
+    </div>
+  </div>
+  <div class="vt">
+    <button class="vtb on" id="cGridBtn" title="Grid">⊞</button>
+    <button class="vtb" id="cListBtn" title="List">☰</button>
+  </div>
+  <div class="sc" id="cStatChips"></div>
+</div>
+
+<div id="main"><div id="content"><div id="gc"></div></div></div>
+
+<div id="pov"></div>
+<div id="toast"></div>
+
+<!-- MOVE TO COLLECTION MODAL -->
+<div id="btcov">
+  <div class="modal" style="max-width:480px">
+    <div class="mt" style="color:var(--green)">Move to Collection</div>
+    <div class="btc-game-title" id="btcTitle" style="font-size:.82rem;color:var(--t2);margin-bottom:.8rem;padding:.4rem .6rem;background:var(--s3);border-radius:var(--r);border:1px solid var(--bd)"></div>
+    <!-- Store (single select dropdown) -->
+    <div class="fr">
+      <label>Store</label>
+      <select id="btcStore">
+        <option value="">— select store —</option>
+        <option>Allyoucanplay</option><option>Amazon</option><option>CDKeys</option>
+        <option>Difmark</option><option>Driffle</option><option>Eneba</option>
+        <option>Epic Games</option><option>eTail.Market</option><option>Fanatical</option>
+        <option>G2A</option><option>G2Play</option><option>Gamebillet</option>
+        <option>GameSeal</option><option>Gamesplanet</option><option>Games for Play</option>
+        <option>Gamivo</option><option>Green Man Gaming</option><option>GOG</option>
+        <option>Humble Bundle</option><option>Indiegala</option><option>Instant Gaming</option>
+        <option>Keycense</option><option>Kinguin</option><option>K4G</option>
+        <option>Loaded</option><option>MMOGA</option><option>Nintendo EU</option>
+        <option>Nintendo US</option><option>Origin</option><option>Other</option>
+        <option>Playsum</option><option>PS EU</option><option>PS UK</option><option>PS US</option>
+        <option>Retail</option><option>Stadia</option><option>Steam</option>
+        <option>Target</option><option>Trading</option><option>Ubisoft</option>
+        <option>Voidu</option><option>WinGameStore</option><option>XBOX</option><option>Yuplay</option>
+      </select>
+    </div>
+    <!-- Cost + Purchase date -->
+    <div class="fg">
+      <div class="fr"><label>Cost (€)</label><input type="number" id="btcCost" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="fr"><label>Purchase date</label><input type="date" id="btcDate"></div>
+    </div>
+    <!-- Play status -->
+    <div class="fr">
+      <label>Play status</label>
+      <select id="btcPlayStatus">
+        <option value="Unplayed" selected>Unplayed</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Completed">Completed</option>
+        <option value="Superseded">Superseded</option>
+        <option value="Unfinishable">Unfinishable</option>
+        <option value="Played on Different Platform">Played on Different Platform</option>
+        <option value="Will Never Complete">Will Never Complete</option>
+        <option value="Will Never Play">Will Never Play</option>
+      </select>
+    </div>
+    <!-- Steam Collection (multi chip, prepopulated) -->
+    <div class="fr">
+      <label>Steam Collection <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
+      <div class="genre-wrap">
+        <div class="ciw" id="btcColWrap"><input type="text" class="cir" id="btcColInput" placeholder="Type to filter…" autocomplete="off"></div>
+        <div class="genre-dd" id="btcColDd"></div>
+      </div>
+    </div>
+    <div class="ma">
+      <button class="mb2 c" id="btcCancel">Cancel</button>
+      <button class="mb2" style="flex:1;background:#0a3320;border-color:#1a6640;color:var(--green);font-weight:700" id="btcConfirm">✓ Add to Collection</button>
+    </div>
+  </div>
+</div>
+
+<!-- RELEASE CALENDAR MODAL -->
+<div id="calOv" style="display:none;position:fixed;inset:0;background:rgba(3,19,41,.85);backdrop-filter:blur(4px);z-index:250;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);width:100%;max-width:900px;margin:0 auto">
+    <!-- Calendar header -->
+    <div id="calHdr" style="border-bottom:1px solid var(--bd)">
+      <!-- Desktop: single row. Mobile: two rows (CSS handles it) -->
+      <div class="cal-hdr-inner">
+        <span class="cal-hdr-title">Release Calendar</span>
+        <div class="cal-hdr-nav">
+          <button class="hb cal-arrow" id="calPrev">‹</button>
+          <select id="calMonthSel" class="ts cal-month-sel"></select>
+          <select id="calYearSel" class="ts cal-year-sel"></select>
+          <button class="hb cal-arrow" id="calNext">›</button>
+        </div>
+        <div class="cal-hdr-right">
+          <button class="hb cal-tba-toggle" id="calTbaBtn" title="Date Unknown games" style="display:none">TBA</button>
+          <button class="hb" id="calClose">✕</button>
+        </div>
+      </div>
+    </div>
+    <!-- Calendar body -->
+    <div style="display:flex;gap:0;min-height:400px;align-items:center;" id="calBody">
+      <!-- 3-month stacked grid area -->
+      <div id="calMain" style="flex:1;padding:.5rem .6rem;min-width:0;overflow:hidden"></div>
+      <!-- TBA sidebar (desktop, wider) -->
+      <div id="calTba" class="cal-tba-wide">
+        <div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.6rem;flex-shrink:0">Date Unknown</div>
+        <div class="tba-list-viewport" id="calTbaViewport">
+          <div class="tba-list-track" id="calTbaTrack"></div>
+        </div>
+        <div class="tba-pagination" id="tbaPagination" style="display:none">
+          <span class="tba-page-info" id="tbaPageInfo"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="metaFloatTip"></div>
+<div id="syncPill" class="hidden" title="Sync status — tap to retry"><span class="sp-dot"></span><span id="syncPillTxt"></span></div>
+
+<!-- SIDE PANEL -->
+<div id="panel">
+<div id="panel-drag-handle" title="Drag to resize"></div>
+  <div class="pcov">
+    <div class="pcph" id="pph">🎮</div>
+    <img id="pimg" src="" alt="" style="display:none">
+    <div class="pcg"></div>
+    <button class="pcl" id="pclose">✕</button>
+  </div>
+  <div class="pb2" id="pbody"></div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div id="mov">
+  <div class="modal">
+    <div class="mt" id="modalTitle">Add game</div>
+    <!-- Row 1: Store link full-width -->
+    <div class="fr">
+      <label>Store link <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— paste Steam URL to auto-fill Title &amp; App ID</span></label>
+      <input type="url" id="fStore" placeholder="https://store.steampowered.com/app/…">
+    </div>
+    <!-- Row 2: Title + App ID -->
+    <div class="fg">
+      <div class="fr"><label>Title *</label><input type="text" id="fTitle" placeholder="Game title"></div>
+      <div class="fr">
+        <label>Steam App ID</label>
+        <input type="text" id="fAppId" placeholder="e.g. 2239770" inputmode="numeric">
+        <div class="ferr" id="appIdErr">Already in your list.</div>
+        <div id="steamStatus" style="display:none;font-size:.62rem;margin-top:.2rem"></div>
+      </div>
+      <div class="fr">
+        <label>Short Description <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— auto-filled from Steam, editable</span></label>
+        <textarea id="fShortDesc" style="min-height:54px;resize:vertical" placeholder="Brief description of the game…"></textarea>
+      </div>
+      <div class="fr" id="parentAppIdRow" style="display:none">
+        <label>Base Game <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— required for DLC</span></label>
+        <div class="ac-wrap">
+          <input type="text" id="fParentSearch" placeholder="Search by title or App ID…" autocomplete="off">
+          <input type="hidden" id="fParentAppId">
+          <div class="ac-dd" id="parentDd"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Row 3: Cover preview + URL -->
+    <img id="cprev" class="cprev" alt="Cover preview">
+    <div class="cover-hint" id="coverHint">⚠ CDN image not found — paste the correct URL below</div>
+    <div class="fr" style="margin-top:.35rem">
+      <label>Cover URL <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">(auto-filled from App ID · or paste your own)</span></label>
+      <input type="url" id="fCover" placeholder="https://…">
+    </div>
+    <!-- Row 4: Platform + Genre side by side -->
+    <div class="fg">
+      <div class="fr">
+        <label>Platform</label>
+        <div class="pcks" id="pcks">
+          <label class="pck"><input type="checkbox" value="PC" checked> PC</label>
+          <label class="pck"><input type="checkbox" value="PlayStation"> PS</label>
+          <label class="pck"><input type="checkbox" value="Xbox"> Xbox</label>
+          <label class="pck"><input type="checkbox" value="Nintendo"> Nintendo</label>
+        </div>
+      </div>
+      <div class="fr">
+        <label>Genre <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
+        <div class="genre-wrap">
+          <div class="ciw" id="genreWrap"><input type="text" class="cir" id="genreInput" placeholder="Start typing…" autocomplete="off"></div>
+          <div class="genre-dd" id="genreDd"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Row 5: Dev + Publisher -->
+    <div class="fg">
+      <div class="fr">
+        <label>Developer</label>
+        <div class="ac-wrap"><input type="text" id="fDev" placeholder="Studio name" autocomplete="off"><div class="ac-dd" id="devDd"></div></div>
+      </div>
+      <div class="fr">
+        <label>Publisher</label>
+        <div class="ac-wrap"><input type="text" id="fPub" placeholder="Publisher name" autocomplete="off"><div class="ac-dd" id="pubDd"></div></div>
+      </div>
+    </div>
+    <!-- Row 6: Release date + Price + Priority -->
+    <div class="fg3">
+      <div class="fr">
+        <label>Release date</label>
+        <!-- Overlay container: date and tba text occupy same space -->
+        <div class="date-overlay-wrap">
+          <div class="date-row" id="dateRow">
+            <input type="date" id="fDate">
+            <button type="button" class="tba-btn" id="tbaBtn">UNRELEASED</button>
+          </div>
+          <div class="date-row" id="tbaTxtRow" style="display:none">
+            <input type="text" id="fTbaText" placeholder="e.g. Q4 2026 · Coming Soon">
+            <button type="button" class="tba-btn on" id="tbaBtnOff">UNRELEASED</button>
+          </div>
+        </div>
+      </div>
+      <div class="fr"><label>Price (€)</label><input type="number" id="fPrice" placeholder="29.99" step="0.01" min="0"></div>
+      <div class="fr">
+        <label>Priority</label>
+        <div class="prio-row">
+          <span class="prio-lbl-prev" id="prioLblPrev" style="background:var(--magenta)">Medium</span>
+          <select id="fPriority">
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <!-- Row 7: Hotness + Type -->
+    <div class="fg">
+      <div class="fr">
+        <label>Hotness <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">1–100 · blank = to review</span></label>
+        <input type="number" id="fHotness" placeholder="blank = to review" min="1" max="100">
+      </div>
+      <div class="fr">
+        <label>Type</label>
+        <select id="fType">
+          <option value="game" selected>Game</option>
+          <option value="dlc">DLC</option>
+        </select>
+      </div>
+    </div>
+    <!-- Row 8: Tags -->
+    <div class="fr">
+      <label>Tags <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
+      <div class="genre-wrap">
+        <div class="ciw" id="tagsWrap"><input type="text" class="cir" id="tagsInput" placeholder="co-op, birthday gift…"></div>
+        <div class="genre-dd" id="tagsDd"></div>
+      </div>
+    </div>
+    <!-- Collection fields (shown only when adding directly to collection) -->
+    <div id="modalColSection" style="display:none;border-top:1px solid var(--bd);margin-top:.6rem;padding-top:.6rem">
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:.6rem">Collection Details</div>
+      <!-- Store + Cost + Purchase date -->
+      <div class="fr" style="margin-bottom:.5rem">
+        <label>Store</label>
+        <select id="fColStore">
+          <option value="">— select store —</option>
+          <option>Allyoucanplay</option><option>Amazon</option><option>CDKeys</option>
+          <option>Difmark</option><option>Driffle</option><option>Eneba</option>
+          <option>Epic Games</option><option>eTail.Market</option><option>Fanatical</option>
+          <option>G2A</option><option>G2Play</option><option>Gamebillet</option>
+          <option>GameSeal</option><option>Gamesplanet</option><option>Games for Play</option>
+          <option>Gamivo</option><option>Green Man Gaming</option><option>GOG</option>
+          <option>Humble Bundle</option><option>Indiegala</option><option>Instant Gaming</option>
+          <option>Keycense</option><option>Kinguin</option><option>K4G</option>
+          <option>Loaded</option><option>MMOGA</option><option>Nintendo EU</option>
+          <option>Nintendo US</option><option>Origin</option><option>Other</option>
+          <option>Playsum</option><option>PS EU</option><option>PS UK</option><option>PS US</option>
+          <option>Retail</option><option>Stadia</option><option>Steam</option>
+          <option>Target</option><option>Trading</option><option>Ubisoft</option>
+          <option>Voidu</option><option>WinGameStore</option><option>XBOX</option><option>Yuplay</option>
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:.5rem">
+        <div class="fr"><label>Cost (€)</label><input type="number" id="fColCost" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="fr"><label>Purchase date</label><input type="date" id="fColDate"></div>
+      </div>
+      <div class="fr" style="margin-bottom:.5rem">
+        <label>Play status</label>
+        <input type="hidden" id="fColPlayStatus" value="Unplayed">
+        <button type="button" id="fColPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
+      </div>
+      <div class="fr">
+        <label>Steam Collection <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
+        <div class="genre-wrap">
+          <div class="ciw" id="fColColWrap"><input type="text" class="cir" id="fColColInput" placeholder="Type to filter…" autocomplete="off"></div>
+          <div class="genre-dd" id="fColColDd"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Notes in modal -->
+    <div class="fr" id="modalNotesSection">
+      <label>Notes</label>
+      <div class="note-compose">
+        <input type="date" id="fNoteDate" class="note-compose-date">
+        <textarea class="note-add" id="fNoteTxt" placeholder="Add a note…" style="margin-bottom:0;min-height:36px;resize:none"></textarea>
+      </div>
+      <button class="note-save-btn" id="fNoteSaveBtn" style="margin-top:.3rem">＋ Save note</button>
+      <div id="fNoteList" style="margin-top:.45rem"></div>
+    </div>
+    <div class="ma">
+      <button class="mb2 c" id="mcancel">Cancel</button>
+      <button class="mb2 p" id="msave">Save game</button>
+    </div>
+  </div>
+</div>
+
+<!-- REMOVE MODAL -->
+<div id="rmov">
+  <div class="modal" style="max-width:400px">
+    <div class="mt" style="color:var(--pink)">Remove from list</div>
+    <div class="fr"><label>Why are you removing this game?</label>
+      <textarea class="rta" id="rmNote" style="min-height:70px" placeholder="Not interested anymore, already bought elsewhere…"></textarea>
+    </div>
+    <div class="ma">
+      <button class="mb2 c" id="rmCancel">Cancel</button>
+      <button class="mb2" style="flex:1;background:#ff00aa22;border-color:#ff00aa66;color:var(--pink);font-weight:700" id="rmConfirm">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- REINSTATE MODAL -->
+<div id="riov">
+  <div class="modal" style="max-width:380px">
+    <div class="mt" style="color:var(--green)">Reinstate game</div>
+    <div class="fr"><label>Restore to which list?</label></div>
+    <div class="ma">
+      <button class="mb2 c" id="riCancel">Cancel</button>
+      <button class="mb2" style="flex:1;background:#9cff0022;border-color:#9cff0066;color:var(--green);font-weight:700" id="riWl">Wishlist</button>
+      <button class="mb2" style="flex:1;background:#02b3fc22;border-color:#02b3fc66;color:var(--blue);font-weight:700" id="riBt">Bought</button>
+    </div>
+  </div>
+</div>
+
+<script src="btb-url.js" onerror="void 0"></script>
+<script src="app.js"></script>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js',{scope:'./'})
+    .then(()=>console.log('BtB: SW registered'))
+    .catch(e=>console.warn('BtB: SW failed',e));
+}
+</script>
+</body>
+</html>
