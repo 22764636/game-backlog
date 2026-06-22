@@ -1930,11 +1930,14 @@ function openPsPicker(badge,gameId){
       picker.classList.remove('on');
     });
   });
-  // Position near badge
+  // Position near badge, flipping upward if insufficient space below
   const rect=badge.getBoundingClientRect();
-  picker.style.top=(rect.bottom+window.scrollY+4)+'px';
-  picker.style.left=Math.min(rect.left+window.scrollX,window.innerWidth-200)+'px';
+  picker.style.top=(rect.bottom+4)+'px';
+  picker.style.left=Math.min(rect.left,window.innerWidth-200)+'px';
   picker.classList.add('on');
+  const ph=picker.getBoundingClientRect().height;
+  if(rect.bottom+4+ph>window.innerHeight)
+    picker.style.top=Math.max(4,rect.top-ph-4)+'px';
 }
 
 // Modal play status fancy picker
@@ -1979,9 +1982,14 @@ function _syncModalPsBtn(val){
       });
     });
     const rect=btn.getBoundingClientRect();
-    picker.style.top=(rect.bottom+window.scrollY+4)+'px';
-    picker.style.left=Math.min(rect.left+window.scrollX,window.innerWidth-220)+'px';
+    picker.style.top=(rect.bottom+4)+'px';
+    picker.style.left=Math.min(rect.left,window.innerWidth-220)+'px';
     picker.classList.toggle('on');
+    if(picker.classList.contains('on')){
+      const ph=picker.getBoundingClientRect().height;
+      if(rect.bottom+4+ph>window.innerHeight)
+        picker.style.top=Math.max(4,rect.top-ph-4)+'px';
+    }
     e.stopPropagation();
   });
 })();
@@ -2075,9 +2083,14 @@ document.addEventListener('click',e=>{
       });
     });
     const rect=btn.getBoundingClientRect();
-    picker.style.top=(rect.bottom+window.scrollY+4)+'px';
-    picker.style.left=Math.min(rect.left+window.scrollX,window.innerWidth-220)+'px';
+    picker.style.top=(rect.bottom+4)+'px';
+    picker.style.left=Math.min(rect.left,window.innerWidth-220)+'px';
     picker.classList.toggle('on');
+    if(picker.classList.contains('on')){
+      const ph=picker.getBoundingClientRect().height;
+      if(rect.bottom+4+ph>window.innerHeight)
+        picker.style.top=Math.max(4,rect.top-ph-4)+'px';
+    }
     e.stopPropagation();
   });
 })();
