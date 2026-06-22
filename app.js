@@ -98,6 +98,19 @@ function setSyncStatus(state, msg){
       hmResync.style.color='var(--amber)';
     }
   }
+  // ── Desktop hamburger Re-sync button ──
+  const dhResync = document.getElementById('dhResyncBtn');
+  if(dhResync){
+    if(state==='ok'||state==='err'||state==='offline'){
+      dhResync.style.display='';
+      dhResync.textContent = state==='err' ? '⚠ Re-sync (failed)' : state==='offline' ? '⊘ Offline mode' : '⟳ Re-sync';
+      dhResync.style.color = state==='err' ? 'var(--pink)' : state==='offline' ? 'var(--t3)' : '';
+    } else if(state==='syncing'){
+      dhResync.textContent='⟳ Syncing…';
+      dhResync.style.display='';
+      dhResync.style.color='var(--amber)';
+    }
+  }
 }
 
 // Re-sync: fetch from Sheet, merge (Sheet wins), re-render
@@ -2356,6 +2369,29 @@ function checkAppIdDup(){
 // ══════════════════════════════════════════
 const STEAM_WORKER='https://steam-proxy-cm26.carmine-migliore26.workers.dev';
 
+// Parse a Steam date string ("13 Aug, 2026", "Aug 13 2026", "2026-08-13", etc.)
+// Returns an ISO "YYYY-MM-DD" string if the input contains day+month+year, else null.
+function parseSteamDateStr(raw){
+  if(!raw)return null;
+  const s=raw.trim();
+  const M={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
+    january:1,february:2,march:3,april:4,june:6,july:7,august:8,
+    september:9,october:10,november:11,december:12};
+  function iso(d,m,y){const yr=y<100?2000+y:y;return`${yr}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+  let r;
+  // 2026-08-13
+  r=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(r)return iso(+r[3],+r[2],+r[1]);
+  // 13/08/2026 or 13/08/26
+  r=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);if(r)return iso(+r[1],+r[2],+r[3]);
+  // 13 Aug, 2026 / 13 Aug 2026 / 13 August 2026 / 13 Aug 26
+  r=s.match(/^(\d{1,2})\s+([A-Za-z]+),?\s+(\d{2,4})$/);
+  if(r){const m=M[r[2].toLowerCase()];if(m)return iso(+r[1],m,+r[3]);}
+  // Aug 13, 2026 / August 13, 2026 / Aug 13 2026
+  r=s.match(/^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{2,4})$/);
+  if(r){const m=M[r[1].toLowerCase()];if(m)return iso(+r[2],m,+r[3]);}
+  return null;
+}
+
 function steamStatus(msg,type){
   // type: 'loading' | 'ok' | 'err' | ''
   const el=document.getElementById('steamStatus');
@@ -2433,11 +2469,8 @@ async function steamAutoFill(appId,{fromUrl=false}={}){
       } else {
         const dateEl=document.getElementById('fDate');
         if(!dateEl.value){
-          const parsed=new Date(dateStr);
-          if(!isNaN(parsed)){
-            dateEl.value=`${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`;
-            filled.push('release');
-          }
+          const iso=parseSteamDateStr(dateStr);
+          if(iso){dateEl.value=iso;filled.push('release');}
         }
       }
     }
@@ -2893,9 +2926,11 @@ function setAppMode(mode){
   // Toggle toolbars
   document.getElementById('tb').classList.toggle('col-hidden',isCol);
   document.getElementById('ctb').style.display=isCol?'flex':'none';
-  // Toggle button label
-  const btn=document.getElementById('collectionToggleBtn');
-  if(btn){btn.textContent=isCol?'Wishlist':'Collection';btn.classList.toggle('on',isCol);}
+  // Sync pill toggle
+  const mWl=document.getElementById('modeWishlist');
+  const mCo=document.getElementById('modeCollection');
+  if(mWl)mWl.classList.toggle('on',!isCol);
+  if(mCo)mCo.classList.toggle('on',isCol);
   const mBtn=document.getElementById('hmCollectionBtn');
   if(mBtn)mBtn.textContent=isCol?'Wishlist':'Collection';
   // Render the right view
@@ -2969,7 +3004,8 @@ function restoreFromHash(){
 function debounce(fn,ms){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms)};}
 
 // Collection toggle buttons
-document.getElementById('collectionToggleBtn').onclick=()=>setAppMode(appMode==='collection'?'wishlist':'collection');
+document.getElementById('modeWishlist').onclick=()=>setAppMode('wishlist');
+document.getElementById('modeCollection').onclick=()=>setAppMode('collection');
 document.getElementById('hmCollectionBtn').onclick=()=>{document.getElementById('hmenu').classList.remove('on');setAppMode(appMode==='collection'?'wishlist':'collection');};
 
 // Collection view mode toggle (grid/list)
@@ -3164,6 +3200,27 @@ document.getElementById('impBtn').onclick=()=>{
   document.getElementById('hmImpBtn').addEventListener('click',hm(function(){document.getElementById('impBtn').onclick();}));
   document.getElementById('hmResyncBtn').addEventListener('click',hm(function(){if(!OFFLINE)resync();}));
   document.getElementById('calBtn').addEventListener('click',openCalendar);
+})();
+
+// ══════════════════════════════════════════
+//  DESKTOP HAMBURGER MENU
+// ══════════════════════════════════════════
+(function(){
+  const btn=document.getElementById('dhBtn');
+  const menu=document.getElementById('dhmenu');
+  btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    document.querySelectorAll('.fpop.open').forEach(p=>p.classList.remove('open'));
+    menu.classList.toggle('on');
+  });
+  document.addEventListener('click',e=>{if(!menu.contains(e.target)&&e.target!==btn)menu.classList.remove('on');});
+  function dh(fn){return function(){menu.classList.remove('on');fn();}}
+  document.getElementById('dhThemeBtn').addEventListener('click',dh(toggleTheme));
+  document.getElementById('dhMetaBtn').addEventListener('click',dh(()=>document.getElementById('metaRefreshBtn').click()));
+  document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>document.getElementById('rdcBtn').click()));
+  document.getElementById('dhExpBtn').addEventListener('click',dh(()=>document.getElementById('expBtn').click()));
+  document.getElementById('dhImpBtn').addEventListener('click',dh(()=>document.getElementById('impBtn').click()));
+  document.getElementById('dhResyncBtn').addEventListener('click',dh(()=>{if(!OFFLINE)resync();}));
 })();
 
 // ══════════════════════════════════════════
@@ -3431,18 +3488,10 @@ document.addEventListener('keydown',function(e){
     const coming=!!relObj.coming_soon;
     const raw=(relObj.date||'').trim();
     if(!raw)return{releaseDate:'',tbaText:''};
-    if(coming){
-      // Not yet released — keep as descriptive text
-      return{releaseDate:'',tbaText:raw};
+    if(!coming){
+      const iso=parseSteamDateStr(raw);
+      if(iso)return{releaseDate:iso,tbaText:''};
     }
-    // Released or confirmed date — try to parse as a real calendar date
-    const parsed=new Date(raw);
-    if(!isNaN(parsed)&&/\d/.test(raw)){
-      // Verify the parse actually produced a day-level date (not just a year)
-      const full=`${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`;
-      return{releaseDate:full,tbaText:''};
-    }
-    // Couldn't resolve to a full date (e.g. "Q3 2026", "2026") → tbaText
     return{releaseDate:'',tbaText:raw};
   }
 

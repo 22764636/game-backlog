@@ -47,15 +47,19 @@
   </div>
   <span id="syncStatus" class="sync-hdr"></span>
   <div class="hr">
-    <button class="hb hb-desk" id="themeBtn">☀️</button>
-    <button class="hb hb-desk" id="metaRefreshBtn" title="Refresh genre & tag descriptions">⟳ Meta</button>
-    <button class="hb hb-desk" id="rdcBtn" title="Check Steam for updated release dates">↻ Dates</button>
+    <button class="hb hb-desk" id="themeBtn" style="display:none">☀️</button>
+    <button class="hb hb-desk" id="metaRefreshBtn" style="display:none" title="Refresh genre & tag descriptions">⟳ Meta</button>
+    <button class="hb hb-desk" id="rdcBtn" style="display:none" title="Check Steam for updated release dates">↻ Dates</button>
     <button class="hb hb-desk" id="calBtn" title="Release Calendar"><span class="hb-label">Calendar</span></button>
-    <button class="hb hb-desk" id="expBtn" title="Export"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg><span class="hb-label"> Export</span></button>
-    <button class="hb hb-desk" id="impBtn" title="Import"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg><span class="hb-label"> Import</span></button>
+    <button class="hb hb-desk" id="expBtn" style="display:none" title="Export"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg><span class="hb-label"> Export</span></button>
+    <button class="hb hb-desk" id="impBtn" style="display:none" title="Import"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg><span class="hb-label"> Import</span></button>
     <button class="hb hb-desk kb-help-btn" id="kbHelpBtn" title="Keyboard shortcuts">?</button>
-    <button class="hb hb-desk" id="collectionToggleBtn">Collection</button>
+    <div class="mode-tog hb-desk" id="modeTog">
+      <button class="mode-btn on" id="modeWishlist">Wishlist</button>
+      <button class="mode-btn" id="modeCollection">Collection</button>
+    </div>
     <button class="hb p" id="addBtn">＋<span class="hb-label"> Add game</span></button>
+    <button class="hb hb-desk" id="dhBtn" title="More options" style="font-size:1rem;padding:0 .5rem">☰</button>
     <button class="hb hb-mob" id="hamburgerBtn" style="font-size:1rem;padding:0 .5rem" title="Menu">☰</button>
   </div>
 </header>
@@ -88,6 +92,15 @@
   <button class="hmi" id="hmCollectionBtn">Collection</button>
   <button class="hmi" id="hmResyncBtn" style="display:none">⟳ Re-sync</button>
   <button class="hmi" id="hmRdcBtn">↻ Check release dates</button>
+</div>
+<!-- Desktop dropdown menu -->
+<div id="dhmenu">
+  <button class="hmi" id="dhThemeBtn">☀️ Toggle theme</button>
+  <button class="hmi" id="dhMetaBtn">⟳ Refresh genre &amp; tag data</button>
+  <button class="hmi" id="dhDatesBtn">↻ Check release dates</button>
+  <button class="hmi" id="dhExpBtn">⬇ Export</button>
+  <button class="hmi" id="dhImpBtn">⬆ Import</button>
+  <button class="hmi" id="dhResyncBtn" style="display:none">⟳ Re-sync</button>
 </div>
 
 <div id="tb">
