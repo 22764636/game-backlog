@@ -1292,7 +1292,7 @@ function cardHTML(g){
           <a href="${ggUrl}" class="qb" title="gg.deals" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_GG,'gg')}</a>
           <a href="${sdbUrl}" class="qb qb-sdb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
           <button class="qb qb-bt${ba}" title="${t('mBt')}" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">${IC.check}</button>
-          <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">${IC.edit}</button>
+          <button class="qb" title="Edit" onclick="event.stopPropagation();openEditFromCard('${gid_s}')">${IC.edit}</button>
           ${rmBtn}
         </div>
       </div>
@@ -1389,7 +1389,7 @@ function colCardHTML(g){
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
           <a href="${sdbUrl}" class="qb qb-sdb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
           <button class="qb qb-wl ba" title="Move back to Wishlist" onclick="event.stopPropagation();startMoveToWishlist('${gid_s}')">${IC.backWl}</button>
-          <button class="qb" title="Edit" onclick="event.stopPropagation();closePanel();openEdit('${gid_s}')">${IC.edit}</button>
+          <button class="qb" title="Edit" onclick="event.stopPropagation();openEditFromCard('${gid_s}')">${IC.edit}</button>
           <button class="qb qb-ap" title="Add Platform" onclick="event.stopPropagation();openAddPlatformModal('${gid_s}')">${IC.plus}</button>
         </div>
       </div>
@@ -2566,7 +2566,7 @@ function openPanel(id){
     });
     document.getElementById('psrv').onclick=()=>{const gg=games.find(x=>x.id===openId);if(gg){gg.myRating=cStars;gg.myReview=document.getElementById('prevta').value;save()}};
   }
-  document.getElementById('ped').onclick=()=>{closePanel();openEdit(id)};
+  document.getElementById('ped').onclick=()=>{_popSuppressed=true;closePanel();setTimeout(()=>{_popSuppressed=false;},400);openEdit(id)};
   document.getElementById('pbt').onclick=()=>handleMarkBought(id);
   const prm=document.getElementById('prm');if(prm)prm.onclick=()=>startRemove(id);
   const pri=document.getElementById('pri');if(pri)pri.onclick=()=>startReinstate(id);
@@ -3256,6 +3256,14 @@ function _syncSteamWishlistBtn(){
   btn.classList.toggle('accent',_modalSteamWishlist);
   btn.textContent=_modalSteamWishlist?'★ Also want on Steam':'☆ Also want on Steam';
 }
+function openEditFromCard(id){
+  if(document.getElementById('panel').classList.contains('on')){
+    _popSuppressed=true;
+    closePanel();
+    setTimeout(()=>{_popSuppressed=false;},400);
+  }
+  openEdit(id);
+}
 function openEdit(id){
   const g=games.find(x=>x.id===id);if(!g)return;
   editId=id;clearModal();
@@ -3557,9 +3565,9 @@ function positionFpop(btn,pop){
 function setAppMode(mode){
   appMode=mode;
   const isCol=mode==='collection';
-  // Toggle toolbars
-  document.getElementById('tb').classList.toggle('col-hidden',isCol);
-  document.getElementById('ctb').style.display=isCol?'flex':'none';
+  // Toggle toolbars (legacy elements may not exist)
+  const _tb=document.getElementById('tb');if(_tb)_tb.classList.toggle('col-hidden',isCol);
+  const _ctb=document.getElementById('ctb');if(_ctb)_ctb.style.display=isCol?'flex':'none';
   // Sync pill toggle
   const mWl=document.getElementById('modeWishlist');
   const mCo=document.getElementById('modeCollection');
@@ -3567,6 +3575,15 @@ function setAppMode(mode){
   if(mCo)mCo.classList.toggle('on',isCol);
   ['hmModeWishlist'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',!isCol);});
   ['hmModeCollection'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',isCol);});
+  // Toggle sidebar sections
+  const fbarWl=document.getElementById('fbar-wl');
+  const fbarCol=document.getElementById('fbar-col');
+  if(fbarWl)fbarWl.style.display=isCol?'none':'';
+  if(fbarCol)fbarCol.style.display=isCol?'':'none';
+  // Toggle stat chips
+  const sSt=document.getElementById('statChips');if(sSt)sSt.style.display=isCol?'none':'';
+  const cSt=document.getElementById('cStatChips');if(cSt)cSt.style.display=isCol?'':'none';
+  syncFbarBadges();
   // Render the right view
   if(isCol){renderCollection();}else{renderAll();}
 }
@@ -3601,6 +3618,7 @@ function syncFilterBtns(){
   sl('cColLogicToggle',cfSteamColLogic);
   const exclTog=document.getElementById('cPlatExclToggle');
   if(exclTog)exclTog.querySelectorAll('.fpop-logic-btn').forEach(b=>b.classList.toggle('on',b.dataset.m===(cfPlatExclusive?'excl':'any')));
+  syncFbarBadges();
 }
 function saveHash(){
   if(typeof URLSearchParams==='undefined')return;
@@ -3692,6 +3710,7 @@ document.getElementById('cSortSel').onchange=renderCollection;
 (function(){
   const btn=document.getElementById('cPlayFilterBtn');
   const pop=document.getElementById('cPlayFilterPop');
+  if(!btn||!pop)return;
   const badge=document.getElementById('cPlayFilterBadge');
   const clearBtn=document.getElementById('cPlayFilterClear');
   const list=document.getElementById('cPlayFilterList');
@@ -3761,6 +3780,7 @@ makeFilterPopover({
 function makePlatFilterPopover({btnId,popId,badgeId,clearId,listId,getSelected,setSelected,getFreq,doRender,exclusiveToggleId,getExclusive,setExclusive}){
   const btn=document.getElementById(btnId);
   const pop=document.getElementById(popId);
+  if(!btn||!pop)return;
   const badge=document.getElementById(badgeId);
   const clearBtn=document.getElementById(clearId);
   const list=document.getElementById(listId);
@@ -3946,6 +3966,7 @@ let _updateHotnessSlider=null;
   const minInp=document.getElementById('hrMinInp');
   const maxInp=document.getElementById('hrMaxInp');
   const wrap=document.getElementById('hrSliderWrap');
+  if(!minInp||!maxInp||!wrap){_updateHotnessSlider=()=>{};return;}
   const fill=document.getElementById('hrFill');
   const thumbMin=document.getElementById('hrThumbMin');
   const thumbMax=document.getElementById('hrThumbMax');
@@ -3974,6 +3995,7 @@ let _updateHotnessSlider=null;
     renderAll();
   }
   function onNumChange(){
+    if(minInp.value===''||maxInp.value==='')return;
     let mn=clamp(parseInt(minInp.value)||0,0,100);
     let mx=clamp(parseInt(maxInp.value)||100,0,100);
     if(mn>mx)mx=mn;
@@ -3981,6 +4003,8 @@ let _updateHotnessSlider=null;
   }
   minInp.addEventListener('input',onNumChange);
   maxInp.addEventListener('input',onNumChange);
+  minInp.addEventListener('blur',()=>{if(minInp.value===''){applyValues(0,hrMaxVal);}});
+  maxInp.addEventListener('blur',()=>{if(maxInp.value===''){applyValues(hrMinVal,100);}});
   if(resetBtn)resetBtn.addEventListener('click',()=>applyValues(0,100));
 
   // Track click — account for padding offset
@@ -4029,6 +4053,7 @@ let _updateHotnessSlider=null;
 function makeFilterPopover({btnId,popId,badgeId,clearId,listId,logicToggleId,getSelected,setSelected,getLogic,setLogic,getOptions,renderFn,showTip=true}){
   const btn=document.getElementById(btnId);
   const pop=document.getElementById(popId);
+  if(!btn||!pop)return;
   const badge=document.getElementById(badgeId);
   const clearBtn=document.getElementById(clearId);
   const list=document.getElementById(listId);
@@ -4114,6 +4139,7 @@ makeFilterPopover({
 (function(){
   const btn=document.getElementById('prioFilterBtn');
   const pop=document.getElementById('prioFilterPop');
+  if(!btn||!pop)return;
   const badge=document.getElementById('prioFilterBadge');
   const clearBtn=document.getElementById('prioFilterClear');
   const list=document.getElementById('prioFilterList');
@@ -4430,6 +4456,440 @@ function _closeAllFloating(){
   document.querySelectorAll('.modal').forEach(el=>el.addEventListener('scroll',()=>{
     document.querySelectorAll('.fpop.open').forEach(p=>p.classList.remove('open'));
   },{passive:true}));
+})();
+
+// ══════════════════════════════════════════
+//  FILTER SIDEBAR
+// ══════════════════════════════════════════
+(function(){
+  // ── Open / close ──
+  function openFbar(){
+    document.getElementById('fbar').classList.add('on');
+    document.getElementById('fbar-ov').classList.add('on');
+    document.getElementById('main').classList.add('fbar-open');
+    // Refresh all open section lists
+    _fbarRefreshAll();
+  }
+  function closeFbar(){
+    document.getElementById('fbar').classList.remove('on');
+    document.getElementById('fbar-ov').classList.remove('on');
+    document.getElementById('main').classList.remove('fbar-open');
+  }
+  window._openFbar=openFbar;
+  window._closeFbar=closeFbar;
+
+  // ── Wire toggle buttons ──
+  const toggleBtn=document.getElementById('filtersToggleBtn');
+  if(toggleBtn)toggleBtn.onclick=()=>{
+    const on=document.getElementById('fbar').classList.contains('on');
+    on?closeFbar():openFbar();
+  };
+  const fabBtn=document.getElementById('fbarFab');
+  if(fabBtn)fabBtn.onclick=()=>{
+    const on=document.getElementById('fbar').classList.contains('on');
+    on?closeFbar():openFbar();
+  };
+  document.getElementById('fbarClose').onclick=closeFbar;
+  document.getElementById('fbar-ov').onclick=closeFbar;
+
+  // sortSel, groupSel, cSortSel are now directly in the sidebar HTML
+
+  // ── Accordion toggles ──
+  function wireAccordion(toggleId,bodyId){
+    const btn=document.getElementById(toggleId);
+    const body=document.getElementById(bodyId);
+    if(!btn||!body)return;
+    btn.addEventListener('click',()=>{
+      const open=btn.classList.toggle('open');
+      body.style.display=open?'':'none';
+      if(open)_fbarRefreshSection(toggleId);
+    });
+  }
+  wireAccordion('fbar-genre-toggle','fbar-genre-body');
+  wireAccordion('fbar-tags-toggle','fbar-tags-body');
+  wireAccordion('fbar-prio-toggle','fbar-prio-body');
+  wireAccordion('fbar-cgenre-toggle','fbar-cgenre-body');
+  wireAccordion('fbar-cplay-toggle','fbar-cplay-body');
+  wireAccordion('fbar-cplat-toggle','fbar-cplat-body');
+  wireAccordion('fbar-ccol-toggle','fbar-ccol-body');
+
+  // ── Hotness sidebar slider ──
+  const FBAR_PAD=8;
+  const fbarMinInp=document.getElementById('fbar-hrMinInp');
+  const fbarMaxInp=document.getElementById('fbar-hrMaxInp');
+  const fbarWrap=document.getElementById('fbar-hrSliderWrap');
+  const fbarFill=document.getElementById('fbar-hrFill');
+  const fbarThumbMin=document.getElementById('fbar-hrThumbMin');
+  const fbarThumbMax=document.getElementById('fbar-hrThumbMax');
+  const fbarTipMin=document.getElementById('fbar-hrTipMin');
+  const fbarTipMax=document.getElementById('fbar-hrTipMax');
+
+  function fbarApply(mn,mx){
+    hrMinVal=mn;hrMaxVal=mx;
+    if(document.getElementById('hrMinInp'))document.getElementById('hrMinInp').value=mn;
+    if(document.getElementById('hrMaxInp'))document.getElementById('hrMaxInp').value=mx;
+    fbarMinInp.value=mn;fbarMaxInp.value=mx;
+    fbarUpdateSlider();
+    if(typeof _updateHotnessSlider==='function')_updateHotnessSlider();
+    renderAll();
+    syncFbarBadges();
+  }
+  function fbarUpdateSlider(){
+    if(!fbarWrap)return;
+    fbarThumbMin.style.left=`calc(${FBAR_PAD}px + (100% - ${FBAR_PAD*2}px) * ${hrMinVal/100})`;
+    fbarThumbMax.style.left=`calc(${FBAR_PAD}px + (100% - ${FBAR_PAD*2}px) * ${hrMaxVal/100})`;
+    fbarFill.style.left=`calc(${FBAR_PAD}px + (100% - ${FBAR_PAD*2}px) * ${hrMinVal/100})`;
+    fbarFill.style.width=`calc((100% - ${FBAR_PAD*2}px) * ${(hrMaxVal-hrMinVal)/100})`;
+    if(fbarTipMin)fbarTipMin.textContent=hrMinVal;
+    if(fbarTipMax)fbarTipMax.textContent=hrMaxVal;
+  }
+  function fbarOnNumChange(){
+    if(fbarMinInp.value===''||fbarMaxInp.value==='')return;
+    let mn=Math.max(0,Math.min(100,parseInt(fbarMinInp.value)||0));
+    let mx=Math.max(0,Math.min(100,parseInt(fbarMaxInp.value)||100));
+    if(mn>mx)mx=mn;
+    fbarApply(mn,mx);
+  }
+  if(fbarMinInp){
+    fbarMinInp.addEventListener('input',fbarOnNumChange);
+    fbarMinInp.addEventListener('blur',()=>{if(fbarMinInp.value==='')fbarApply(0,hrMaxVal);});
+  }
+  if(fbarMaxInp){
+    fbarMaxInp.addEventListener('input',fbarOnNumChange);
+    fbarMaxInp.addEventListener('blur',()=>{if(fbarMaxInp.value==='')fbarApply(hrMinVal,100);});
+  }
+  // Slider drag
+  function fbarMakeDraggable(thumb,isMin){
+    let dragging=false;
+    function getVal(clientX){
+      const rect=fbarWrap.getBoundingClientRect();
+      const trackW=rect.width-FBAR_PAD*2;
+      return Math.round(Math.max(0,Math.min(1,(clientX-rect.left-FBAR_PAD)/trackW))*100);
+    }
+    thumb.addEventListener('mousedown',e=>{dragging=true;thumb.classList.add('dragging');e.preventDefault();e.stopPropagation();});
+    document.addEventListener('mousemove',e=>{
+      if(!dragging)return;
+      const val=getVal(e.clientX);
+      isMin?fbarApply(Math.min(val,hrMaxVal),hrMaxVal):fbarApply(hrMinVal,Math.max(val,hrMinVal));
+    });
+    document.addEventListener('mouseup',()=>{dragging=false;thumb.classList.remove('dragging');});
+    thumb.addEventListener('touchstart',e=>{dragging=true;thumb.classList.add('dragging');e.preventDefault();e.stopPropagation();},{passive:false});
+    document.addEventListener('touchmove',e=>{
+      if(!dragging)return;
+      const val=getVal(e.touches[0].clientX);
+      isMin?fbarApply(Math.min(val,hrMaxVal),hrMaxVal):fbarApply(hrMinVal,Math.max(val,hrMinVal));
+    },{passive:true});
+    document.addEventListener('touchend',()=>{dragging=false;thumb.classList.remove('dragging');});
+  }
+  if(fbarThumbMin)fbarMakeDraggable(fbarThumbMin,true);
+  if(fbarThumbMax)fbarMakeDraggable(fbarThumbMax,false);
+  if(fbarWrap){
+    fbarWrap.addEventListener('mousedown',e=>{
+      if(e.target===fbarThumbMin||e.target===fbarThumbMax)return;
+      const rect=fbarWrap.getBoundingClientRect();
+      const trackW=rect.width-FBAR_PAD*2;
+      const val=Math.round(Math.max(0,Math.min(1,(e.clientX-rect.left-FBAR_PAD)/trackW))*100);
+      const dMin=Math.abs(val-hrMinVal);const dMax=Math.abs(val-hrMaxVal);
+      if(dMin<=dMax)fbarApply(Math.min(val,hrMaxVal),hrMaxVal);
+      else fbarApply(hrMinVal,Math.max(val,hrMinVal));
+    });
+  }
+
+  // ── Generic list renderer ──
+  function renderGenreTagList(listEl,searchEl,logicEl,getSelected,setSelected,getLogic,setLogic,getOptions,doRender){
+    if(!listEl)return;
+    const q=(searchEl?searchEl.value:'').toLowerCase();
+    const opts=getOptions().filter(o=>!q||o.value.toLowerCase().includes(q));
+    if(!opts.length){listEl.innerHTML=`<div class="fbar-opt" style="color:var(--t3);cursor:default">No options</div>`;return;}
+    listEl.innerHTML=opts.map(o=>{
+      const sel=getSelected().has(o.value);
+      return`<div class="fbar-opt${sel?' selected':''}" data-val="${esc(o.value)}">
+        <span class="fbar-opt-check">${sel?'✓':''}</span>
+        <span class="fbar-opt-label">${esc(o.value)}</span>
+        <span class="fbar-opt-count">${o.count||''}</span>
+      </div>`;
+    }).join('');
+    listEl.querySelectorAll('.fbar-opt').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const v=el.dataset.val;
+        getSelected().has(v)?getSelected().delete(v):getSelected().add(v);
+        doRender();
+        syncFbarBadges();
+        renderGenreTagList(listEl,searchEl,logicEl,getSelected,setSelected,getLogic,setLogic,getOptions,doRender);
+      });
+    });
+    // Logic toggle
+    if(logicEl){
+      logicEl.querySelectorAll('.fbar-logic-btn').forEach(b=>{
+        b.classList.toggle('on',b.dataset.l===getLogic());
+        b.onclick=()=>{
+          setLogic(b.dataset.l);
+          logicEl.querySelectorAll('.fbar-logic-btn').forEach(x=>x.classList.toggle('on',x.dataset.l===getLogic()));
+          doRender();syncFbarBadges();
+        };
+      });
+    }
+  }
+
+  // ── Wire genre (wishlist) ──
+  function refreshFbarGenre(){
+    renderGenreTagList(
+      document.getElementById('fbar-genre-list'),
+      document.getElementById('fbar-genre-search'),
+      document.getElementById('fbar-genre-logic'),
+      ()=>fGenres,(s)=>{fGenres=s;},()=>fGenreLogic,(l)=>{fGenreLogic=l;},
+      ()=>{const freq={};games.filter(g=>g.status!=='bought').forEach(g=>(g.genres||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1}));return Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b)).map(v=>({value:v,count:freq[v]}));},
+      renderAll
+    );
+  }
+  const fbarGenreSearch=document.getElementById('fbar-genre-search');
+  if(fbarGenreSearch)fbarGenreSearch.addEventListener('input',refreshFbarGenre);
+  document.getElementById('fbar-genre-clear').onclick=()=>{fGenres=new Set();renderAll();syncFbarBadges();refreshFbarGenre();};
+
+  // ── Wire tags (wishlist) ──
+  function refreshFbarTags(){
+    renderGenreTagList(
+      document.getElementById('fbar-tags-list'),
+      document.getElementById('fbar-tags-search'),
+      document.getElementById('fbar-tags-logic'),
+      ()=>fTags,(s)=>{fTags=s;},()=>fTagLogic,(l)=>{fTagLogic=l;},
+      ()=>{const freq={};games.filter(g=>g.status!=='bought').forEach(g=>(g.tags||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1}));return Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b)).map(v=>({value:v,count:freq[v]}));},
+      renderAll
+    );
+  }
+  const fbarTagsSearch=document.getElementById('fbar-tags-search');
+  if(fbarTagsSearch)fbarTagsSearch.addEventListener('input',refreshFbarTags);
+  document.getElementById('fbar-tags-clear').onclick=()=>{fTags=new Set();renderAll();syncFbarBadges();refreshFbarTags();};
+
+  // ── Wire priority (wishlist) ──
+  function refreshFbarPrio(){
+    const list=document.getElementById('fbar-prio-list');if(!list)return;
+    const PRIOS=[{value:'high',label:'High'},{value:'medium',label:'Medium'},{value:'low',label:'Low'}];
+    const freq={high:0,medium:0,low:0};
+    games.filter(g=>g.status!=='bought').forEach(g=>{const p=g.priority||'medium';freq[p]=(freq[p]||0)+1;});
+    list.innerHTML=PRIOS.map(({value,label})=>{
+      const sel=fPrios.has(value);
+      return`<div class="fbar-opt fbar-prio-pill${sel?' selected':''}" data-val="${value}">
+        <span class="fbar-opt-check">${sel?'✓':''}</span>
+        <span class="fbar-opt-label" style="display:flex;align-items:center;gap:.35rem">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${prioColor(value)};flex-shrink:0"></span>
+          ${label}
+        </span>
+        <span class="fbar-opt-count">${freq[value]||0}</span>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.fbar-opt').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const v=el.dataset.val;
+        fPrios.has(v)?fPrios.delete(v):fPrios.add(v);
+        renderAll();syncFbarBadges();refreshFbarPrio();
+      });
+    });
+  }
+  document.getElementById('fbar-prio-clear').onclick=()=>{fPrios=new Set();renderAll();syncFbarBadges();refreshFbarPrio();};
+
+  // ── Wire collection genre ──
+  function refreshFbarCGenre(){
+    renderGenreTagList(
+      document.getElementById('fbar-cgenre-list'),
+      document.getElementById('fbar-cgenre-search'),
+      document.getElementById('fbar-cgenre-logic'),
+      ()=>cfGenres,(s)=>{cfGenres=s;},()=>cfGenreLogic,(l)=>{cfGenreLogic=l;},
+      ()=>{const freq={};games.filter(g=>g.status==='bought').forEach(g=>(g.genres||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1}));return Object.keys(freq).sort().map(v=>({value:v,count:freq[v]}));},
+      renderCollection
+    );
+  }
+  const fbarCGenreSearch=document.getElementById('fbar-cgenre-search');
+  if(fbarCGenreSearch)fbarCGenreSearch.addEventListener('input',refreshFbarCGenre);
+  document.getElementById('fbar-cgenre-clear').onclick=()=>{cfGenres=new Set();renderCollection();syncFbarBadges();refreshFbarCGenre();};
+
+  // ── Wire collection play status ──
+  function refreshFbarCPlay(){
+    const list=document.getElementById('fbar-cplay-list');if(!list)return;
+    const order=['Unplayed','In Progress','Completed','Superseded','Unfinishable','Played on Different Platform','Will Never Complete','Will Never Play'];
+    const freq={};
+    games.filter(g=>g.status==='bought').forEach(g=>{const s=g.playStatus||'Unplayed';freq[s]=(freq[s]||0)+1;});
+    const opts=order.filter(s=>freq[s]>0);
+    if(!opts.length){list.innerHTML=`<div class="fbar-opt" style="color:var(--t3);cursor:default">No options</div>`;return;}
+    list.innerHTML=opts.map(v=>{
+      const m=PS_META[v]||{code:'UP',cls:'ps-UP'};
+      const sel=cfPlayStatus.has(v);
+      return`<div class="fbar-opt${sel?' selected':''}" data-val="${esc(v)}">
+        <span class="fbar-opt-check">${sel?'✓':''}</span>
+        <span class="col-ps-badge ${m.cls}" style="pointer-events:none;font-size:.58rem;padding:1px 4px">${m.code}</span>
+        <span class="fbar-opt-label">${esc(v)}</span>
+        <span class="fbar-opt-count">${freq[v]||0}</span>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.fbar-opt').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const v=el.dataset.val;
+        cfPlayStatus.has(v)?cfPlayStatus.delete(v):cfPlayStatus.add(v);
+        renderCollection();syncFbarBadges();refreshFbarCPlay();
+      });
+    });
+  }
+  document.getElementById('fbar-cplay-clear').onclick=()=>{cfPlayStatus=new Set();renderCollection();syncFbarBadges();refreshFbarCPlay();};
+
+  // ── Wire collection platform ──
+  function refreshFbarCPlat(){
+    const list=document.getElementById('fbar-cplat-list');if(!list)return;
+    const freq={};games.filter(g=>g.status==='bought').forEach(g=>{ownedPlatforms(g).forEach(p=>{if(p)freq[p]=(freq[p]||0)+1});});
+    const platforms=Object.keys(freq);
+    if(!platforms.length){list.innerHTML=`<div class="fbar-opt" style="color:var(--t3);cursor:default">No options</div>`;return;}
+    list.innerHTML=`<div class="fbar-plat-pills">${platforms.map(p=>{
+      const sel=cfPlats.has(p);
+      return`<button class="b-plat fbar-plat-pill${sel?' selected':''}" data-val="${esc(p)}" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}<span style="margin-left:.25rem;opacity:.75">${freq[p]}</span></button>`;
+    }).join('')}</div>`;
+    list.querySelectorAll('.fbar-plat-pill').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const v=el.dataset.val;
+        if(cfPlatExclusive){
+          if(cfPlats.has(v)){cfPlats=new Set();}else{cfPlats=new Set([v]);}
+        } else {
+          cfPlats.has(v)?cfPlats.delete(v):cfPlats.add(v);
+        }
+        renderCollection();syncFbarBadges();refreshFbarCPlat();
+      });
+    });
+    // Exclusive toggle
+    const exclEl=document.getElementById('fbar-cplat-excl');
+    if(exclEl){
+      exclEl.querySelectorAll('.fbar-logic-btn').forEach(b=>{
+        b.classList.toggle('on',b.dataset.m===(cfPlatExclusive?'excl':'any'));
+        b.onclick=()=>{
+          cfPlatExclusive=b.dataset.m==='excl';
+          if(cfPlatExclusive&&cfPlats.size>1)cfPlats=new Set([[...cfPlats][0]]);
+          exclEl.querySelectorAll('.fbar-logic-btn').forEach(x=>x.classList.toggle('on',x.dataset.m===(cfPlatExclusive?'excl':'any')));
+          renderCollection();syncFbarBadges();refreshFbarCPlat();
+        };
+      });
+    }
+  }
+  document.getElementById('fbar-cplat-clear').onclick=()=>{cfPlats=new Set();renderCollection();syncFbarBadges();refreshFbarCPlat();};
+
+  // ── Wire collection steam collection ──
+  function refreshFbarCCol(){
+    renderGenreTagList(
+      document.getElementById('fbar-ccol-list'),
+      document.getElementById('fbar-ccol-search'),
+      document.getElementById('fbar-ccol-logic'),
+      ()=>cfSteamCol,(s)=>{cfSteamCol=s;},()=>cfSteamColLogic,(l)=>{cfSteamColLogic=l;},
+      ()=>{const freq={};games.filter(g=>g.status==='bought').forEach(g=>(g.steamCollection||[]).forEach(c=>{if(c)freq[colLabel(c)]=(freq[colLabel(c)]||0)+1}));return Object.keys(freq).sort().map(v=>({value:v,count:freq[v]}));},
+      renderCollection
+    );
+  }
+  const fbarCColSearch=document.getElementById('fbar-ccol-search');
+  if(fbarCColSearch)fbarCColSearch.addEventListener('input',refreshFbarCCol);
+  document.getElementById('fbar-ccol-clear').onclick=()=>{cfSteamCol=new Set();renderCollection();syncFbarBadges();refreshFbarCCol();};
+
+  // ── Clear all ──
+  document.getElementById('fbarClearAll').onclick=()=>{
+    if(appMode==='collection'){
+      cfGenres=new Set();cfPlayStatus=new Set();cfPlats=new Set();cfSteamCol=new Set();
+      renderCollection();
+    } else {
+      fGenres=new Set();fTags=new Set();fPrios=new Set();
+      hrMinVal=0;hrMaxVal=100;
+      fbarUpdateSlider();
+      if(document.getElementById('hrMinInp'))document.getElementById('hrMinInp').value=0;
+      if(document.getElementById('hrMaxInp'))document.getElementById('hrMaxInp').value=100;
+      fbarMinInp.value=0;fbarMaxInp.value=100;
+      if(typeof _updateHotnessSlider==='function')_updateHotnessSlider();
+      renderAll();
+    }
+    syncFbarBadges();
+    _fbarRefreshAll();
+  };
+
+  // ── Refresh open sections ──
+  function _fbarRefreshSection(toggleId){
+    if(toggleId==='fbar-genre-toggle')refreshFbarGenre();
+    else if(toggleId==='fbar-tags-toggle')refreshFbarTags();
+    else if(toggleId==='fbar-prio-toggle')refreshFbarPrio();
+    else if(toggleId==='fbar-cgenre-toggle')refreshFbarCGenre();
+    else if(toggleId==='fbar-cplay-toggle')refreshFbarCPlay();
+    else if(toggleId==='fbar-cplat-toggle')refreshFbarCPlat();
+    else if(toggleId==='fbar-ccol-toggle')refreshFbarCCol();
+  }
+  function _fbarRefreshAll(){
+    fbarUpdateSlider();
+    ['fbar-genre-toggle','fbar-tags-toggle','fbar-prio-toggle',
+     'fbar-cgenre-toggle','fbar-cplay-toggle','fbar-cplat-toggle','fbar-ccol-toggle'].forEach(id=>{
+      const btn=document.getElementById(id);
+      if(btn&&btn.classList.contains('open'))_fbarRefreshSection(id);
+    });
+  }
+  window._fbarRefreshAll=_fbarRefreshAll;
+
+  // ── syncFbarBadges ──
+  window.syncFbarBadges=function(){
+    function sb(badgeId,count){
+      const b=document.getElementById(badgeId);
+      if(b){b.textContent=count;b.style.display=count>0?'':'none';}
+    }
+    sb('fbar-genre-badge',fGenres.size);
+    sb('fbar-tags-badge',fTags.size);
+    sb('fbar-prio-badge',fPrios.size);
+    sb('fbar-cgenre-badge',cfGenres.size);
+    sb('fbar-cplay-badge',cfPlayStatus.size);
+    sb('fbar-cplat-badge',cfPlats.size);
+    sb('fbar-ccol-badge',cfSteamCol.size);
+    const hotActive=(hrMinVal>0||hrMaxVal<100)?1:0;
+    sb('fbar-hot-badge',hotActive);
+    // Total badge
+    let total;
+    if(appMode==='collection'){
+      total=cfGenres.size+cfPlayStatus.size+cfPlats.size+cfSteamCol.size;
+    } else {
+      total=fGenres.size+fTags.size+fPrios.size+(hotActive?1:0);
+    }
+    sb('filtersTotalBadge',total);
+    sb('fbarFabBadge',total);
+    // fchips
+    _renderFchips();
+  };
+
+  // ── Active filter chips ──
+  function _renderFchips(){
+    const el=document.getElementById('fchips');if(!el)return;
+    const chips=[];
+    function chip(label,val,onRemove){
+      return`<span class="fchip"><span class="fchip-label">${label}</span><span class="fchip-val">${esc(val)}</span><button class="fchip-x" data-label="${esc(label)}" data-val="${esc(val)}">✕</button></span>`;
+    }
+    if(appMode!=='collection'){
+      [...fGenres].forEach(v=>chips.push({label:'Genre',val:v,rm:()=>{fGenres.delete(v);renderAll();syncFbarBadges();_fbarRefreshAll();}}));
+      [...fTags].forEach(v=>chips.push({label:'Tag',val:v,rm:()=>{fTags.delete(v);renderAll();syncFbarBadges();_fbarRefreshAll();}}));
+      [...fPrios].forEach(v=>chips.push({label:'Priority',val:v,rm:()=>{fPrios.delete(v);renderAll();syncFbarBadges();_fbarRefreshAll();}}));
+      if(hrMinVal>0||hrMaxVal<100)chips.push({label:'Hotness',val:`${hrMinVal}–${hrMaxVal}`,rm:()=>{fbarApply(0,100);}});
+    } else {
+      [...cfGenres].forEach(v=>chips.push({label:'Genre',val:v,rm:()=>{cfGenres.delete(v);renderCollection();syncFbarBadges();_fbarRefreshAll();}}));
+      [...cfPlayStatus].forEach(v=>chips.push({label:'Status',val:v,rm:()=>{cfPlayStatus.delete(v);renderCollection();syncFbarBadges();_fbarRefreshAll();}}));
+      [...cfPlats].forEach(v=>chips.push({label:'Platform',val:v,rm:()=>{cfPlats.delete(v);renderCollection();syncFbarBadges();_fbarRefreshAll();}}));
+      [...cfSteamCol].forEach(v=>chips.push({label:'Collection',val:v,rm:()=>{cfSteamCol.delete(v);renderCollection();syncFbarBadges();_fbarRefreshAll();}}));
+    }
+    if(!chips.length){el.innerHTML='';return;}
+    el.innerHTML=chips.map(c=>`<span class="fchip"><span class="fchip-label">${esc(c.label)}</span><span class="fchip-val">${esc(c.val)}</span><button class="fchip-x" data-idx="${chips.indexOf(c)}">✕</button></span>`).join('');
+    el.querySelectorAll('.fchip-x').forEach(btn=>{
+      const idx=parseInt(btn.dataset.idx);
+      btn.addEventListener('click',e=>{e.stopPropagation();chips[idx].rm();});
+    });
+  }
+
+  // Initial state
+  fbarUpdateSlider();
+  syncFbarBadges();
+})();
+
+// ── BACK TO TOP ──
+(function(){
+  const btn=document.getElementById('back-to-top');
+  const content=document.getElementById('content');
+  if(!btn||!content)return;
+  content.addEventListener('scroll',()=>{
+    btn.classList.toggle('visible',content.scrollTop>300);
+  },{passive:true});
+  btn.addEventListener('click',()=>content.scrollTo({top:0,behavior:'smooth'}));
 })();
 
 // ══════════════════════════════════════════

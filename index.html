@@ -54,6 +54,7 @@
       <button class="mode-btn on" id="modeWishlist">Wishlist</button>
       <button class="mode-btn" id="modeCollection">Collection</button>
     </div>
+    <button class="hb accent hb-desk" id="filtersToggleBtn" title="Filters">Filters <span class="fbar-main-badge" id="filtersTotalBadge" style="display:none"></span></button>
     <button class="hb p" id="addBtn">＋<span class="hb-label"> Add game</span></button>
     <button class="hb hb-desk accent" id="dhBtn" title="More options" style="font-size:1rem;padding:0 .5rem">☰</button>
     <button class="hb hb-mob accent" id="hamburgerBtn" style="font-size:1rem;padding:0 .5rem" title="Menu">☰</button>
@@ -102,151 +103,195 @@
   </div>
 </div>
 
-<div id="tb">
-  <select class="ts" id="sortSel">
-    <option value="hotness">Hotness</option>
-    <option value="priority">Priority</option>
-    <option value="title">Title A–Z</option>
-    <option value="release-asc">Release ↑</option>
-    <option value="price-asc">Price ↑</option>
-    <option value="price-desc">Price ↓</option>
-    <option value="added" selected>Date added</option>
-  </select>
-  <select class="ts" id="groupSel">
-    <option value="none">Default</option>
-    <option value="priority">By priority</option>
-    <option value="genre">By genre</option>
-    <option value="platform">By platform</option>
-    <option value="year">By year</option>
-  </select>
-  <!-- Genre filter -->
-  <div class="fpop-wrap">
-    <button class="fpop-btn" id="genreFilterBtn">Genre <span class="fpop-badge" id="genreFilterBadge" style="display:none"></span></button>
-    <div class="fpop" id="genreFilterPop">
-      <div class="fpop-header">
-        <span class="fpop-title">Genre</span>
-        <div class="fpop-logic" id="genreLogicToggle">
-          <button class="fpop-logic-btn on" data-l="or">OR</button>
-          <button class="fpop-logic-btn" data-l="and">AND</button>
+<div id="fbar-ov"></div>
+<div id="fbar">
+  <div class="fbar-header">
+    <span class="fbar-title">Filters</span>
+    <button class="fbar-close" id="fbarClose">✕</button>
+  </div>
+  <div class="fbar-body" id="fbarBody">
+    <!-- Wishlist sections -->
+    <div id="fbar-wl">
+      <div class="fbar-sort-row">
+        <div class="fbar-sort-item">
+          <label class="fbar-sort-label">Sort</label>
+          <select class="ts" id="sortSel">
+            <option value="hotness">Hotness</option>
+            <option value="priority">Priority</option>
+            <option value="title">Title</option>
+            <option value="release-asc">Release Date</option>
+            <option value="price-asc">Price ↑</option>
+            <option value="price-desc">Price ↓</option>
+            <option value="added">Date Added</option>
+          </select>
         </div>
-        <button class="fpop-clear" id="genreFilterClear">Clear</button>
-      </div>
-      <input type="text" class="fpop-search" id="genreFilterSearch" placeholder="Search…" autocomplete="off">
-      <div class="fpop-list" id="genreFilterList"></div>
-    </div>
-  </div>
-  <!-- Tag filter -->
-  <div class="fpop-wrap">
-    <button class="fpop-btn" id="tagFilterBtn">Tags <span class="fpop-badge" id="tagFilterBadge" style="display:none"></span></button>
-    <div class="fpop" id="tagFilterPop">
-      <div class="fpop-header">
-        <span class="fpop-title">Tags</span>
-        <div class="fpop-logic" id="tagLogicToggle">
-          <button class="fpop-logic-btn on" data-l="or">OR</button>
-          <button class="fpop-logic-btn" data-l="and">AND</button>
+        <div class="fbar-sort-item">
+          <label class="fbar-sort-label">Group</label>
+          <select class="ts" id="groupSel">
+            <option value="none">None</option>
+            <option value="priority">Priority</option>
+            <option value="genre">Genre</option>
+            <option value="platform">Platform</option>
+            <option value="year">Year</option>
+          </select>
         </div>
-        <button class="fpop-clear" id="tagFilterClear">Clear</button>
       </div>
-      <input type="text" class="fpop-search" id="tagFilterSearch" placeholder="Search…" autocomplete="off">
-      <div class="fpop-list" id="tagFilterList"></div>
-    </div>
-  </div>
-  <!-- Priority filter -->
-  <div class="fpop-wrap">
-    <button class="fpop-btn" id="prioFilterBtn">Priority <span class="fpop-badge" id="prioFilterBadge" style="display:none"></span></button>
-    <div class="fpop fpop-prio" id="prioFilterPop">
-      <div class="fpop-header">
-        <span class="fpop-title">Priority</span>
-        <button class="fpop-clear" id="prioFilterClear">Clear</button>
+      <div class="fbar-section" id="fbar-genre-sec">
+        <button class="fbar-sec-hdr" id="fbar-genre-toggle">
+          <span class="fbar-sec-title">Genre</span>
+          <span class="fbar-sec-badge" id="fbar-genre-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-genre-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <input class="fbar-search" id="fbar-genre-search" type="text" placeholder="Search…" autocomplete="off">
+            <div class="fbar-logic-tog" id="fbar-genre-logic">
+              <button class="fbar-logic-btn on" data-l="or">OR</button>
+              <button class="fbar-logic-btn" data-l="and">AND</button>
+            </div>
+            <button class="fbar-sec-clear" id="fbar-genre-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-genre-list"></div>
+        </div>
       </div>
-      <div class="fpop-list" id="prioFilterList"></div>
+      <div class="fbar-section" id="fbar-tags-sec">
+        <button class="fbar-sec-hdr" id="fbar-tags-toggle">
+          <span class="fbar-sec-title">Tags</span>
+          <span class="fbar-sec-badge" id="fbar-tags-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-tags-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <input class="fbar-search" id="fbar-tags-search" type="text" placeholder="Search…" autocomplete="off">
+            <div class="fbar-logic-tog" id="fbar-tags-logic">
+              <button class="fbar-logic-btn on" data-l="or">OR</button>
+              <button class="fbar-logic-btn" data-l="and">AND</button>
+            </div>
+            <button class="fbar-sec-clear" id="fbar-tags-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-tags-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-prio-sec">
+        <button class="fbar-sec-hdr" id="fbar-prio-toggle">
+          <span class="fbar-sec-title">Priority</span>
+          <span class="fbar-sec-badge" id="fbar-prio-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-prio-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <button class="fbar-sec-clear" id="fbar-prio-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-prio-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section fbar-section-always" id="fbar-hot-sec">
+        <div class="fbar-sec-hdr fbar-sec-hdr-plain">
+          <span class="fbar-sec-title">Hotness</span>
+          <span class="fbar-sec-badge" id="fbar-hot-badge" style="display:none"></span>
+        </div>
+        <div class="fbar-sec-body fbar-sec-body-open">
+          <div class="fbar-hot-inputs">
+            <input type="number" class="fbar-hot-num" id="fbar-hrMinInp" min="0" max="100" value="0" placeholder="0">
+            <span class="fbar-hot-sep">–</span>
+            <input type="number" class="fbar-hot-num" id="fbar-hrMaxInp" min="0" max="100" value="100" placeholder="100">
+          </div>
+          <div class="fbar-slider-wrap" id="fbar-hrSliderWrap">
+            <div class="fbar-slider-track"></div>
+            <div class="fbar-slider-fill" id="fbar-hrFill"></div>
+            <div class="fbar-slider-thumb" id="fbar-hrThumbMin"><span class="fbar-slider-tip" id="fbar-hrTipMin">0</span></div>
+            <div class="fbar-slider-thumb" id="fbar-hrThumbMax"><span class="fbar-slider-tip" id="fbar-hrTipMax">100</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Collection sections -->
+    <div id="fbar-col" style="display:none">
+      <div class="fbar-sort-row">
+        <div class="fbar-sort-item" style="flex:1">
+          <label class="fbar-sort-label">Sort</label>
+          <select class="ts" id="cSortSel">
+            <option value="steamcol">Steam Collection</option>
+            <option value="title">Title</option>
+            <option value="playstatus">Play Status</option>
+            <option value="purchaseDate">Purchase Date</option>
+            <option value="cost-desc">Cost ↓</option>
+            <option value="cost-asc">Cost ↑</option>
+          </select>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-cgenre-sec">
+        <button class="fbar-sec-hdr" id="fbar-cgenre-toggle">
+          <span class="fbar-sec-title">Genre</span>
+          <span class="fbar-sec-badge" id="fbar-cgenre-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-cgenre-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <input class="fbar-search" id="fbar-cgenre-search" type="text" placeholder="Search…" autocomplete="off">
+            <div class="fbar-logic-tog" id="fbar-cgenre-logic">
+              <button class="fbar-logic-btn on" data-l="or">OR</button>
+              <button class="fbar-logic-btn" data-l="and">AND</button>
+            </div>
+            <button class="fbar-sec-clear" id="fbar-cgenre-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-cgenre-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-cplay-sec">
+        <button class="fbar-sec-hdr" id="fbar-cplay-toggle">
+          <span class="fbar-sec-title">Play Status</span>
+          <span class="fbar-sec-badge" id="fbar-cplay-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-cplay-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <button class="fbar-sec-clear" id="fbar-cplay-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-cplay-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-cplat-sec">
+        <button class="fbar-sec-hdr" id="fbar-cplat-toggle">
+          <span class="fbar-sec-title">Platform</span>
+          <span class="fbar-sec-badge" id="fbar-cplat-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-cplat-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <div class="fbar-logic-tog" id="fbar-cplat-excl">
+              <button class="fbar-logic-btn on" data-m="any">Any</button>
+              <button class="fbar-logic-btn" data-m="excl">Excl</button>
+            </div>
+            <button class="fbar-sec-clear" id="fbar-cplat-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-cplat-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-ccol-sec">
+        <button class="fbar-sec-hdr" id="fbar-ccol-toggle">
+          <span class="fbar-sec-title">Steam Collection</span>
+          <span class="fbar-sec-badge" id="fbar-ccol-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-ccol-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <input class="fbar-search" id="fbar-ccol-search" type="text" placeholder="Search…" autocomplete="off">
+            <div class="fbar-logic-tog" id="fbar-ccol-logic">
+              <button class="fbar-logic-btn on" data-l="or">OR</button>
+              <button class="fbar-logic-btn" data-l="and">AND</button>
+            </div>
+            <button class="fbar-sec-clear" id="fbar-ccol-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-ccol-list"></div>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="hrange" title="Filter by hotness range">
-    <span class="hrange-label">Hotness</span>
-    <input type="number" class="hrange-num" id="hrMinInp" min="0" max="100" value="0" placeholder="0">
-    <span class="hrange-sep">–</span>
-    <input type="number" class="hrange-num" id="hrMaxInp" min="0" max="100" value="100" placeholder="100">
-    <div class="hrange-slider-wrap" id="hrSliderWrap">
-      <div class="hrange-track"></div>
-      <div class="hrange-fill" id="hrFill"></div>
-      <div class="hrange-thumb" id="hrThumbMin" title="Min hotness"><span class="hrange-tip" id="hrTipMin">0</span></div>
-      <div class="hrange-thumb" id="hrThumbMax" title="Max hotness"><span class="hrange-tip" id="hrTipMax">100</span></div>
-    </div>
-    <span class="hrange-vals" id="hrVals">0–100</span>
-    <button class="hrange-reset" id="hrReset" title="Reset hotness filter">×</button>
+  <div class="fbar-footer">
+    <button class="fbar-clearall" id="fbarClearAll">Clear all filters</button>
   </div>
-  <div class="sc" id="statChips"></div>
 </div>
-
-<!-- COLLECTION TOOLBAR (visible in collection mode only) -->
-<div id="ctb" style="display:none">
-  <select class="ts" id="cSortSel">
-    <option value="steamcol" selected>Steam Collection</option>
-    <option value="title">Title A–Z</option>
-    <option value="playstatus">Play Status</option>
-    <option value="cost-desc">Cost ↓</option>
-    <option value="cost-asc">Cost ↑</option>
-    <option value="purchaseDate">Purchase Date</option>
-  </select>
-  <!-- Genre filter (reuse existing genre filter pop) -->
-  <div class="fpop-wrap">
-    <button class="fpop-btn" id="cGenreFilterBtn">Genre <span class="fpop-badge" id="cGenreFilterBadge" style="display:none"></span></button>
-    <div class="fpop" id="cGenreFilterPop">
-      <div class="fpop-header">
-        <span class="fpop-title">Genre</span>
-        <div class="fpop-logic" id="cGenreColLogicToggle">
-          <button class="fpop-logic-btn on" data-l="or">OR</button>
-          <button class="fpop-logic-btn" data-l="and">AND</button>
-        </div>
-        <button class="fpop-clear" id="cGenreFilterClear">Clear</button>
-      </div>
-      <input type="text" class="fpop-search" id="cGenreFilterSearch" placeholder="Search…" autocomplete="off">
-      <div class="fpop-list" id="cGenreFilterList"></div>
-    </div>
-  </div>
-  <!-- Play Status filter -->
-  <div class="fpop-wrap">
-    <button class="fpop-btn" id="cPlayFilterBtn">Play Status <span class="fpop-badge" id="cPlayFilterBadge" style="display:none"></span></button>
-    <div class="fpop" id="cPlayFilterPop">
-      <div class="fpop-header"><span class="fpop-title">Play Status</span><button class="fpop-clear" id="cPlayFilterClear">Clear</button></div>
-      <div class="fpop-list" id="cPlayFilterList"></div>
-    </div>
-  </div>
-  <!-- Platform filter (collection) -->
-  <div class="fpop-wrap">
-    <button class="fpop-btn" id="cPlatFilterBtn">Platform <span class="fpop-badge" id="cPlatFilterBadge" style="display:none"></span></button>
-    <div class="fpop" id="cPlatFilterPop">
-      <div class="fpop-header">
-        <span class="fpop-title">Platform</span>
-        <div class="fpop-logic" id="cPlatExclToggle">
-          <button class="fpop-logic-btn on" data-m="any">Any</button>
-          <button class="fpop-logic-btn" data-m="excl">Excl</button>
-        </div>
-        <button class="fpop-clear" id="cPlatFilterClear">Clear</button>
-      </div>
-      <div class="fpop-list" id="cPlatFilterList"></div>
-    </div>
-  </div>
-  <!-- Steam Collection filter -->
-  <div class="fpop-wrap">
-    <button class="fpop-btn" id="cColFilterBtn">Steam Collection <span class="fpop-badge" id="cColFilterBadge" style="display:none"></span></button>
-    <div class="fpop" id="cColFilterPop">
-      <div class="fpop-header">
-        <span class="fpop-title">Steam Collection</span>
-        <div class="fpop-logic" id="cColLogicToggle">
-          <button class="fpop-logic-btn on" data-l="or">OR</button>
-          <button class="fpop-logic-btn" data-l="and">AND</button>
-        </div>
-        <button class="fpop-clear" id="cColFilterClear">Clear</button>
-      </div>
-      <input type="text" class="fpop-search" id="cColFilterSearch" placeholder="Search…" autocomplete="off">
-      <div class="fpop-list" id="cColFilterList"></div>
-    </div>
-  </div>
-  <div class="sc" id="cStatChips"></div>
-</div>
-
 <!-- ADD TYPE PICKER -->
 <div id="addPickPop" style="display:none;position:fixed;z-index:320;background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);padding:.3rem;box-shadow:0 6px 24px rgba(0,0,0,.5)">
   <button class="add-pick-btn" id="addPickWishlist">
@@ -259,7 +304,11 @@
   </button>
 </div>
 
-<div id="main"><div id="content"><div id="gc"></div></div></div>
+<div id="main">
+  <div id="fchips"></div>
+  <div id="stat-row"><div class="sc" id="statChips"></div><div class="sc" id="cStatChips" style="display:none"></div></div>
+  <div id="content"><div id="gc"></div></div>
+</div>
 
 <!-- RELEASE DATE CHECK MODAL -->
 <div id="rdcov">
@@ -371,6 +420,7 @@
     <button class="pcl" id="pclose">✕</button>
   </div>
   <div class="pb2" id="pbody"></div>
+  <div class="panel-footer" id="panelFooter"></div>
 </div>
 
 <!-- ADD/EDIT MODAL -->
@@ -622,5 +672,10 @@ if('serviceWorker' in navigator){
   });
 })();
 </script>
+<button class="fbar-fab" id="fbarFab" title="Filters">
+  <span>&#9881;</span>
+  <span class="fbar-fab-badge" id="fbarFabBadge" style="display:none"></span>
+</button>
+<button id="back-to-top" title="Back to top">&#8593;</button>
 </body>
 </html>
