@@ -367,8 +367,8 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .pv-kv-lbl{color:var(--t3);white-space:nowrap;font-size:.78rem}
 .type-tog{display:flex;gap:.35rem}
 .type-btn{padding:.25rem .65rem;border-radius:20px;border:1.5px solid var(--bd);
-  background:transparent;color:var(--t2);cursor:pointer;font-size:.72rem;font-weight:600;
-  text-transform:uppercase;letter-spacing:.03em;transition:all .15s}
+  background:transparent;color:var(--t2);cursor:pointer;font-size:.7rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;transition:all .15s;font-family:'Rajdhani',sans-serif}
 .type-btn:hover{border-color:var(--blue);color:var(--text)}
 #fTypeGame.on{background:var(--blue);border-color:transparent;color:#031329;font-weight:700}
 #fTypeDlc.on{background:#c4a0ff;border-color:transparent;color:#1a0a3a;font-weight:700}

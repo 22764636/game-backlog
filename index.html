@@ -407,6 +407,26 @@
       <label>Short Description <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— auto-filled from Steam, editable</span></label>
       <textarea id="fShortDesc" style="min-height:54px;resize:vertical" placeholder="Brief description of the game…"></textarea>
     </div>
+    <!-- Row: Type + Priority -->
+    <div class="fg" style="margin-bottom:.6rem">
+      <div class="fr" style="margin-bottom:0">
+        <label>Type</label>
+        <div class="type-tog">
+          <button type="button" class="type-btn on" id="fTypeGame">Game</button>
+          <button type="button" class="type-btn" id="fTypeDlc">DLC</button>
+        </div>
+        <input type="hidden" id="fType" value="game">
+      </div>
+      <div class="fr" style="margin-bottom:0">
+        <label>Priority</label>
+        <div class="prio-btns" id="prioBtns">
+          <button type="button" class="prio-btn" data-v="high">High</button>
+          <button type="button" class="prio-btn prio-btn-on" data-v="medium">Medium</button>
+          <button type="button" class="prio-btn" data-v="low">Low</button>
+        </div>
+        <input type="hidden" id="fPriority" value="medium">
+      </div>
+    </div>
     <!-- Row 4: Genre -->
     <div class="fr">
       <label>Genre <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
@@ -432,8 +452,8 @@
         </div>
       </div>
     </div>
-    <!-- Row 6: Release date + Price + Priority -->
-    <div class="fg3">
+    <!-- Row 6: Release date + Price -->
+    <div class="fg">
       <div class="fr">
         <label>Release date</label>
         <!-- Overlay container: date and tba text occupy same space -->
@@ -449,30 +469,11 @@
         </div>
       </div>
       <div class="fr"><label>Price (€)</label><input type="number" id="fPrice" placeholder="29.99" step="0.01" min="0" autocomplete="off"></div>
-      <div class="fr">
-        <label>Priority</label>
-        <div class="prio-btns" id="prioBtns">
-          <button type="button" class="prio-btn" data-v="high">High</button>
-          <button type="button" class="prio-btn prio-btn-on" data-v="medium">Medium</button>
-          <button type="button" class="prio-btn" data-v="low">Low</button>
-        </div>
-        <input type="hidden" id="fPriority" value="medium">
-      </div>
     </div>
-    <!-- Row 7: Hotness + Type -->
-    <div class="fg">
-      <div class="fr">
-        <label>Hotness <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">1–100 · blank = to review</span></label>
-        <input type="number" id="fHotness" placeholder="blank = to review" min="1" max="100" autocomplete="off">
-      </div>
-      <div class="fr">
-        <label>Type</label>
-        <div class="type-tog">
-          <button type="button" class="type-btn on" id="fTypeGame">Game</button>
-          <button type="button" class="type-btn" id="fTypeDlc">DLC</button>
-        </div>
-        <input type="hidden" id="fType" value="game">
-      </div>
+    <!-- Row 7: Hotness -->
+    <div class="fr">
+      <label>Hotness <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">1–100 · blank = to review</span></label>
+      <input type="number" id="fHotness" placeholder="blank = to review" min="1" max="100" autocomplete="off">
     </div>
     <!-- Row 8: Tags -->
     <div class="fr">
