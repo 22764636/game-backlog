@@ -92,7 +92,7 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 
 /* MAIN */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-#content{flex:1;overflow-y:auto;overflow-x:visible;padding:1rem}
+#content{flex:1;overflow-y:auto;overflow-x:visible;padding:1rem;-webkit-overflow-scrolling:touch}
 .sl{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.66rem;letter-spacing:.12em;
   text-transform:uppercase;color:var(--t3);margin-bottom:.5rem;display:flex;align-items:center;gap:.35rem;
   cursor:pointer;user-select:none;-webkit-user-select:none;position:relative}
@@ -297,7 +297,8 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .cq{display:flex;gap:.22rem;flex-wrap:wrap;justify-content:center;width:100%}
 .qb{background:var(--base);border:1px solid var(--bd);color:var(--t3);border-radius:5px;
   width:22px;height:22px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:.62rem;transition:all .15s;text-decoration:none;flex-shrink:0}
+  cursor:pointer;font-size:.62rem;transition:all .15s;text-decoration:none;flex-shrink:0;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .qb:hover{border-color:var(--blue);color:var(--blue)}
 .qb.ba{border-color:#9cff0066;color:var(--green)}
 .qb.qr:hover{border-color:var(--pink);color:var(--pink)}
@@ -380,7 +381,8 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .pac{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem}
 .pa{flex:1;min-width:100px;background:var(--base);border:1px solid var(--bd);color:var(--t2);
   border-radius:var(--r);padding:.4rem .6rem;font-size:.72rem;font-weight:500;cursor:pointer;
-  transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.3rem}
+  transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.3rem;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .pa:hover{border-color:var(--blue);color:var(--blue)}
 .pa.d:hover{border-color:var(--pink);color:var(--pink)}
 .pa.s{border-color:#9cff0066;color:var(--green);background:#9cff0011}
@@ -418,11 +420,13 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 .ferr.on{display:block}
 .ma{display:flex;gap:.6rem;margin-top:1rem}
 .mb2{flex:1;border-radius:var(--r);padding:.5rem .9rem;font-size:.8rem;font-weight:500;cursor:pointer;
-  font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.3rem;border:1px solid var(--bd)}
-.mb2.p{background:var(--blue);border-color:var(--blue);color:#031329;font-weight:700}
-.mb2.p:hover{opacity:.85}
-.mb2.c{background:transparent;color:var(--t2)}
-.mb2.c:hover{background:rgba(255,255,255,.05);color:var(--text)}
+  font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.3rem;
+  border:1px solid var(--bd);background:var(--base);color:var(--t2);
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.mb2.p{background:var(--base);border-color:var(--blue);color:var(--blue);font-weight:600}
+.mb2.p:hover{background:#02b3fc15}
+.mb2.c{border-color:var(--bd);color:var(--t2)}
+.mb2.c:hover{background:rgba(255,255,255,.05);border-color:var(--t2);color:var(--text)}
 
 /* priority toggle buttons */
 .prio-btns{display:flex;gap:.35rem}
@@ -1127,28 +1131,34 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 }
 
 /* Mobile FAB */
-.fbar-fab{position:fixed;bottom:1.5rem;right:1rem;width:48px;height:48px;border-radius:99px;
-  background:var(--blue);border:none;color:#031329;font-size:1.1rem;cursor:pointer;
-  z-index:87;box-shadow:0 4px 16px rgba(2,179,252,.4);display:none;align-items:center;
-  justify-content:center;transition:transform .12s,box-shadow .12s}
+.fbar-fab{position:fixed;bottom:1.5rem;right:1rem;width:56px;height:56px;border-radius:99px;
+  background:var(--blue);border:none;color:#031329;font-size:1.2rem;cursor:pointer;
+  z-index:97;box-shadow:0 4px 16px rgba(2,179,252,.4);display:none;align-items:center;
+  justify-content:center;transition:transform .12s,box-shadow .12s;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .fbar-fab:active{transform:scale(.92)}
-@media(max-width:640px){.fbar-fab{display:flex}}
+@media(max-width:640px){
+  .fbar-fab{display:flex;bottom:max(1.2rem,calc(env(safe-area-inset-bottom) + 0.6rem))}
+}
 .fbar-fab-badge{position:absolute;top:-4px;right:-4px;background:var(--pink);color:#fff;
   border-radius:99px;font-size:.5rem;font-weight:700;padding:1px 4px;min-width:14px;text-align:center;pointer-events:none}
 
 /* Back to top */
 #back-to-top{position:fixed;bottom:1.5rem;right:1.5rem;width:40px;height:40px;border-radius:50%;
   background:var(--s1);border:1px solid var(--bd2);color:var(--blue);font-size:1.1rem;
-  cursor:pointer;z-index:86;display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;transform:translateY(8px)}
+  cursor:pointer;z-index:96;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;transform:translateY(8px);
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #back-to-top.visible{opacity:1;pointer-events:auto;transform:translateY(0)}
 @media(max-width:640px){
-  #back-to-top{bottom:5.5rem;right:1rem}
+  #back-to-top{bottom:max(5rem,calc(env(safe-area-inset-bottom) + 4.2rem));right:1rem}
 }
 
 /* Card button active states */
-.qb:active{background:#02b3fc22;border-color:var(--blue);color:var(--blue);transform:scale(0.9);transition:transform .05s}
+.qb:active{background:#02b3fc33;border-color:var(--blue);color:var(--blue);transform:scale(0.9);transition:transform .05s}
+.gg:not(.lv) .qb:active{background:#02b3fc33;color:var(--blue);transform:scale(0.9)}
 .pa:active{transform:scale(0.97);opacity:.8;transition:transform .05s,opacity .05s}
+.mb2:active{transform:scale(0.97);opacity:.85;transition:transform .05s,opacity .05s}
 
 /* Sticky modal buttons */
 #mov .modal .ma{position:sticky;bottom:0;background:var(--s1);padding-top:.6rem;
@@ -1157,4 +1167,5 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 /* Panel footer */
 .panel-footer{padding:.55rem 1rem;border-top:1px solid var(--bd);background:var(--s1);flex-shrink:0}
 .panel-footer:empty{display:none}
-.panel-footer .pac{margin-top:0}
+.panel-footer .pac{margin-top:0;gap:.5rem}
+.panel-footer .pa{min-width:80px;font-size:.75rem}
