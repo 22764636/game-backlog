@@ -97,10 +97,10 @@ function setSyncStatus(state, msg){
   if(hmResync){
     if(state==='ok'||state==='err'||state==='offline'){
       hmResync.style.display='';
-      hmResync.textContent = state==='err' ? '⚠ Re-sync (failed)' : state==='offline' ? '⊘ Offline mode' : '⟳ Re-sync';
+      hmResync.textContent = state==='err' ? 'Re-sync (failed)' : state==='offline' ? 'Offline mode' : 'Re-sync';
       hmResync.style.color = state==='err' ? 'var(--pink)' : state==='offline' ? 'var(--t3)' : '';
     } else if(state==='syncing'){
-      hmResync.textContent='⟳ Syncing…';
+      hmResync.textContent='Syncing…';
       hmResync.style.display='';
       hmResync.style.color='var(--amber)';
     }
@@ -452,13 +452,20 @@ function openCalendar(){
   }
   document.getElementById('calOv').classList.add('on');
   document.getElementById('calOv').style.display='flex';
+  history.pushState({cal:true},'');
   populateCalSelects();
   renderCalendar();
 }
-function closeCalendar(){
+function _rawCloseCalendar(){
   document.getElementById('calOv').classList.remove('on');
   document.getElementById('calOv').style.display='none';
   calShowTba=false;
+}
+function closeCalendar(){
+  _rawCloseCalendar();
+  if(history.state&&history.state.cal){
+    _popSuppressed=true;history.back();setTimeout(()=>{_popSuppressed=false;},200);
+  }
 }
 
 function populateCalSelects(){
@@ -504,9 +511,10 @@ function renderCalendar(){
     let pagesHTML='';
     for(let p=0;p<totalPages;p++){
       const slice=tbaGames.slice(p*TBA_PAGE_SIZE,(p+1)*TBA_PAGE_SIZE);
-      pagesHTML+=`<div class="tba-list-page"><div class="cal-tba-grid">${slice.map(g=>`
-        <div class="cal-tba-chip" title="${esc(g.title)} — ${esc(g.releaseDate)}" onclick="closeCalendar();openPanel('${g.id}')"><span class="cal-tba-chip-title">${esc(g.title)}</span><span class="cal-tba-chip-sub">${esc(g.releaseDate)}</span></div>
-      `).join('')}</div></div>`;
+      pagesHTML+=`<div class="tba-list-page"><div class="cal-tba-grid">${slice.map(g=>{
+        const pc=g.priority==='high'?'prio-high':g.priority==='low'?'prio-low':'prio-medium';
+        return`<div class="cal-tba-chip ${pc}" title="${esc(g.title)} — ${esc(g.releaseDate)}" onclick="closeCalendar();openPanel('${g.id}')"><span class="cal-tba-chip-title">${esc(g.title)}</span><span class="cal-tba-chip-sub">${esc(g.releaseDate)}</span></div>`;
+      }).join('')}</div></div>`;
     }
     track.innerHTML=pagesHTML;
     track.style.width=(totalPages*100)+'%';
@@ -754,6 +762,25 @@ document.addEventListener('click',function(e){
     document.querySelectorAll('.cal-pop.open').forEach(p=>p.classList.remove('open'));
   }
 });
+// Mobile swipe to change month (horizontal swipe > 50px, must dominate vertical)
+(function(){
+  let _csx=null,_csy=null;
+  const ov=document.getElementById('calOv');
+  ov.addEventListener('touchstart',e=>{
+    if(window.innerWidth>640)return;
+    _csx=e.touches[0].clientX;_csy=e.touches[0].clientY;
+  },{passive:true});
+  ov.addEventListener('touchend',e=>{
+    if(_csx===null||window.innerWidth>640)return;
+    const dx=e.changedTouches[0].clientX-_csx;
+    const dy=e.changedTouches[0].clientY-_csy;
+    _csx=null;_csy=null;
+    if(Math.abs(dx)<50||Math.abs(dy)>Math.abs(dx))return;
+    if(dx<0){calMonth++;if(calMonth>11){calMonth=0;calYear++;}}
+    else{calMonth--;if(calMonth<0){calMonth=11;calYear--;}}
+    populateCalSelects();renderCalendar();
+  },{passive:true});
+})();
 
 // ── SYNC PILL TAP TO RETRY ───────────────
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1512,6 +1539,29 @@ function initSection(sb,cards,gcls,cardFn){
 
 // bindSectionToggle — wires collapse/expand for a single sb element
 // Also triggers deferred batch rendering when a collapsed section is expanded.
+// Long press (600ms) on any section header expands or collapses ALL sections.
+function _toggleOneSb(s,expand){
+  const sBody=s.querySelector('.sb-body');
+  if(!sBody)return;
+  const isCol=s.classList.contains('collapsed');
+  const col=getCollapsed();
+  if(expand&&isCol){
+    s.classList.remove('collapsed');
+    const st=sectionState.get(s);
+    if(st&&st.rendered===0)renderNextBatch(s,st);
+    sBody.style.maxHeight=sBody.scrollHeight+'px';
+    sBody.addEventListener('transitionend',()=>{
+      if(!s.classList.contains('collapsed')){sBody.style.maxHeight='none';sBody.classList.add('expanded');}
+    },{once:true});
+    col.delete(s.dataset.section);
+  } else if(!expand&&!isCol){
+    sBody.classList.remove('expanded');
+    sBody.style.maxHeight=sBody.scrollHeight+'px';
+    requestAnimationFrame(()=>{sBody.style.maxHeight='0';s.classList.add('collapsed');});
+    col.add(s.dataset.section);
+  }
+  setCollapsed(col);
+}
 function bindSectionToggle(sb){
   const sl=sb.querySelector('.sl');
   const body=sb.querySelector('.sb-body');
@@ -1520,7 +1570,26 @@ function bindSectionToggle(sb){
     body.style.maxHeight=body.scrollHeight+'px';
     body.classList.add('expanded');
   }
+  let _lpTimer=null,_lpFired=false;
+  function _startLP(){
+    _lpFired=false;
+    _lpTimer=setTimeout(()=>{
+      _lpTimer=null;_lpFired=true;
+      const allSbs=[...document.querySelectorAll('.sb[data-section]')];
+      const anyCollapsed=allSbs.some(s=>s.classList.contains('collapsed'));
+      allSbs.forEach(s=>_toggleOneSb(s,anyCollapsed));
+      showToast(anyCollapsed?'All sections expanded':'All sections collapsed');
+    },600);
+  }
+  function _cancelLP(){if(_lpTimer){clearTimeout(_lpTimer);_lpTimer=null;}}
+  sl.addEventListener('mousedown',_startLP);
+  sl.addEventListener('mouseup',_cancelLP);
+  sl.addEventListener('mouseleave',_cancelLP);
+  sl.addEventListener('touchstart',_startLP,{passive:true});
+  sl.addEventListener('touchend',_cancelLP,{passive:true});
+  sl.addEventListener('touchmove',_cancelLP,{passive:true});
   sl.addEventListener('click',()=>{
+    if(_lpFired){_lpFired=false;return;}
     const label=sb.dataset.section;
     const col=getCollapsed();
     const isNowCollapsed=!sb.classList.contains('collapsed');
@@ -2545,6 +2614,8 @@ document.getElementById('wlovConfirmBtn').onclick=()=>{
 // Android back-swipe / browser back closes overlay modals instead of exiting
 window.addEventListener('popstate',function(){
   if(_popSuppressed)return;
+  const calOv=document.getElementById('calOv');
+  if(calOv&&calOv.style.display!=='none'){_rawCloseCalendar();return;}
   const mov=document.getElementById('mov');
   if(mov&&mov.classList.contains('on')){_rawCloseModal();return;}
   const btcov=document.getElementById('btcov');
@@ -4117,6 +4188,7 @@ document.addEventListener('keydown',function(e){
     return;
   }
   if(inField)return;
+  if(e.ctrlKey||e.metaKey)return;
   if(e.key==='/'){e.preventDefault();const si=document.getElementById('searchInput');if(si){si.focus();si.select()}return}
   if(e.key==='a'||e.key==='A'||e.key==='n'||e.key==='N'){openAdd();return}
   if(e.key==='c'||e.key==='C'){openCalendar();return}

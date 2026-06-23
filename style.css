@@ -487,6 +487,8 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 /* 3-column row for release / price / priority */
 .fg3{display:grid;grid-template-columns:2fr 1fr 1.2fr;gap:.6rem}
 @media(max-width:560px){.fg3{grid-template-columns:1fr}}
+/* Type+Priority inline row — never collapses to 1 col */
+.fg-inline{display:grid;grid-template-columns:auto 1fr;gap:.6rem}
 .tba-btn{background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--t2);
   padding:.3rem .7rem;font-size:.68rem;font-weight:700;letter-spacing:.06em;cursor:pointer;
   white-space:nowrap;transition:all .15s;font-family:'Rajdhani',sans-serif}
@@ -762,6 +764,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .cal-tba-chip-sub{font-size:.6rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .cal-tba-chip:hover .cal-tba-chip-title{color:var(--blue)}
 .cal-tba-chip:hover .cal-tba-chip-sub{color:#02b3fc99}
+.cal-tba-chip.prio-high{border-left-color:var(--pink);border-left-width:3px}
+.cal-tba-chip.prio-medium{border-left-color:var(--blue);border-left-width:3px}
+.cal-tba-chip.prio-low{border-left-color:var(--lime);border-left-width:3px}
 .cal-tba-toggle.on{background:var(--blue);border-color:var(--blue);color:#031329;font-weight:700}
 @media(max-width:640px){
   #calTba{display:none}
