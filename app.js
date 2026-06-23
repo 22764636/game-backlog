@@ -2570,7 +2570,14 @@ function openPanel(id){
     });
     document.getElementById('psrv').onclick=()=>{const gg=games.find(x=>x.id===openId);if(gg){gg.myRating=cStars;gg.myReview=document.getElementById('prevta').value;save()}};
   }
-  document.getElementById('ped').onclick=()=>{_popSuppressed=true;closePanel();setTimeout(()=>{_popSuppressed=false;},400);openEdit(id)};
+  document.getElementById('ped').onclick=()=>{
+    const _pov=document.getElementById('pov');
+    document.getElementById('panel').classList.remove('on');
+    openId=null;
+    setTimeout(()=>_pov.classList.remove('on'),290);
+    const _pf=document.getElementById('panelFooter');if(_pf)_pf.innerHTML='';
+    openEdit(id);
+  };
   document.getElementById('pbt').onclick=()=>handleMarkBought(id);
   const prm=document.getElementById('prm');if(prm)prm.onclick=()=>startRemove(id);
   const pri=document.getElementById('pri');if(pri)pri.onclick=()=>startReinstate(id);
@@ -2620,8 +2627,16 @@ document.getElementById('wlovConfirmBtn').onclick=()=>{
 // Android back-swipe / browser back closes overlay modals instead of exiting
 window.addEventListener('popstate',function(){
   if(_popSuppressed)return;
-  const calOv=document.getElementById('calOv');
-  if(calOv&&calOv.style.display!=='none'){_rawCloseCalendar();return;}
+  const fbar=document.getElementById('fbar');
+  if(fbar&&fbar.classList.contains('on')){window._rawCloseFbar&&window._rawCloseFbar();return;}
+  if(document.getElementById('panel').classList.contains('on')){
+    const pov=document.getElementById('pov');
+    document.getElementById('panel').classList.remove('on');
+    openId=null;
+    setTimeout(()=>pov.classList.remove('on'),290);
+    const pf=document.getElementById('panelFooter');if(pf)pf.innerHTML='';
+    return;
+  }
   const mov=document.getElementById('mov');
   if(mov&&mov.classList.contains('on')){_rawCloseModal();return;}
   const btcov=document.getElementById('btcov');
@@ -2632,12 +2647,8 @@ window.addEventListener('popstate',function(){
   if(riov&&riov.classList.contains('on')){riov.classList.remove('on');return;}
   const wlov=document.getElementById('wlovConfirm');
   if(wlov&&wlov.classList.contains('on')){wlov.classList.remove('on');return;}
-  if(document.getElementById('panel').classList.contains('on')){
-    const pov=document.getElementById('pov');
-    document.getElementById('panel').classList.remove('on');
-    openId=null;
-    setTimeout(()=>pov.classList.remove('on'),290);
-  }
+  const calOv=document.getElementById('calOv');
+  if(calOv&&calOv.style.display!=='none'){_rawCloseCalendar();return;}
 });
 
 // ── PANEL DRAG RESIZE (desktop only) ──────────────────────────
@@ -3574,6 +3585,11 @@ function setAppMode(mode){
   const sSt=document.getElementById('statChips');if(sSt)sSt.style.display=isCol?'none':'';
   const cSt=document.getElementById('cStatChips');if(cSt)cSt.style.display=isCol?'':'none';
   syncFbarBadges();
+  // Reset scroll on view switch
+  const _cont=document.getElementById('content');
+  if(_cont)_cont.scrollTop=0;
+  const _btt=document.getElementById('back-to-top');
+  if(_btt)_btt.classList.remove('visible');
   // Render the right view
   if(isCol){renderCollection();}else{renderAll();}
 }
@@ -4079,19 +4095,24 @@ function _closeAllFloating(){
 (function(){
   // ── Open / close ──
   function openFbar(){
+    history.pushState({fbarOpen:true},'','');
     document.getElementById('fbar').classList.add('on');
     document.getElementById('fbar-ov').classList.add('on');
     document.getElementById('main').classList.add('fbar-open');
-    // Refresh all open section lists
     _fbarRefreshAll();
   }
-  function closeFbar(){
+  function _rawCloseFbar(){
     document.getElementById('fbar').classList.remove('on');
     document.getElementById('fbar-ov').classList.remove('on');
     document.getElementById('main').classList.remove('fbar-open');
   }
+  function closeFbar(){
+    _rawCloseFbar();
+    if(history.state&&history.state.fbarOpen){history.back();}
+  }
   window._openFbar=openFbar;
   window._closeFbar=closeFbar;
+  window._rawCloseFbar=_rawCloseFbar;
 
   // ── Wire toggle buttons ──
   const toggleBtn=document.getElementById('filtersToggleBtn');
@@ -4123,6 +4144,7 @@ function _closeAllFloating(){
   wireAccordion('fbar-genre-toggle','fbar-genre-body');
   wireAccordion('fbar-tags-toggle','fbar-tags-body');
   wireAccordion('fbar-prio-toggle','fbar-prio-body');
+  wireAccordion('fbar-hot-toggle','fbar-hot-body');
   wireAccordion('fbar-cgenre-toggle','fbar-cgenre-body');
   wireAccordion('fbar-cplay-toggle','fbar-cplay-body');
   wireAccordion('fbar-cplat-toggle','fbar-cplat-body');
@@ -4279,18 +4301,11 @@ function _closeAllFloating(){
     const PRIOS=[{value:'high',label:'High'},{value:'medium',label:'Medium'},{value:'low',label:'Low'}];
     const freq={high:0,medium:0,low:0};
     games.filter(g=>g.status!=='bought').forEach(g=>{const p=g.priority||'medium';freq[p]=(freq[p]||0)+1;});
-    list.innerHTML=PRIOS.map(({value,label})=>{
+    list.innerHTML=`<div class="fbar-plat-pills">${PRIOS.map(({value,label})=>{
       const sel=fPrios.has(value);
-      return`<div class="fbar-opt fbar-prio-pill${sel?' selected':''}" data-val="${value}">
-        <span class="fbar-opt-check">${sel?'✓':''}</span>
-        <span class="fbar-opt-label" style="display:flex;align-items:center;gap:.35rem">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${prioColor(value)};flex-shrink:0"></span>
-          ${label}
-        </span>
-        <span class="fbar-opt-count">${freq[value]||0}</span>
-      </div>`;
-    }).join('');
-    list.querySelectorAll('.fbar-opt').forEach(el=>{
+      return`<button class="b-plat fbar-plat-pill${sel?' selected':''}" data-val="${value}" style="background:${prioColor(value)};color:#031329">${label}<span style="margin-left:.25rem;opacity:.75">${freq[value]||0}</span></button>`;
+    }).join('')}</div>`;
+    list.querySelectorAll('.fbar-plat-pill').forEach(el=>{
       el.addEventListener('click',()=>{
         const v=el.dataset.val;
         fPrios.has(v)?fPrios.delete(v):fPrios.add(v);
@@ -4323,17 +4338,12 @@ function _closeAllFloating(){
     games.filter(g=>g.status==='bought').forEach(g=>{const s=g.playStatus||'Unplayed';freq[s]=(freq[s]||0)+1;});
     const opts=order.filter(s=>freq[s]>0);
     if(!opts.length){list.innerHTML=`<div class="fbar-opt" style="color:var(--t3);cursor:default">No options</div>`;return;}
-    list.innerHTML=opts.map(v=>{
+    list.innerHTML=`<div class="fbar-plat-pills">${opts.map(v=>{
       const m=PS_META[v]||{code:'UP',cls:'ps-UP'};
       const sel=cfPlayStatus.has(v);
-      return`<div class="fbar-opt${sel?' selected':''}" data-val="${esc(v)}">
-        <span class="fbar-opt-check">${sel?'✓':''}</span>
-        <span class="col-ps-badge ${m.cls}" style="pointer-events:none;font-size:.58rem;padding:1px 4px">${m.code}</span>
-        <span class="fbar-opt-label">${esc(v)}</span>
-        <span class="fbar-opt-count">${freq[v]||0}</span>
-      </div>`;
-    }).join('');
-    list.querySelectorAll('.fbar-opt').forEach(el=>{
+      return`<button class="col-ps-badge ${m.cls} fbar-plat-pill${sel?' selected':''}" data-val="${esc(v)}" style="cursor:pointer">${m.code}<span style="margin-left:.3rem;opacity:.7">${freq[v]||0}</span></button>`;
+    }).join('')}</div>`;
+    list.querySelectorAll('.fbar-plat-pill').forEach(el=>{
       el.addEventListener('click',()=>{
         const v=el.dataset.val;
         cfPlayStatus.has(v)?cfPlayStatus.delete(v):cfPlayStatus.add(v);

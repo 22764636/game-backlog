@@ -180,17 +180,19 @@
         </button>
         <div class="fbar-sec-body" id="fbar-prio-body" style="display:none">
           <div class="fbar-sec-toolbar">
+            <span class="fbar-fill"></span>
             <button class="fbar-sec-clear" id="fbar-prio-clear">Clear</button>
           </div>
           <div class="fbar-sec-list" id="fbar-prio-list"></div>
         </div>
       </div>
-      <div class="fbar-section fbar-section-always" id="fbar-hot-sec">
-        <div class="fbar-sec-hdr fbar-sec-hdr-plain">
+      <div class="fbar-section" id="fbar-hot-sec">
+        <button class="fbar-sec-hdr" id="fbar-hot-toggle">
           <span class="fbar-sec-title">Hotness</span>
           <span class="fbar-sec-badge" id="fbar-hot-badge" style="display:none"></span>
-        </div>
-        <div class="fbar-sec-body fbar-sec-body-open">
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-hot-body" style="display:none">
           <div class="fbar-hot-inputs">
             <input type="number" class="fbar-hot-num" id="fbar-hrMinInp" min="0" max="100" value="0" placeholder="0">
             <span class="fbar-hot-sep">–</span>
@@ -246,6 +248,7 @@
         </button>
         <div class="fbar-sec-body" id="fbar-cplay-body" style="display:none">
           <div class="fbar-sec-toolbar">
+            <span class="fbar-fill"></span>
             <button class="fbar-sec-clear" id="fbar-cplay-clear">Clear</button>
           </div>
           <div class="fbar-sec-list" id="fbar-cplay-list"></div>
@@ -259,9 +262,10 @@
         </button>
         <div class="fbar-sec-body" id="fbar-cplat-body" style="display:none">
           <div class="fbar-sec-toolbar">
+            <span class="fbar-fill"></span>
             <div class="fbar-logic-tog" id="fbar-cplat-excl">
-              <button class="fbar-logic-btn on" data-m="any">Any</button>
-              <button class="fbar-logic-btn" data-m="excl">Excl</button>
+              <button class="fbar-logic-btn on" data-m="any">ANY</button>
+              <button class="fbar-logic-btn" data-m="excl">EXCL</button>
             </div>
             <button class="fbar-sec-clear" id="fbar-cplat-clear">Clear</button>
           </div>
