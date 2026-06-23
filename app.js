@@ -2478,13 +2478,17 @@ function openPanel(id){
       ?``  // no remove button for bought
       :`<button class="pa d" id="prm">${t('pRemove')}</button>`;
 
-  b+=`<div class="ps"><div class="psl">${t('pActions')}</div><div class="pac">
-    <button class="pa" id="ped">${t('pEdit')}</button>
-    <button class="pa ${g.status==='bought'?'s':''}" id="pbt">${g.status==='bought'?'↩ ':''} ${bl}</button>
-    ${actionBtns}
-  </div></div>`;
-
   document.getElementById('pbody').innerHTML=b;
+
+  // Sticky footer actions
+  const panelFooterEl=document.getElementById('panelFooter');
+  if(panelFooterEl){
+    panelFooterEl.innerHTML=`<div class="pac">
+      <button class="pa" id="ped">${t('pEdit')}</button>
+      <button class="pa ${g.status==='bought'?'s':''}" id="pbt">${g.status==='bought'?'↩ ':''} ${bl}</button>
+      ${actionBtns}
+    </div>`;
+  }
 
   // Base game link click (DLC panel)
   const bgEl=document.querySelector('.panel-base-game');
@@ -2579,6 +2583,7 @@ function closePanel(){
   panel.classList.remove('on');
   openId=null;
   setTimeout(()=>pov.classList.remove('on'),290);
+  const pf=document.getElementById('panelFooter');if(pf)pf.innerHTML='';
   if(history.state&&history.state.panelOpen){history.back();}
 }
 // ── MODAL HISTORY HELPERS ─────────────────
@@ -4886,10 +4891,15 @@ function _closeAllFloating(){
   const btn=document.getElementById('back-to-top');
   const content=document.getElementById('content');
   if(!btn||!content)return;
-  content.addEventListener('scroll',()=>{
-    btn.classList.toggle('visible',content.scrollTop>300);
-  },{passive:true});
-  btn.addEventListener('click',()=>content.scrollTo({top:0,behavior:'smooth'}));
+  function checkScroll(){
+    btn.classList.toggle('visible',(content.scrollTop||window.scrollY)>200);
+  }
+  content.addEventListener('scroll',checkScroll,{passive:true});
+  window.addEventListener('scroll',checkScroll,{passive:true});
+  btn.addEventListener('click',()=>{
+    content.scrollTo({top:0,behavior:'smooth'});
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
 })();
 
 // ══════════════════════════════════════════
