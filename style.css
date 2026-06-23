@@ -487,8 +487,23 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
 /* 3-column row for release / price / priority */
 .fg3{display:grid;grid-template-columns:2fr 1fr 1.2fr;gap:.6rem}
 @media(max-width:560px){.fg3{grid-template-columns:1fr}}
-/* Type+Priority inline row — never collapses to 1 col */
+/* Type + [ParentAppId when DLC] + Priority row — flex so hidden middle item collapses */
+.type-row{display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.6rem}
+.type-row > .fr{flex-shrink:0;margin-bottom:0}
+.type-row > #parentAppIdRow{flex:1;min-width:0;margin-bottom:0}
+@media(max-width:560px){
+  .type-row{flex-wrap:wrap}
+  .type-row > #parentAppIdRow{flex-basis:100%;order:10}
+}
+/* Type+Priority inline row (kept for reference, replaced by .type-row in modal) */
 .fg-inline{display:grid;grid-template-columns:auto 1fr;gap:.6rem}
+/* Release date + Price + Hotness narrow 3-col row */
+.fg-dates{display:grid;grid-template-columns:2fr .85fr .85fr;gap:.6rem}
+@media(max-width:560px){.fg-dates{grid-template-columns:1fr}}
+/* Hamburger menu export/import two-column row */
+.hmi-row2{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--bd)}
+.hmi-row2 .hmi{border-top:none}
+.hmi-row2 .hmi:last-child{border-left:1px solid var(--bd)}
 .tba-btn{background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--t2);
   padding:.3rem .7rem;font-size:.68rem;font-weight:700;letter-spacing:.06em;cursor:pointer;
   white-space:nowrap;transition:all .15s;font-family:'Rajdhani',sans-serif}

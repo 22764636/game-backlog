@@ -767,7 +767,8 @@ document.addEventListener('click',function(e){
   let _csx=null,_csy=null;
   const ov=document.getElementById('calOv');
   ov.addEventListener('touchstart',e=>{
-    if(window.innerWidth>640)return;
+    if(window.innerWidth>640||calShowTba)return; // TBA panel handles its own swipes
+    if(e.target.closest('#calTba'))return;
     _csx=e.touches[0].clientX;_csy=e.touches[0].clientY;
   },{passive:true});
   ov.addEventListener('touchend',e=>{

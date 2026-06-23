@@ -86,16 +86,20 @@
   <div class="hmi-theme"><span class="hmi-theme-label">View</span><div class="mode-tog" id="hmViewTog"><button class="mode-btn on" id="hmViewGrid" title="Grid view">⊞</button><button class="mode-btn" id="hmViewList" title="List view">☰</button></div></div>
   <button class="hmi" id="hmResyncBtn" style="display:none">Re-sync</button>
   <button class="hmi" id="hmRdcBtn">Check release dates</button>
-  <button class="hmi" id="hmExpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 14l6 6 6-6"/></svg> Export</button>
-  <button class="hmi" id="hmImpBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 10l6-6 6 6"/></svg> Import</button>
+  <div class="hmi-row2">
+    <button class="hmi" id="hmExpBtn">Export</button>
+    <button class="hmi" id="hmImpBtn">Import</button>
+  </div>
 </div>
 <!-- Desktop dropdown menu -->
 <div id="dhmenu">
   <div class="hmi-theme"><span class="hmi-theme-label">View</span><div class="mode-tog" id="dhViewTog"><button class="mode-btn on" id="dhViewGrid" title="Grid view">⊞</button><button class="mode-btn" id="dhViewList" title="List view">☰</button></div></div>
   <button class="hmi" id="dhMetaBtn">Refresh genre &amp; tag data</button>
   <button class="hmi" id="dhDatesBtn">Check release dates</button>
-  <button class="hmi" id="dhExpBtn">⬇ Export</button>
-  <button class="hmi" id="dhImpBtn">⬆ Import</button>
+  <div class="hmi-row2">
+    <button class="hmi" id="dhExpBtn">Export</button>
+    <button class="hmi" id="dhImpBtn">Import</button>
+  </div>
 </div>
 
 <div id="tb">
@@ -326,10 +330,10 @@
       <div class="cal-hdr-inner">
         <span class="cal-hdr-title">Release Calendar</span>
         <div class="cal-hdr-nav">
-          <button class="hb cal-arrow" id="calPrev">‹</button>
+          <button class="hb cal-arrow accent" id="calPrev">‹</button>
           <select id="calMonthSel" class="ts cal-month-sel"></select>
           <select id="calYearSel" class="ts cal-year-sel"></select>
-          <button class="hb cal-arrow" id="calNext">›</button>
+          <button class="hb cal-arrow accent" id="calNext">›</button>
         </div>
         <div class="cal-hdr-right">
           <button class="hb cal-tba-toggle accent" id="calTbaBtn" title="Date Unknown games" style="display:none">TBA</button>
@@ -387,14 +391,6 @@
         <div class="ferr" id="appIdErr">Already in your list.</div>
         <div id="steamStatus" style="display:none;font-size:.62rem;margin-top:.2rem"></div>
       </div>
-      <div class="fr" id="parentAppIdRow" style="display:none">
-        <label>Base Game <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— required for DLC</span></label>
-        <div class="ac-wrap">
-          <input type="text" id="fParentSearch" placeholder="Search by title or App ID…" autocomplete="off">
-          <input type="hidden" id="fParentAppId">
-          <div class="ac-dd" id="parentDd"></div>
-        </div>
-      </div>
     </div>
     <!-- Row 3: Cover preview + URL -->
     <img id="cprev" class="cprev" alt="Cover preview">
@@ -407,9 +403,9 @@
       <label>Short Description <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— auto-filled from Steam, editable</span></label>
       <textarea id="fShortDesc" style="min-height:54px;resize:vertical" placeholder="Brief description of the game…"></textarea>
     </div>
-    <!-- Row: Type + Priority -->
-    <div class="fg-inline" style="margin-bottom:.6rem">
-      <div class="fr" style="margin-bottom:0">
+    <!-- Row: Type + [Base Game when DLC] + Priority -->
+    <div class="type-row">
+      <div class="fr">
         <label>Type</label>
         <div class="type-tog">
           <button type="button" class="type-btn on" id="fTypeGame">Game</button>
@@ -417,7 +413,15 @@
         </div>
         <input type="hidden" id="fType" value="game">
       </div>
-      <div class="fr" style="margin-bottom:0">
+      <div class="fr" id="parentAppIdRow" style="display:none">
+        <label>Base Game <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— required for DLC</span></label>
+        <div class="ac-wrap">
+          <input type="text" id="fParentSearch" placeholder="Search by title or App ID…" autocomplete="off">
+          <input type="hidden" id="fParentAppId">
+          <div class="ac-dd" id="parentDd"></div>
+        </div>
+      </div>
+      <div class="fr">
         <label>Priority</label>
         <div class="prio-btns" id="prioBtns">
           <button type="button" class="prio-btn" data-v="high">High</button>
@@ -452,8 +456,8 @@
         </div>
       </div>
     </div>
-    <!-- Row 6: Release date + Price -->
-    <div class="fg">
+    <!-- Row 6: Release date + Price + Hotness -->
+    <div class="fg-dates">
       <div class="fr">
         <label>Release date</label>
         <!-- Overlay container: date and tba text occupy same space -->
@@ -469,11 +473,7 @@
         </div>
       </div>
       <div class="fr"><label>Price (€)</label><input type="number" id="fPrice" placeholder="29.99" step="0.01" min="0" autocomplete="off"></div>
-    </div>
-    <!-- Row 7: Hotness -->
-    <div class="fr">
-      <label>Hotness <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">1–100 · blank = to review</span></label>
-      <input type="number" id="fHotness" placeholder="blank = to review" min="1" max="100" autocomplete="off">
+      <div class="fr"><label>Hotness <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">1–100</span></label><input type="number" id="fHotness" placeholder="—" min="1" max="100" autocomplete="off"></div>
     </div>
     <!-- Row 8: Tags -->
     <div class="fr">
