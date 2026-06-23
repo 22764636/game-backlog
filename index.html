@@ -649,7 +649,7 @@
 <script src="app.js"></script>
 <script>
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js',{scope:'./'})
+  navigator.serviceWorker.register('./sw.js',{scope:'./'}
     .then(()=>console.log('BtB: SW registered'))
     .catch(e=>console.warn('BtB: SW failed',e));
 }
