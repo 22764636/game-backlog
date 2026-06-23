@@ -837,7 +837,7 @@ let cfPlayStatus=new Set(),cfSteamCol=new Set(),cfSteamColLogic='or';
 let hrMinVal=0,hrMaxVal=100;
 
 let cGenres=[],cTags=[],cStars=0;
-let fGenres=new Set(),fTags=new Set(),fPrios=new Set(),fPlats=new Set();
+let fGenres=new Set(),fTags=new Set(),fPrios=new Set();
 let fGenreLogic='or',fTagLogic='or';
 let cfGenres=new Set(),cfGenreLogic='or',cfPlats=new Set(),cfPlatExclusive=false;
 
@@ -3552,27 +3552,12 @@ document.getElementById('msave').onclick=()=>{
 // ══════════════════════════════════════════
 
 
-// ── POPOVER POSITION HELPER ──────────────────────────────────────────────────
-function positionFpop(btn,pop){
-  const r=btn.getBoundingClientRect();
-  const pw=Math.min(260,window.innerWidth-16);
-  let left=r.left;
-  if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;
-  if(left<8)left=8;
-  pop.style.left=left+'px';
-  pop.style.width=pw+'px';
-  _anchorBelow(pop,btn,5);
-}
-
 // ══════════════════════════════════════════
 //  COLLECTION MODE TOGGLE + FILTERS
 // ══════════════════════════════════════════
 function setAppMode(mode){
   appMode=mode;
   const isCol=mode==='collection';
-  // Toggle toolbars (legacy elements may not exist)
-  const _tb=document.getElementById('tb');if(_tb)_tb.classList.toggle('col-hidden',isCol);
-  const _ctb=document.getElementById('ctb');if(_ctb)_ctb.style.display=isCol?'flex':'none';
   // Sync pill toggle
   const mWl=document.getElementById('modeWishlist');
   const mCo=document.getElementById('modeCollection');
@@ -3601,28 +3586,6 @@ function dispatchRender(){
 //  URL HASH — persist view state across refreshes
 // ══════════════════════════════════════════
 function syncFilterBtns(){
-  function sb(btnId,badgeId,count){
-    const btn=document.getElementById(btnId);const bdg=document.getElementById(badgeId);
-    if(btn)btn.classList.toggle('active',count>0);
-    if(bdg){bdg.textContent=count;bdg.style.display=count>0?'':'none';}
-  }
-  function sl(togId,val,attr){
-    const tog=document.getElementById(togId);
-    if(tog)tog.querySelectorAll('.fpop-logic-btn').forEach(b=>b.classList.toggle('on',(b.dataset[attr||'l'])===val));
-  }
-  sb('genreFilterBtn','genreFilterBadge',fGenres.size);
-  sb('tagFilterBtn','tagFilterBadge',fTags.size);
-  sb('prioFilterBtn','prioFilterBadge',fPrios.size);
-  sl('genreLogicToggle',fGenreLogic);
-  sl('tagLogicToggle',fTagLogic);
-  sb('cGenreFilterBtn','cGenreFilterBadge',cfGenres.size);
-  sb('cPlayFilterBtn','cPlayFilterBadge',cfPlayStatus.size);
-  sb('cPlatFilterBtn','cPlatFilterBadge',cfPlats.size);
-  sb('cColFilterBtn','cColFilterBadge',cfSteamCol.size);
-  sl('cGenreColLogicToggle',cfGenreLogic);
-  sl('cColLogicToggle',cfSteamColLogic);
-  const exclTog=document.getElementById('cPlatExclToggle');
-  if(exclTog)exclTog.querySelectorAll('.fpop-logic-btn').forEach(b=>b.classList.toggle('on',b.dataset.m===(cfPlatExclusive?'excl':'any')));
   syncFbarBadges();
 }
 function saveHash(){
@@ -3679,11 +3642,6 @@ function restoreFromHash(){
     if(p.has('pr'))fPrios=new Set(p.get('pr').split('|').filter(Boolean));
     if(p.has('hmin'))hrMinVal=Math.max(0,Math.min(100,parseInt(p.get('hmin'))||0));
     if(p.has('hmax'))hrMaxVal=Math.max(0,Math.min(100,parseInt(p.get('hmax'))||100));
-    if(p.has('hmin')||p.has('hmax')){
-      const minI=document.getElementById('hrMinInp');const maxI=document.getElementById('hrMaxInp');
-      if(minI)minI.value=hrMinVal;if(maxI)maxI.value=hrMaxVal;
-      if(_updateHotnessSlider)_updateHotnessSlider();
-    }
     if(p.has('cg'))cfGenres=new Set(p.get('cg').split('|').filter(Boolean));
     if(p.has('cgl'))cfGenreLogic=p.get('cgl');
     if(p.has('cps'))cfPlayStatus=new Set(p.get('cps').split('|').filter(Boolean));
@@ -3712,136 +3670,6 @@ document.getElementById('hmModeCollection').onclick=()=>{document.getElementById
 // Collection sort
 document.getElementById('cSortSel').onchange=renderCollection;
 
-(function(){
-  const btn=document.getElementById('cPlayFilterBtn');
-  const pop=document.getElementById('cPlayFilterPop');
-  if(!btn||!pop)return;
-  const badge=document.getElementById('cPlayFilterBadge');
-  const clearBtn=document.getElementById('cPlayFilterClear');
-  const list=document.getElementById('cPlayFilterList');
-  const order=['Unplayed','In Progress','Completed','Superseded','Unfinishable','Played on Different Platform','Will Never Complete','Will Never Play'];
-  function updateBtn(){
-    const active=cfPlayStatus.size>0;
-    btn.classList.toggle('active',active);
-    badge.textContent=cfPlayStatus.size;badge.style.display=active?'':'none';
-  }
-  function renderList(){
-    const freq={};
-    games.filter(g=>g.status==='bought').forEach(g=>{const s=g.playStatus||'Unplayed';freq[s]=(freq[s]||0)+1;});
-    const opts=order.filter(s=>freq[s]>0);
-    if(!opts.length){list.innerHTML=`<div class="fpop-empty">No options</div>`;return;}
-    list.innerHTML=opts.map(v=>{
-      const m=PS_META[v]||{code:'UP',cls:'ps-UP'};
-      const sel=cfPlayStatus.has(v);
-      return`<div class="ps-filter-opt${sel?' selected':''}" data-val="${esc(v)}">
-        <span class="col-ps-badge ${m.cls}" style="pointer-events:none">${m.code}<span class="ps-tip">${esc(v)}</span></span>
-        <span class="fpop-opt-label">${esc(v)}</span>
-        <span class="fpop-opt-count">${freq[v]||0}</span>
-      </div>`;
-    }).join('');
-    list.querySelectorAll('.ps-filter-opt').forEach(el=>{
-      el.addEventListener('click',()=>{
-        const v=el.dataset.val;
-        cfPlayStatus.has(v)?cfPlayStatus.delete(v):cfPlayStatus.add(v);
-        el.classList.toggle('selected',cfPlayStatus.has(v));
-        updateBtn();renderCollection();
-      });
-    });
-  }
-  clearBtn.onclick=()=>{cfPlayStatus=new Set();updateBtn();renderList();renderCollection();};
-  btn.addEventListener('click',e=>{
-    e.stopPropagation();
-    document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
-    const opening=!pop.classList.contains('open');
-    pop.classList.toggle('open',opening);
-    if(opening){positionFpop(btn,pop);renderList();}
-  });
-  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
-})();
-makeFilterPopover({
-  btnId:'cColFilterBtn',popId:'cColFilterPop',badgeId:'cColFilterBadge',
-  clearId:'cColFilterClear',listId:'cColFilterList',logicToggleId:'cColLogicToggle',showTip:false,
-  getSelected:()=>cfSteamCol,setSelected:s=>{cfSteamCol=s},
-  getLogic:()=>cfSteamColLogic,setLogic:l=>{cfSteamColLogic=l},
-  getOptions:()=>{
-    const freq={};
-    games.filter(g=>g.status==='bought').forEach(g=>{(g.steamCollection||[]).forEach(c=>{if(c)freq[c]=(freq[c]||0)+1})});
-    return Object.keys(freq).sort().map(v=>({value:colLabel(v),count:freq[v]}));
-  },
-  renderFn:renderCollection,
-});
-makeFilterPopover({
-  btnId:'cGenreFilterBtn',popId:'cGenreFilterPop',badgeId:'cGenreFilterBadge',
-  clearId:'cGenreFilterClear',listId:'cGenreFilterList',logicToggleId:'cGenreColLogicToggle',
-  getSelected:()=>cfGenres,setSelected:s=>{cfGenres=s},
-  getLogic:()=>cfGenreLogic,setLogic:l=>{cfGenreLogic=l},
-  getOptions:()=>{
-    const freq={};
-    games.filter(g=>g.status==='bought').forEach(g=>{(g.genres||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1})});
-    return Object.keys(freq).sort().map(v=>({value:v,count:freq[v]}));
-  },
-  renderFn:renderCollection,
-});
-function makePlatFilterPopover({btnId,popId,badgeId,clearId,listId,getSelected,setSelected,getFreq,doRender,exclusiveToggleId,getExclusive,setExclusive}){
-  const btn=document.getElementById(btnId);
-  const pop=document.getElementById(popId);
-  if(!btn||!pop)return;
-  const badge=document.getElementById(badgeId);
-  const clearBtn=document.getElementById(clearId);
-  const list=document.getElementById(listId);
-  const exclTog=exclusiveToggleId?document.getElementById(exclusiveToggleId):null;
-  function syncExclTog(){
-    if(!exclTog)return;
-    const excl=getExclusive();
-    exclTog.querySelectorAll('.fpop-logic-btn').forEach(b=>b.classList.toggle('on',b.dataset.m===(excl?'excl':'any')));
-  }
-  function updateBtn(){const active=getSelected().size>0;btn.classList.toggle('active',active);badge.textContent=getSelected().size;badge.style.display=active?'':'none';}
-  function renderList(){
-    const freq=getFreq();const sel=getSelected();const excl=getExclusive?getExclusive():false;
-    const platforms=Object.keys(freq);
-    if(!platforms.length){list.innerHTML=`<div class="fpop-empty">No platforms</div>`;return;}
-    list.innerHTML=`<div class="plat-filter-pills">${platforms.map(p=>`<button class="b-plat plat-filter-pill${sel.has(p)?' selected':''}" data-val="${esc(p)}" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}<span class="plat-pill-count">${freq[p]}</span></button>`).join('')}</div>`;
-    list.querySelectorAll('.plat-filter-pill').forEach(el=>{
-      el.addEventListener('click',()=>{
-        const v=el.dataset.val;
-        if(excl){
-          if(getSelected().has(v)){setSelected(new Set());}else{setSelected(new Set([v]));}
-        } else {
-          getSelected().has(v)?getSelected().delete(v):getSelected().add(v);
-        }
-        updateBtn();doRender();renderList();
-      });
-    });
-  }
-  if(exclTog){
-    exclTog.addEventListener('click',e=>{
-      const b=e.target.closest('.fpop-logic-btn');if(!b)return;
-      setExclusive(b.dataset.m==='excl');
-      if(getExclusive()&&getSelected().size>1){setSelected(new Set([[...getSelected()][0]]))}
-      syncExclTog();updateBtn();renderList();doRender();
-    });
-    syncExclTog();
-  }
-  clearBtn.onclick=()=>{setSelected(new Set());updateBtn();renderList();doRender();};
-  btn.addEventListener('click',e=>{
-    e.stopPropagation();
-    document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
-    const opening=!pop.classList.contains('open');
-    pop.classList.toggle('open',opening);
-    if(opening){positionFpop(btn,pop);renderList();}
-  });
-  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
-}
-makePlatFilterPopover({
-  btnId:'cPlatFilterBtn',popId:'cPlatFilterPop',badgeId:'cPlatFilterBadge',
-  clearId:'cPlatFilterClear',listId:'cPlatFilterList',
-  getSelected:()=>cfPlats,setSelected:s=>{cfPlats=s},
-  getFreq:()=>{const freq={};games.filter(g=>g.status==='bought').forEach(g=>{ownedPlatforms(g).forEach(p=>{if(p)freq[p]=(freq[p]||0)+1})});return freq;},
-  doRender:renderCollection,
-  exclusiveToggleId:'cPlatExclToggle',
-  getExclusive:()=>cfPlatExclusive,
-  setExclusive:v=>{cfPlatExclusive=v},
-});
 
 // Search also triggers collection render when in collection mode
 // (search inputs already call dispatchRender via renderAll override below)
@@ -3961,224 +3789,6 @@ function doImport(){
   document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>runReleaseDateCheck()));
   document.getElementById('dhExpBtn').addEventListener('click',dh(doExport));
   document.getElementById('dhImpBtn').addEventListener('click',dh(doImport));
-})();
-
-// ══════════════════════════════════════════
-//  HOTNESS RANGE — dual thumb (desktop) + number inputs (mobile)
-// ══════════════════════════════════════════
-let _updateHotnessSlider=null;
-(function(){
-  const minInp=document.getElementById('hrMinInp');
-  const maxInp=document.getElementById('hrMaxInp');
-  const wrap=document.getElementById('hrSliderWrap');
-  if(!minInp||!maxInp||!wrap){_updateHotnessSlider=()=>{};return;}
-  const fill=document.getElementById('hrFill');
-  const thumbMin=document.getElementById('hrThumbMin');
-  const thumbMax=document.getElementById('hrThumbMax');
-  const valsEl=document.getElementById('hrVals');
-  const resetBtn=document.getElementById('hrReset');
-  function clamp(v,lo,hi){return Math.min(hi,Math.max(lo,v))}
-  const tipMin=document.getElementById('hrTipMin');
-  const tipMax=document.getElementById('hrTipMax');
-  const SLIDER_PAD=8; // px — matches CSS padding:0 8px on .hrange-slider-wrap
-  function updateSliderUI(){
-    if(!wrap||!thumbMin||!thumbMax)return;
-    // Map 0-100 value into the padded track area using calc()
-    thumbMin.style.left=`calc(${SLIDER_PAD}px + (100% - ${SLIDER_PAD*2}px) * ${hrMinVal/100})`;
-    thumbMax.style.left=`calc(${SLIDER_PAD}px + (100% - ${SLIDER_PAD*2}px) * ${hrMaxVal/100})`;
-    fill.style.left=`calc(${SLIDER_PAD}px + (100% - ${SLIDER_PAD*2}px) * ${hrMinVal/100})`;
-    fill.style.width=`calc((100% - ${SLIDER_PAD*2}px) * ${(hrMaxVal-hrMinVal)/100})`;
-    if(tipMin)tipMin.textContent=hrMinVal;
-    if(tipMax)tipMax.textContent=hrMaxVal;
-    if(valsEl)valsEl.textContent=hrMinVal+'–'+hrMaxVal;
-    if(resetBtn)resetBtn.classList.toggle('visible',hrMinVal>0||hrMaxVal<100);
-  }
-  function applyValues(mn,mx){
-    hrMinVal=mn;hrMaxVal=mx;
-    minInp.value=mn;maxInp.value=mx;
-    updateSliderUI();
-    renderAll();
-  }
-  function onNumChange(){
-    if(minInp.value===''||maxInp.value==='')return;
-    let mn=clamp(parseInt(minInp.value)||0,0,100);
-    let mx=clamp(parseInt(maxInp.value)||100,0,100);
-    if(mn>mx)mx=mn;
-    applyValues(mn,mx);
-  }
-  minInp.addEventListener('input',onNumChange);
-  maxInp.addEventListener('input',onNumChange);
-  minInp.addEventListener('blur',()=>{if(minInp.value===''){applyValues(0,hrMaxVal);}});
-  maxInp.addEventListener('blur',()=>{if(maxInp.value===''){applyValues(hrMinVal,100);}});
-  if(resetBtn)resetBtn.addEventListener('click',()=>applyValues(0,100));
-
-  // Track click — account for padding offset
-  wrap.addEventListener('mousedown',e=>{
-    if(e.target===thumbMin||e.target===thumbMax)return;
-    const rect=wrap.getBoundingClientRect();
-    const trackW=rect.width-SLIDER_PAD*2;
-    const val=Math.round(clamp((e.clientX-rect.left-SLIDER_PAD)/trackW,0,1)*100);
-    const dMin=Math.abs(val-hrMinVal);
-    const dMax=Math.abs(val-hrMaxVal);
-    if(dMin<=dMax)applyValues(clamp(val,0,hrMaxVal),hrMaxVal);
-    else applyValues(hrMinVal,clamp(val,hrMinVal,100));
-  });
-
-  function makeDraggable(thumb,isMin){
-    let dragging=false;
-    function getVal(clientX){
-      const rect=wrap.getBoundingClientRect();
-      const trackW=rect.width-SLIDER_PAD*2;
-      return Math.round(clamp((clientX-rect.left-SLIDER_PAD)/trackW,0,1)*100);
-    }
-    thumb.addEventListener('mousedown',e=>{dragging=true;thumb.classList.add('dragging');e.preventDefault();e.stopPropagation()});
-    document.addEventListener('mousemove',e=>{
-      if(!dragging)return;
-      const val=getVal(e.clientX);
-      isMin?applyValues(clamp(val,0,hrMaxVal),hrMaxVal):applyValues(hrMinVal,clamp(val,hrMinVal,100));
-    });
-    document.addEventListener('mouseup',()=>{dragging=false;thumb.classList.remove('dragging')});
-    thumb.addEventListener('touchstart',e=>{dragging=true;thumb.classList.add('dragging');e.preventDefault();e.stopPropagation()},{passive:false});
-    document.addEventListener('touchmove',e=>{
-      if(!dragging)return;
-      const val=getVal(e.touches[0].clientX);
-      isMin?applyValues(clamp(val,0,hrMaxVal),hrMaxVal):applyValues(hrMinVal,clamp(val,hrMinVal,100));
-    },{passive:true});
-    document.addEventListener('touchend',()=>{dragging=false;thumb.classList.remove('dragging')});
-  }
-  if(thumbMin)makeDraggable(thumbMin,true);
-  if(thumbMax)makeDraggable(thumbMax,false);
-  _updateHotnessSlider=updateSliderUI;
-  updateSliderUI();
-})();
-
-// ══════════════════════════════════════════
-//  GENRE & TAG FILTER POPOVERS
-// ══════════════════════════════════════════
-function makeFilterPopover({btnId,popId,badgeId,clearId,listId,logicToggleId,getSelected,setSelected,getLogic,setLogic,getOptions,renderFn,showTip=true}){
-  const btn=document.getElementById(btnId);
-  const pop=document.getElementById(popId);
-  if(!btn||!pop)return;
-  const badge=document.getElementById(badgeId);
-  const clearBtn=document.getElementById(clearId);
-  const list=document.getElementById(listId);
-  const logicWrap=logicToggleId?document.getElementById(logicToggleId):null;
-  const doRender=renderFn||renderAll;
-  function updateBtn(){
-    const sel=getSelected();const active=sel.size>0;
-    btn.classList.toggle('active',active);
-    badge.textContent=sel.size;badge.style.display=active?'':'none';
-  }
-  function renderList(){
-    const opts=getOptions();const sel=getSelected();
-    if(!opts.length){list.innerHTML=`<div class="fpop-empty">No options available</div>`;return}
-    list.innerHTML=opts.map(({value,count,color})=>`
-      <label class="fpop-opt">
-        <input type="checkbox" value="${esc(value)}"${sel.has(value)?' checked':''}>
-        <span class="fpop-opt-label">${color?`<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${color};flex-shrink:0;margin-right:.3rem"></span>`:''}${esc(value)}${showTip?metaTipHTML(value):''}</span>
-        ${count!=null?`<span class="fpop-opt-count">${count}</span>`:''}
-      </label>`).join('');
-    list.querySelectorAll('input[type=checkbox]').forEach(cb=>{
-      cb.onchange=()=>{const s=getSelected();cb.checked?s.add(cb.value):s.delete(cb.value);setSelected(s);updateBtn();doRender()};
-    });
-    if(logicWrap&&getLogic){
-      const cur=getLogic();
-      logicWrap.querySelectorAll('.fpop-logic-btn').forEach(x=>x.classList.toggle('on',x.dataset.l===cur));
-    }
-  }
-  if(logicWrap){
-    logicWrap.addEventListener('click',e=>{
-      const b=e.target.closest('.fpop-logic-btn');if(!b||!setLogic)return;
-      setLogic(b.dataset.l);
-      logicWrap.querySelectorAll('.fpop-logic-btn').forEach(x=>x.classList.toggle('on',x.dataset.l===b.dataset.l));
-      if(getSelected().size>0)doRender();
-    });
-  }
-  clearBtn.onclick=()=>{setSelected(new Set());updateBtn();renderList();doRender()};
-  const searchInp=pop.querySelector('.fpop-search');
-  if(searchInp){
-    searchInp.addEventListener('input',()=>{
-      const q=searchInp.value.toLowerCase();
-      list.querySelectorAll('label.fpop-opt,.ps-filter-opt').forEach(opt=>{
-        const lbl=opt.querySelector('.fpop-opt-label');
-        opt.style.display=(!q||!lbl||(lbl.textContent||'').toLowerCase().includes(q))?'':'none';
-      });
-    });
-  }
-  btn.addEventListener('click',e=>{
-    e.stopPropagation();
-    document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
-    const opening=!pop.classList.contains('open');
-    pop.classList.toggle('open',opening);
-    if(opening){
-      positionFpop(btn,pop);renderList();
-      if(searchInp){searchInp.value='';list.querySelectorAll('label.fpop-opt,.ps-filter-opt').forEach(o=>o.style.display='');}
-    }
-  });
-  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
-}
-makeFilterPopover({
-  btnId:'genreFilterBtn',popId:'genreFilterPop',badgeId:'genreFilterBadge',
-  clearId:'genreFilterClear',listId:'genreFilterList',logicToggleId:'genreLogicToggle',
-  getSelected:()=>fGenres,setSelected:s=>{fGenres=s},
-  getLogic:()=>fGenreLogic,setLogic:l=>{fGenreLogic=l},
-  getOptions:()=>{
-    const freq={};
-    games.filter(g=>g.status!=='bought').forEach(g=>{(g.genres||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1})});
-    return Object.keys(freq).sort().map(v=>({value:v,count:freq[v]}));
-  },
-});
-makeFilterPopover({
-  btnId:'tagFilterBtn',popId:'tagFilterPop',badgeId:'tagFilterBadge',
-  clearId:'tagFilterClear',listId:'tagFilterList',logicToggleId:'tagLogicToggle',
-  getSelected:()=>fTags,setSelected:s=>{fTags=s},
-  getLogic:()=>fTagLogic,setLogic:l=>{fTagLogic=l},
-  getOptions:()=>{
-    const freq={};
-    games.filter(g=>g.status!=='bought').forEach(g=>(g.tags||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1}));
-    return Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b)).map(v=>({value:v,count:freq[v]}));
-  },
-});
-
-// ── PRIORITY FILTER POPOVER ──
-(function(){
-  const btn=document.getElementById('prioFilterBtn');
-  const pop=document.getElementById('prioFilterPop');
-  if(!btn||!pop)return;
-  const badge=document.getElementById('prioFilterBadge');
-  const clearBtn=document.getElementById('prioFilterClear');
-  const list=document.getElementById('prioFilterList');
-  const PRIOS=[{value:'high',label:'High'},{value:'medium',label:'Medium'},{value:'low',label:'Low'}];
-  function updateBtn(){
-    const active=fPrios.size>0;
-    btn.classList.toggle('active',active);
-    badge.textContent=fPrios.size;badge.style.display=active?'':'none';
-  }
-  function renderList(){
-    const freq={high:0,medium:0,low:0};
-    games.filter(g=>g.status!=='bought').forEach(g=>{const p=g.priority||'medium';freq[p]=(freq[p]||0)+1;});
-    list.innerHTML=PRIOS.map(({value,label})=>`
-      <label class="fpop-opt">
-        <input type="checkbox" value="${value}"${fPrios.has(value)?' checked':''}>
-        <span class="fpop-opt-label" style="display:flex;align-items:center;gap:.35rem">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${prioColor(value)};flex-shrink:0"></span>
-          ${label}
-        </span>
-        <span class="fpop-opt-count">${freq[value]||0}</span>
-      </label>`).join('');
-    list.querySelectorAll('input[type=checkbox]').forEach(cb=>{
-      cb.onchange=()=>{cb.checked?fPrios.add(cb.value):fPrios.delete(cb.value);updateBtn();renderAll()};
-    });
-  }
-  clearBtn.onclick=()=>{fPrios.clear();updateBtn();renderList();renderAll()};
-  btn.addEventListener('click',e=>{
-    e.stopPropagation();
-    document.querySelectorAll('.fpop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
-    const opening=!pop.classList.contains('open');
-    pop.classList.toggle('open',opening);
-    if(opening){positionFpop(btn,pop);renderList();}
-  });
-  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
 })();
 
 
@@ -4531,11 +4141,8 @@ function _closeAllFloating(){
 
   function fbarApply(mn,mx){
     hrMinVal=mn;hrMaxVal=mx;
-    if(document.getElementById('hrMinInp'))document.getElementById('hrMinInp').value=mn;
-    if(document.getElementById('hrMaxInp'))document.getElementById('hrMaxInp').value=mx;
     fbarMinInp.value=mn;fbarMaxInp.value=mx;
     fbarUpdateSlider();
-    if(typeof _updateHotnessSlider==='function')_updateHotnessSlider();
     renderAll();
     syncFbarBadges();
   }
@@ -4797,10 +4404,7 @@ function _closeAllFloating(){
       fGenres=new Set();fTags=new Set();fPrios=new Set();
       hrMinVal=0;hrMaxVal=100;
       fbarUpdateSlider();
-      if(document.getElementById('hrMinInp'))document.getElementById('hrMinInp').value=0;
-      if(document.getElementById('hrMaxInp'))document.getElementById('hrMaxInp').value=100;
       fbarMinInp.value=0;fbarMaxInp.value=100;
-      if(typeof _updateHotnessSlider==='function')_updateHotnessSlider();
       renderAll();
     }
     syncFbarBadges();
