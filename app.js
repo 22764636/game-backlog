@@ -52,8 +52,17 @@ const IC={
 
 // ══════════════════════════════════════════
 function applyVm(){
-  ['hmViewGrid','dhViewGrid'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',vm==='grid');});
-  ['hmViewList','dhViewList'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',vm==='list');});
+  ['dhViewGrid'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',vm==='grid');});
+  ['dhViewList'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',vm==='list');});
+  updateQfabView();
+}
+function updateQfabView(){
+  const ico=document.getElementById('qfabViewIco');
+  if(ico)ico.textContent=vm==='list'?'☰':'⊞';
+}
+function updateQfabMode(){
+  const ico=document.getElementById('qfabModeIco');
+  if(ico)ico.textContent=appMode==='collection'?'C':'W';
 }
 
 // ══════════════════════════════════════════
@@ -796,6 +805,7 @@ async function initData(){
     games=loadOffline();
     setSyncStatus('offline','Offline mode');
     dispatchRender();
+    markQfabReady();
     return;
   }
   // Cache-first: show local data immediately, sync in background
@@ -803,6 +813,7 @@ async function initData(){
   if(cached.length){
     games=cached;
     dispatchRender();
+    markQfabReady();
   }
   setSyncStatus('syncing','Syncing…');
   try{
@@ -812,6 +823,7 @@ async function initData(){
     localStorage.setItem(KEY,JSON.stringify(games));
     setSyncStatus('ok','Loaded');
     dispatchRender();
+    markQfabReady();
     fetchMeta();
     loadPlatformStores();
     if(_migrationHappened){
@@ -824,6 +836,7 @@ async function initData(){
     console.warn('BTB: Could not load from Sheet, falling back to localStorage.',err);
     if(!cached.length){games=loadOffline();dispatchRender();}
     setSyncStatus('err','Sheet unavailable — using local cache');
+    markQfabReady();
   }
 }
 
@@ -3626,8 +3639,7 @@ function setAppMode(mode){
   const mCo=document.getElementById('modeCollection');
   if(mWl)mWl.classList.toggle('on',!isCol);
   if(mCo)mCo.classList.toggle('on',isCol);
-  ['hmModeWishlist'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',!isCol);});
-  ['hmModeCollection'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',isCol);});
+  updateQfabMode();
   // Toggle sidebar sections
   const fbarWl=document.getElementById('fbar-wl');
   const fbarCol=document.getElementById('fbar-col');
@@ -3731,8 +3743,6 @@ function debounce(fn,ms){let t;return function(...a){clearTimeout(t);t=setTimeou
 // Collection toggle buttons
 document.getElementById('modeWishlist').onclick=()=>setAppMode('wishlist');
 document.getElementById('modeCollection').onclick=()=>setAppMode('collection');
-document.getElementById('hmModeWishlist').onclick=()=>{document.getElementById('hmenu').classList.remove('on');setAppMode('wishlist');};
-document.getElementById('hmModeCollection').onclick=()=>{document.getElementById('hmenu').classList.remove('on');setAppMode('collection');};
 
 // Collection view mode toggle (grid/list) — handled via per-section toggles
 
@@ -3872,12 +3882,8 @@ function doImport(){
     }
   });
   function hm(fn){return function(){menu.classList.remove('on');if(history.state&&history.state.hmenuOpen)history.replaceState(null,'','');fn();}}
-  document.getElementById('hmCalBtn').addEventListener('click',hm(openCalendar));
-  document.getElementById('hmViewGrid').addEventListener('click',()=>{if(vm!=='grid'){vm='grid';dispatchRender();applyVm();}});
-  document.getElementById('hmViewList').addEventListener('click',()=>{if(vm!=='list'){vm='list';dispatchRender();applyVm();}});
   document.getElementById('hmExpBtn').addEventListener('click',hm(doExport));
   document.getElementById('hmImpBtn').addEventListener('click',hm(doImport));
-  document.getElementById('hmResyncBtn').addEventListener('click',hm(function(){if(!OFFLINE)resync();}));
   document.getElementById('calBtn').addEventListener('click',openCalendar);
 })();
 
@@ -4572,6 +4578,49 @@ function _closeAllFloating(){
     window.scrollTo({top:0,behavior:'smooth'});
   });
 })();
+
+// ── RADIAL QUICK-ACCESS FAB ──
+(function(){
+  const fab=document.getElementById('qfab');
+  const btn=document.getElementById('qfabBtn');
+  const ov=document.getElementById('qfab-ov');
+  if(!fab||!btn||!ov)return;
+
+  function openQfab(e){
+    if(e)e.stopPropagation();
+    fab.classList.add('open');
+    ov.classList.add('on');
+  }
+  function closeQfab(){
+    fab.classList.remove('open');
+    ov.classList.remove('on');
+  }
+  btn.addEventListener('click',function(e){
+    fab.classList.contains('open')?closeQfab():openQfab(e);
+  });
+  ov.addEventListener('click',closeQfab);
+
+  document.getElementById('qfabCal').addEventListener('click',()=>{closeQfab();openCalendar();});
+  document.getElementById('qfabMode').addEventListener('click',()=>{
+    closeQfab();
+    setAppMode(appMode==='wishlist'?'collection':'wishlist');
+  });
+  document.getElementById('qfabView').addEventListener('click',()=>{
+    closeQfab();
+    vm=vm==='grid'?'list':'grid';
+    dispatchRender();
+    applyVm();
+  });
+  document.getElementById('qfabSync').addEventListener('click',()=>{
+    closeQfab();
+    if(!OFFLINE)resync();
+  });
+})();
+
+function markQfabReady(){
+  const el=document.getElementById('qfab');
+  if(el&&!el.classList.contains('ready'))el.classList.add('ready');
+}
 
 // ══════════════════════════════════════════
 //  INIT

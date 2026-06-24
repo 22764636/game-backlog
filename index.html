@@ -83,10 +83,6 @@
 </div>
 <!-- Mobile dropdown menu — outside header to avoid overflow:hidden clipping -->
 <div id="hmenu">
-  <button class="hmi" id="hmCalBtn">Release Calendar</button>
-  <div class="hmi-theme"><span class="hmi-theme-label">Mode</span><div class="mode-tog" id="hmModeTog"><button class="mode-btn on" id="hmModeWishlist">Wishlist</button><button class="mode-btn" id="hmModeCollection">Collection</button></div></div>
-  <div class="hmi-theme"><span class="hmi-theme-label">View</span><div class="mode-tog" id="hmViewTog"><button class="mode-btn on" id="hmViewGrid" title="Grid view">⊞</button><button class="mode-btn" id="hmViewList" title="List view">☰</button></div></div>
-  <button class="hmi" id="hmResyncBtn" style="display:none">Re-sync</button>
   <button class="hmi" id="hmRdcBtn">Check release dates</button>
   <div class="hmi-row2">
     <button class="hmi" id="hmExpBtn">Export</button>
@@ -657,6 +653,25 @@
   <span>&#9881;</span>
   <span class="fbar-fab-badge" id="fbarFabBadge" style="display:none"></span>
 </button>
+
+<!-- RADIAL QUICK-ACCESS FAB (mobile only) -->
+<div id="qfab" aria-label="Quick actions">
+  <button class="qfab-item" id="qfabCal" title="Release Calendar" aria-label="Release Calendar">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="12" rx="2"/><path d="M1 7h14M5 1v4M11 1v4"/></svg>
+  </button>
+  <button class="qfab-item" id="qfabMode" title="Wishlist / Collection" aria-label="Toggle mode">
+    <span id="qfabModeIco">W</span>
+  </button>
+  <button class="qfab-item" id="qfabView" title="Grid / List view" aria-label="Toggle view">
+    <span id="qfabViewIco">⊞</span>
+  </button>
+  <button class="qfab-item" id="qfabSync" title="Re-sync" aria-label="Re-sync">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 8A5.5 5.5 0 1 1 10 3.1"/><path d="M10 1v3.5H13.5"/></svg>
+  </button>
+  <button id="qfabBtn" title="Quick actions" aria-label="Quick actions">+</button>
+</div>
+<div id="qfab-ov"></div>
+
 <button id="back-to-top" title="Back to top">&#8593;</button>
 
 <script src="btb-url.js" onerror="void 0"></script>
