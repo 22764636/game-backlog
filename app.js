@@ -513,7 +513,7 @@ function renderCalendar(){
       const slice=tbaGames.slice(p*TBA_PAGE_SIZE,(p+1)*TBA_PAGE_SIZE);
       pagesHTML+=`<div class="tba-list-page"><div class="cal-tba-grid">${slice.map(g=>{
         const pc=g.priority==='high'?'prio-high':g.priority==='low'?'prio-low':'prio-medium';
-        return`<div class="cal-tba-chip ${pc}" title="${esc(g.title)} — ${esc(g.releaseDate)}" onclick="closeCalendar();openPanel('${g.id}')"><span class="cal-tba-chip-title">${esc(g.title)}</span><span class="cal-tba-chip-sub">${esc(g.releaseDate)}</span></div>`;
+        return`<div class="cal-tba-chip ${pc}" title="${esc(g.title)} — ${esc(g.releaseDate)}" onclick="openPanel('${g.id}')"><span class="cal-tba-chip-title">${esc(g.title)}</span><span class="cal-tba-chip-sub">${esc(g.releaseDate)}</span></div>`;
       }).join('')}</div></div>`;
     }
     track.innerHTML=pagesHTML;
@@ -645,7 +645,7 @@ function renderCalendar(){
       main.innerHTML=`<div style="color:var(--t3);font-size:.8rem;padding:1rem 0">No releases this month.</div>`;
     } else {
       main.innerHTML=monthGames.map(g=>`
-        <div class="cal-list-item${isPreOrder(g)?' pre':''}" onclick="closeCalendar();openPanel('${g.id}')">
+        <div class="cal-list-item${isPreOrder(g)?' pre':''}" onclick="openPanel('${g.id}')">
           <div class="cal-list-date">${fmtDate(g.releaseDate)}</div>
           <div class="cal-list-title">${esc(g.title)}</div>
           ${isPreOrder(g)?'<span style="font-size:.6rem;background:var(--amber);color:#031329;border-radius:4px;padding:1px 5px;font-weight:700;flex-shrink:0">PRE</span>':''}
@@ -690,7 +690,7 @@ function renderCalendar(){
       const countBadge=cellGames.length>0
         ?`<div class="cal-count${hasPre?' has-pre':''}" data-date="${dateStr}">${cellGames.length}</div>
           <div class="cal-pop" id="pop-${dateStr}">
-            ${cellGames.map(g=>`<div class="cal-pop-item${isPreOrder(g)?' pre':''}" onclick="closeCalendar();openPanel('${g.id}')">${esc(g.title)}</div>`).join('')}
+            ${cellGames.map(g=>`<div class="cal-pop-item${isPreOrder(g)?' pre':''}" onclick="openPanel('${g.id}')">${esc(g.title)}</div>`).join('')}
           </div>`
         :'';
       html+=`<div class="cal-cell${isToday?' today':''}${isPast?' past':''}">
