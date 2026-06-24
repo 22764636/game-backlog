@@ -54,7 +54,6 @@
       <button class="mode-btn on" id="modeWishlist">Wishlist</button>
       <button class="mode-btn" id="modeCollection">Collection</button>
     </div>
-    <button class="hb accent hb-desk" id="filtersToggleBtn" title="Filters" style="display:none">Filters <span class="fbar-main-badge" id="filtersTotalBadge" style="display:none"></span></button>
     <button class="hb p" id="addBtn">＋<span class="hb-label"> Add game</span></button>
     <button class="hb hb-desk accent" id="dhBtn" title="More options" style="font-size:1rem;padding:0 .5rem">☰</button>
     <button class="hb hb-mob accent" id="hamburgerBtn" style="font-size:1rem;padding:0 .5rem" title="Menu">☰</button>
@@ -111,6 +110,7 @@
     <span class="fbar-title">Filters</span>
     <button class="fbar-close" id="fbarClose">✕</button>
   </div>
+  <div id="fchips"></div>
   <div class="fbar-body" id="fbarBody">
     <!-- Stats chips (moved from main layout) -->
     <div class="fbar-stats-row">
@@ -196,9 +196,9 @@
         <div class="fbar-sec-body" id="fbar-hot-body" style="display:none">
           <div class="fbar-hot-chips" id="fbar-hot-chips">
             <button class="fbar-hot-chip active" data-min="0" data-max="100">Any</button>
-            <button class="fbar-hot-chip" data-min="70" data-max="100">🔥 70+</button>
-            <button class="fbar-hot-chip" data-min="40" data-max="69">▶ 40–69</button>
-            <button class="fbar-hot-chip" data-min="0" data-max="39">⬇ &lt;40</button>
+            <button class="fbar-hot-chip" data-min="70" data-max="100">HOT 70+</button>
+            <button class="fbar-hot-chip" data-min="40" data-max="69">MID 40–69</button>
+            <button class="fbar-hot-chip" data-min="0" data-max="39">LOW &lt;40</button>
           </div>
         </div>
       </div>
@@ -302,7 +302,6 @@
 </div>
 
 <div id="main">
-  <div id="fchips"></div>
   <div id="content"><div id="gc"></div></div>
 </div>
 

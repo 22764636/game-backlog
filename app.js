@@ -4185,11 +4185,6 @@ function _closeAllFloating(){
   window._rawCloseFbar=_rawCloseFbar;
 
   // ── Wire toggle buttons ──
-  const toggleBtn=document.getElementById('filtersToggleBtn');
-  if(toggleBtn)toggleBtn.onclick=()=>{
-    const on=document.getElementById('fbar').classList.contains('on');
-    on?closeFbar():openFbar();
-  };
   const fabBtn=document.getElementById('fbarFab');
   if(fabBtn)fabBtn.onclick=()=>{
     const on=document.getElementById('fbar').classList.contains('on');

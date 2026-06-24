@@ -13,6 +13,7 @@ html,body{height:100%}
 body{font-family:'Inter',sans-serif;font-weight:300;background:var(--base);color:var(--text);
   display:flex;flex-direction:column;overflow:hidden;transition:background .3s,color .3s}
 button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration:none}
+button{text-transform:uppercase;letter-spacing:.04em}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--s3);border-radius:99px}
 
@@ -933,7 +934,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .fbar-close:hover{color:var(--text);background:#02b3fc18}
 
 /* Sidebar body */
-.fbar-body{flex:1;overflow-y:auto;padding:.4rem 0}
+.fbar-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:.4rem 0}
 
 /* Sort row */
 .fbar-sort-row{display:flex;gap:.5rem;padding:.35rem .75rem .2rem;flex-wrap:wrap}
@@ -1008,7 +1009,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .fbar-plat-pill.selected{opacity:1;box-shadow:0 0 0 2px #fff4,inset 0 0 0 1px #fff3}
 
 /* Sidebar footer */
-.fbar-footer{padding:0;border-top:1px solid var(--bd)}
+.fbar-footer{padding:0;padding-bottom:env(safe-area-inset-bottom,0);border-top:1px solid var(--bd)}
 .fbar-clearall{width:100%;background:var(--base);border:none;color:var(--pink);
   border-radius:0;padding:0;height:44px;font-size:.78rem;font-weight:500;cursor:pointer;
   transition:all .15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -1020,10 +1021,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .fbar-main-badge{position:absolute;top:-5px;right:-5px;background:var(--blue);color:#031329;
   border-radius:99px;font-size:.55rem;font-weight:700;padding:1px 5px;line-height:1.4;pointer-events:none}
 
-/* Active filter chips strip */
-#fchips{display:flex;flex-wrap:wrap;gap:.3rem;padding:.35rem .8rem;background:var(--s1);
+/* Active filter chips — inside fbar, above the body sections */
+#fchips{display:flex;flex-wrap:wrap;gap:.3rem;padding:.35rem .75rem;
   border-bottom:1px solid var(--bd);flex-shrink:0}
-#fchips:empty{display:none}
+#fchips:empty{display:none;padding:0;border-bottom:none}
 .fchip{display:flex;align-items:center;gap:.25rem;background:#02b3fc15;
   border:1px solid var(--bd2);border-radius:99px;padding:.18rem .5rem .18rem .6rem;
   font-size:.65rem;color:var(--text)}
