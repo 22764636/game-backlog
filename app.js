@@ -2112,11 +2112,17 @@ function _toggleInlineStorePicker(dd,stores,currentVal,onSelect,triggerEl){
   setTimeout(()=>si.focus(),50);
 }
 function _positionPickDd(dd,triggerEl){
-  // Portal to body: escapes transform/backdrop-filter containing blocks on #fbar and #mov
-  if(dd.parentElement!==document.body)document.body.appendChild(dd);
+  // If inside a fixed overlay (inset:0), portal to that overlay and use position:absolute.
+  // Overlay IS the viewport, so getBoundingClientRect coords work directly.
+  // Avoids mobile jitter that position:fixed causes when a scroll container inside the overlay scrolls.
+  // For non-overlay contexts (#fbar with transform), portal to body with position:fixed.
+  const overlay=triggerEl.closest('#mov,#btcov,#rmov,#riov,#rdcov,#wlovConfirm,#preorderConfirm');
+  const container=overlay||document.body;
+  const posType=overlay?'absolute':'fixed';
+  if(dd.parentElement!==container)container.appendChild(dd);
   const wrap=triggerEl.closest('.pick-wrap')||triggerEl;
   const r=wrap.getBoundingClientRect();
-  dd.style.position='fixed';dd.style.left=r.left+'px';dd.style.top=(r.bottom+2)+'px';
+  dd.style.position=posType;dd.style.left=r.left+'px';dd.style.top=(r.bottom+2)+'px';
   dd.style.width=r.width+'px';dd.style.right='auto';dd.style.bottom='auto';dd.style.zIndex='9999';
 }
 function _toggleInlinePsPicker(dd,hiddenInput,syncFn,triggerEl){
