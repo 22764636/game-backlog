@@ -437,6 +437,7 @@ button{text-transform:none;letter-spacing:0}
 .pick-dd.on{display:flex}
 .pick-dd > *:first-child{border-radius:calc(var(--r) - 1px) calc(var(--r) - 1px) 0 0}
 .pick-dd > *:last-child{border-radius:0 0 calc(var(--r) - 1px) calc(var(--r) - 1px)}
+.pick-dd.up{top:auto;bottom:calc(100% + 2px)}
 .genre-opt{padding:.35rem .65rem;font-size:.76rem;color:var(--t2);cursor:pointer;transition:background .1s}
 .genre-opt:hover{background:#02b3fc15;color:var(--text)}
 

@@ -2108,6 +2108,7 @@ function _toggleInlineStorePicker(dd,stores,currentVal,onSelect,triggerEl){
   dd.innerHTML='';dd.appendChild(si);dd.appendChild(lst);
   buildList('');si.oninput=()=>buildList(si.value);
   dd.classList.add('on');
+  _pickDdFlip(dd,triggerEl);
   setTimeout(()=>si.focus(),50);
 }
 function _toggleInlinePsPicker(dd,hiddenInput,syncFn,triggerEl){
@@ -2130,6 +2131,13 @@ function _toggleInlinePsPicker(dd,hiddenInput,syncFn,triggerEl){
     });
   });
   dd.classList.add('on');
+  _pickDdFlip(dd,triggerEl);
+}
+function _pickDdFlip(dd,triggerEl){
+  dd.classList.remove('up');
+  if(!triggerEl)return;
+  const r=(triggerEl.closest('.pick-wrap')||triggerEl).getBoundingClientRect();
+  if(window.innerHeight-r.bottom<230)dd.classList.add('up');
 }
 
 // btcStorePick
@@ -3764,6 +3772,7 @@ function _initFbarPicker(hidId,btnId,lblId,ddId,opts){
       });
     });
     dd.classList.add('on');
+    _pickDdFlip(dd,btn);
   });
   _sync();
 }
