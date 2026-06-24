@@ -2124,6 +2124,7 @@ function _positionPickDd(dd,triggerEl){
   const r=wrap.getBoundingClientRect();
   dd.style.position=posType;dd.style.left=r.left+'px';dd.style.top=(r.bottom+2)+'px';
   dd.style.width=r.width+'px';dd.style.right='auto';dd.style.bottom='auto';dd.style.zIndex='9999';
+  dd._pickTrigger=triggerEl;
 }
 function _toggleInlinePsPicker(dd,hiddenInput,syncFn,triggerEl){
   const wasOpen=dd.classList.contains('on');
@@ -2175,9 +2176,14 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('.pick-wrap')&&!e.target.closest('.pick-dd'))
     document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on');el.style.cssText=''});
 });
-// Close .pick-dd when any scroll container scrolls so dropdowns stay at their opened position
+// Reposition .pick-dd when any scroll container scrolls so it stays attached to its trigger
 document.addEventListener('scroll',()=>{
-  document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on');el.style.cssText=''});
+  const dd=document.querySelector('.pick-dd.on');
+  if(!dd||!dd._pickTrigger)return;
+  const wrap=dd._pickTrigger.closest('.pick-wrap')||dd._pickTrigger;
+  const r=wrap.getBoundingClientRect();
+  dd.style.top=(r.bottom+2)+'px';
+  dd.style.left=r.left+'px';
 },{passive:true,capture:true});
 
 // Wire picker on rendered cards (called from bindNewCards)
