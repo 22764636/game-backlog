@@ -846,6 +846,7 @@ let cfGenres=new Set(),cfGenreLogic='or',cfPlats=new Set(),cfPlatExclusive=false
 // ══════════════════════════════════════════
 const esc=s=>s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):'';
 const nr=g=>g.hotness===''||g.hotness===null||g.hotness===undefined;
+window._phToggle=function(hid,btn,n){const h=document.getElementById(hid);if(!h)return;const exp=h.style.display!=='none';h.style.display=exp?'none':'';btn.textContent=exp?`[+${n}]`:'[−]'};
 const isUnreleased=g=>isGameUnreleased(g); // alias
 const sc=id=>`https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/header.jpg`;
 
@@ -1979,7 +1980,7 @@ function _openBtcModal(id,addPlatMode){
   const g=games.find(x=>x.id===id);
   document.getElementById('btcTitle').textContent=g?g.title:'';
   document.getElementById('btcModalTitle').textContent=addPlatMode?'Add Platform':'Move to Collection';
-  document.getElementById('btcConfirm').textContent=addPlatMode?'✓ Save Platform':'✓ Add to Collection';
+  document.getElementById('btcConfirm').textContent=addPlatMode?'Save Platform':'Add to Collection';
   const owned=g?ownedPlatforms(g):[];
   const avail=addPlatMode?PLATFORM_ORDER.filter(p=>!owned.includes(p)):PLATFORM_ORDER;
   btcSelPlat=avail[0]||'Steam';
@@ -2359,7 +2360,7 @@ function openPanel(id){
   const devArr=Array.isArray(g.developer)?g.developer:(g.developer?[String(g.developer)]:[]);
   const pubArr=Array.isArray(g.publisher)?g.publisher:(g.publisher?[String(g.publisher)]:[]);
   const genreArr=genreD?genreD.split(',').map(s=>s.trim()).filter(Boolean):[];
-  const _expBtn=(hid,n)=>`<button onclick="var h=document.getElementById('${hid}');h.style.display='';this.style.display='none'" style="background:none;border:none;color:var(--blue);font-size:.68rem;cursor:pointer;padding:0;font-family:inherit;vertical-align:baseline">[+${n}]</button>`;
+  const _expBtn=(hid,n)=>`<button onclick="window._phToggle('${hid}',this,${n})" style="background:none;border:none;color:var(--blue);font-size:.68rem;cursor:pointer;padding:0;font-family:inherit;vertical-align:baseline">[+${n}]</button>`;
   const _truncArr=(arr,max,uid)=>{
     if(!arr.length)return'—';
     if(arr.length<=max)return arr.map(esc).join(', ');
@@ -3873,6 +3874,8 @@ document.addEventListener('keydown',function(e){
   if(e.key==='c'||e.key==='C'){openCalendar();return}
   if(e.key==='g'||e.key==='G'){vm='grid';dispatchRender();applyVm();return}
   if(e.key==='l'||e.key==='L'){vm='list';dispatchRender();applyVm();return}
+  if(e.key==='w'||e.key==='W'){setAppMode('wishlist');return}
+  if(e.key==='o'||e.key==='O'){setAppMode('collection');return}
 });
 
 // ══════════════════════════════════════════

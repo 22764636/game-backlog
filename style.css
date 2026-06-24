@@ -283,7 +283,6 @@ button,input,select,textarea{font-family:inherit}a{color:inherit;text-decoration
   .qb.qb-sdb{display:none}
   .qb.qb-bt{display:none}
   .qb.qb-wl{display:none}
-  .qb.qb-ap{display:none}
 }
 /* Grid view: full-width tap bar at card bottom (all screen sizes) */
 .gg:not(.lv) .cq{gap:0;margin:.25rem -.65rem -.55rem;width:calc(100% + 1.3rem);border-top:1px solid var(--bd)}
@@ -940,7 +939,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .fbar-sort-row{display:flex;gap:.5rem;padding:.35rem .75rem .2rem;flex-wrap:wrap}
 .fbar-sort-item{display:flex;flex-direction:column;gap:.2rem;flex:1;min-width:0}
 .fbar-sort-label{font-size:.6rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}
-.fbar-sort-item .ts{width:100%;font-size:.72rem}
+.fbar-sort-item .ts{width:100%;font-size:.72rem;background:var(--s1);border-color:#14528f88;color:var(--text);padding:.3rem 1.5rem .3rem .55rem}
 
 /* Section */
 .fbar-section{border-bottom:1px solid var(--bd)}
@@ -981,7 +980,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   cursor:pointer;transition:background .1s;font-size:.76rem;color:var(--t2)}
 .fbar-opt:hover{background:#02b3fc0f}
 .fbar-opt.selected{background:#02b3fc18;color:var(--text)}
-.fbar-opt-check{width:13px;height:13px;border:1.5px solid var(--bd);border-radius:3px;
+.fbar-opt-check{width:13px;height:13px;border:1.5px solid #2a5580;border-radius:3px;
   background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;
   transition:all .1s;font-size:.55rem}
 .fbar-opt.selected .fbar-opt-check{background:var(--blue);border-color:var(--blue);color:#031329;font-weight:700}
@@ -1083,6 +1082,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 /* Card button active states */
 .qb:active{background:#02b3fc33;border-color:var(--blue);color:var(--blue);transform:scale(0.9);transition:transform .05s}
 .gg:not(.lv) .qb:hover{background:#02b3fc18;color:var(--blue)}
+.gg:not(.lv) .qb.qr:hover{background:#ff00aa18;color:var(--pink)}
+.gg:not(.lv) .qb.ba:hover{background:#9cff0011;color:var(--green)}
 .gg:not(.lv) .qb:active{background:#02b3fc33;color:var(--blue);transform:scale(0.9)}
 .pa:active{background:#02b3fc33;border-color:var(--blue);color:var(--blue);transform:scale(0.9);transition:transform .05s}
 .mb2:active{background:#02b3fc33;border-color:var(--blue);color:var(--blue);transform:scale(0.9);transition:transform .05s}
