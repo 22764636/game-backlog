@@ -2506,7 +2506,7 @@ function openPanel(id){
   if(panelFooterEl){
     panelFooterEl.innerHTML=`<div class="pac">
       <button class="pa" id="ped">${t('pEdit')}</button>
-      <button class="pa ${g.status==='bought'?'s':''}" id="pbt">${g.status==='bought'?'↩ ':''} ${bl}</button>
+      <button class="pa ${g.status==='bought'?'s':'add'}" id="pbt">${g.status==='bought'?'↩ ':''} ${bl}</button>
       ${actionBtns}
     </div>`;
   }

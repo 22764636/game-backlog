@@ -315,18 +315,19 @@
 
 <div id="main">
   <div id="fchips"></div>
-  <div id="stat-row"></div>
   <div id="content"><div id="gc"></div></div>
 </div>
 
 <!-- RELEASE DATE CHECK MODAL -->
 <div id="rdcov">
   <div class="modal" style="max-width:520px">
+    <div class="modal-body">
     <div class="mt" style="color:var(--blue)">↻ Release Date Check</div>
     <div id="rdcSummary" style="font-size:.82rem;color:var(--t2);margin-bottom:.7rem;min-height:1.1em"></div>
     <div id="rdcLog"></div>
-    <div class="ma" style="margin-top:.9rem">
-      <button class="mb2 c" id="rdcClose" style="flex:1">Close</button>
+    </div><!-- /.modal-body -->
+    <div class="ma">
+      <button class="mb2 c" id="rdcClose">Close</button>
     </div>
   </div>
 </div>
@@ -337,6 +338,7 @@
 <!-- MOVE TO COLLECTION / ADD PLATFORM MODAL -->
 <div id="btcov">
   <div class="modal" style="max-width:480px">
+    <div class="modal-body">
     <div class="mt" id="btcModalTitle" style="color:var(--green)">Move to Collection</div>
     <div id="btcTitle" style="font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;color:var(--t2);margin-bottom:.8rem;letter-spacing:.02em"></div>
     <!-- Platform pills (populated by JS) -->
@@ -372,9 +374,10 @@
         <div class="genre-dd" id="btcColDd"></div>
       </div>
     </div>
+    </div><!-- /.modal-body -->
     <div class="ma">
       <button class="mb2 c" id="btcCancel">Cancel</button>
-      <button class="mb2" style="flex:1;background:#0a3320;border-color:#1a6640;color:var(--green);font-weight:700" id="btcConfirm">✓ Add to Collection</button>
+      <button class="mb2 add" id="btcConfirm">✓ Add to Collection</button>
     </div>
   </div>
 </div>
@@ -435,6 +438,7 @@
 <!-- ADD/EDIT MODAL -->
 <div id="mov">
   <div class="modal">
+    <div class="modal-body">
     <div class="mt" id="modalTitle">Add game</div>
     <!-- Row 1: Store link full-width -->
     <div class="fr">
@@ -593,6 +597,7 @@
       <button class="note-save-btn" id="fNoteSaveBtn" style="margin-top:.3rem">＋ Save note</button>
       <div id="fNoteList" style="margin-top:.45rem"></div>
     </div>
+    </div><!-- /.modal-body -->
     <div class="ma">
       <button class="mb2 c" id="mcancel">Cancel</button>
       <button class="mb2 p" id="msave">Save game</button>
@@ -603,13 +608,15 @@
 <!-- REMOVE MODAL -->
 <div id="rmov">
   <div class="modal" style="max-width:400px">
+    <div class="modal-body">
     <div class="mt" style="color:var(--pink)">Remove from list</div>
     <div class="fr"><label>Why are you removing this game?</label>
       <textarea class="rta" id="rmNote" style="min-height:70px" placeholder="Not interested anymore, already bought elsewhere…"></textarea>
     </div>
+    </div><!-- /.modal-body -->
     <div class="ma">
       <button class="mb2 c" id="rmCancel">Cancel</button>
-      <button class="mb2" style="flex:1;background:#ff00aa22;border-color:#ff00aa66;color:var(--pink);font-weight:700" id="rmConfirm">Remove</button>
+      <button class="mb2 d" id="rmConfirm">Remove</button>
     </div>
   </div>
 </div>
@@ -617,12 +624,14 @@
 <!-- REINSTATE MODAL -->
 <div id="riov">
   <div class="modal" style="max-width:380px">
+    <div class="modal-body">
     <div class="mt" style="color:var(--green)">Reinstate game</div>
     <div class="fr"><label>Restore to which list?</label></div>
+    </div><!-- /.modal-body -->
     <div class="ma">
       <button class="mb2 c" id="riCancel">Cancel</button>
-      <button class="mb2" style="flex:1;background:#9cff0022;border-color:#9cff0066;color:var(--green);font-weight:700" id="riWl">Wishlist</button>
-      <button class="mb2" style="flex:1;background:#02b3fc22;border-color:#02b3fc66;color:var(--blue);font-weight:700" id="riBt">Bought</button>
+      <button class="mb2 add" id="riWl">Wishlist</button>
+      <button class="mb2 p" id="riBt">Bought</button>
     </div>
   </div>
 </div>
@@ -630,12 +639,14 @@
 <!-- PRE-ORDER / UNRELEASED CONFIRM MODAL -->
 <div id="preorderConfirm">
   <div class="modal" style="max-width:400px">
+    <div class="modal-body">
     <div class="mt" style="color:var(--amber)">Game not yet released</div>
     <div class="fr"><label id="preorderGameTitle" style="color:var(--text);font-weight:600;font-size:.95rem"></label></div>
     <p style="margin:.5rem 0 1rem;color:var(--t2);font-size:.82rem">This game hasn't been released yet. It will show as <b style="color:var(--amber)">PRE-ORDER</b> until the release date.</p>
+    </div><!-- /.modal-body -->
     <div class="ma">
       <button class="mb2 c" id="preorderCancel">Cancel</button>
-      <button class="mb2" style="flex:1;background:#f7cd2622;border-color:#f7cd2666;color:var(--amber);font-weight:700" id="preorderConfirmBtn">Add to Collection</button>
+      <button class="mb2 warn" id="preorderConfirmBtn">Add to Collection</button>
     </div>
   </div>
 </div>
@@ -643,12 +654,14 @@
 <!-- MOVE BACK TO WISHLIST CONFIRM MODAL -->
 <div id="wlovConfirm">
   <div class="modal" style="max-width:400px">
+    <div class="modal-body">
     <div class="mt" style="color:var(--magenta)">Move back to Wishlist?</div>
     <div class="fr"><label id="wlovGameTitle" style="color:var(--text);font-weight:600;font-size:.95rem"></label></div>
     <p style="margin:.5rem 0 1rem;color:var(--t2);font-size:.82rem">All purchase data (platform, store, cost, date) will be removed.</p>
+    </div><!-- /.modal-body -->
     <div class="ma">
       <button class="mb2 c" id="wlovCancel">Cancel</button>
-      <button class="mb2" style="flex:1;background:#ff00aa22;border-color:#ff00aa66;color:var(--magenta);font-weight:700" id="wlovConfirmBtn">Move to Wishlist</button>
+      <button class="mb2 d" id="wlovConfirmBtn">Move to Wishlist</button>
     </div>
   </div>
 </div>
