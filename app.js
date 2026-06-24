@@ -2658,6 +2658,10 @@ document.getElementById('wlovConfirmBtn').onclick=()=>{
 // Android back-swipe / browser back closes overlay modals instead of exiting
 window.addEventListener('popstate',function(){
   if(_popSuppressed)return;
+  // lightweight menus — close without back()
+  if(_addPickOpen){const p=document.getElementById('addPickPop');if(p)p.style.display='none';_addPickOpen=false;return;}
+  const hmenu=document.getElementById('hmenu');
+  if(hmenu&&hmenu.classList.contains('on')){hmenu.classList.remove('on');return;}
   const fbar=document.getElementById('fbar');
   if(fbar&&fbar.classList.contains('on')){window._rawCloseFbar&&window._rawCloseFbar();return;}
   if(document.getElementById('panel').classList.contains('on')){
@@ -3217,14 +3221,16 @@ function openAdd(){
     pop.style.left='auto';
     pop.style.display='';
     _addPickOpen=true;
+    history.pushState({addPickOpen:true},'','');
   } else {
-    pop.style.display='none';
-    _addPickOpen=false;
+    _closeAddPick();
   }
 }
 function _closeAddPick(){
   const pop=document.getElementById('addPickPop');
   if(pop)pop.style.display='none';
+  if(_addPickOpen&&history.state&&history.state.addPickOpen)
+    history.replaceState(null,'','');
   _addPickOpen=false;
 }
 function openAddWishlist(){
@@ -3839,14 +3845,18 @@ function doImport(){
   var menu=document.getElementById('hmenu');
   btn.addEventListener('click',function(e){
     e.stopPropagation();
-    // Close any open filter popovers first
     document.querySelectorAll('.fpop.open').forEach(p=>p.classList.remove('open'));
+    const opening=!menu.classList.contains('on');
     menu.classList.toggle('on');
+    if(opening)history.pushState({hmenuOpen:true},'','');
   });
   document.addEventListener('click',function(e){
-    if(!menu.contains(e.target)&&e.target!==btn) menu.classList.remove('on');
+    if(!menu.contains(e.target)&&e.target!==btn&&menu.classList.contains('on')){
+      menu.classList.remove('on');
+      if(history.state&&history.state.hmenuOpen)history.replaceState(null,'','');
+    }
   });
-  function hm(fn){return function(){menu.classList.remove('on');fn();}}
+  function hm(fn){return function(){menu.classList.remove('on');if(history.state&&history.state.hmenuOpen)history.replaceState(null,'','');fn();}}
   document.getElementById('hmCalBtn').addEventListener('click',hm(openCalendar));
   document.getElementById('hmViewGrid').addEventListener('click',()=>{if(vm!=='grid'){vm='grid';dispatchRender();applyVm();}});
   document.getElementById('hmViewList').addEventListener('click',()=>{if(vm!=='list'){vm='list';dispatchRender();applyVm();}});
@@ -4216,13 +4226,6 @@ function _closeAllFloating(){
   wireAccordion('fbar-cplay-toggle','fbar-cplay-body');
   wireAccordion('fbar-cplat-toggle','fbar-cplat-body');
   wireAccordion('fbar-ccol-toggle','fbar-ccol-body');
-
-  // Close portaled pickers if modal body scrolls
-  document.querySelectorAll('.modal-body').forEach(mb=>{
-    mb.addEventListener('scroll',()=>{
-      document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on');el.style.cssText='';});
-    },{passive:true});
-  });
 
   // ── Hotness tier chips ──
   function fbarApply(mn,mx){

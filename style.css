@@ -1012,8 +1012,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 /* Sidebar footer */
 .fbar-footer{padding:0;border-top:1px solid var(--bd)}
 .fbar-clearall{width:100%;background:var(--base);border:none;color:var(--pink);
-  border-radius:0;padding:0 0 env(safe-area-inset-bottom,0);min-height:44px;font-size:.78rem;font-weight:500;cursor:pointer;
-  transition:all .15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  border-radius:0;padding:0 0 env(safe-area-inset-bottom,0);
+  min-height:calc(44px + env(safe-area-inset-bottom,0));
+  font-size:.78rem;font-weight:500;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .fbar-clearall:hover{background:#ff00aa18}
 .fbar-clearall:active{background:#ff00aa33;color:var(--pink);transform:scale(0.97);transition:transform .05s}
 
@@ -1097,7 +1100,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .panel-footer{padding:0;background:var(--s1);flex-shrink:0}
 .panel-footer:empty{display:none}
 .panel-footer .pac{margin-top:0;gap:0;flex-wrap:nowrap;border-top:1px solid var(--bd)}
-.panel-footer .pa{flex:1;height:44px;border-radius:0;border:none;border-left:1px solid var(--bd);
+.panel-footer .pa{flex:1;height:44px;border-radius:0;border:none;border-left:1px solid var(--bd);text-transform:uppercase;letter-spacing:.04em;
   min-width:0;font-size:.72rem;padding:.3rem .2rem;background:var(--base);color:var(--t3)}
 .panel-footer .pa:first-child{border-left:none}
 .panel-footer .pa:hover{color:var(--blue);background:transparent}
