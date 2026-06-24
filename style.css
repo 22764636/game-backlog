@@ -1010,7 +1010,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .fbar-plat-pill.selected{opacity:1;box-shadow:0 0 0 2px #fff4,inset 0 0 0 1px #fff3}
 
 /* Sidebar footer */
-.fbar-footer{padding:0;border-top:1px solid var(--bd)}
+.fbar-footer{padding:0;border-top:1px solid var(--bd);flex-shrink:0}
 .fbar-clearall{width:100%;background:var(--base);border:none;color:var(--pink);
   border-radius:0;padding:0 0 env(safe-area-inset-bottom,0);
   min-height:44px;line-height:44px;

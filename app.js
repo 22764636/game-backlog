@@ -2175,6 +2175,10 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('.pick-wrap')&&!e.target.closest('.pick-dd'))
     document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on');el.style.cssText=''});
 });
+// Close .pick-dd when any scroll container scrolls so dropdowns stay at their opened position
+document.addEventListener('scroll',()=>{
+  document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on');el.style.cssText=''});
+},{passive:true,capture:true});
 
 // Wire picker on rendered cards (called from bindNewCards)
 function bindPsPickerCards(container,start){
