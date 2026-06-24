@@ -147,12 +147,11 @@ function loadMetaCache(){
 function saveMetaCache(){localStorage.setItem(META_KEY,JSON.stringify(metaMap));}
 function metaDesc(name){return metaMap[name.toLowerCase()]||null;}
 function _applyMeta(data){
-  if(Array.isArray(data)){
-    metaMap={};
-    data.forEach(row=>{if(row.name)metaMap[String(row.name).toLowerCase()]={type:row.type||'',desc:row.description||''};});
-    saveMetaCache();
-    dispatchRender();
-  }
+  if(!Array.isArray(data)||!data.length)return;
+  metaMap={};
+  data.forEach(row=>{if(row.name)metaMap[String(row.name).toLowerCase()]={type:row.type||'',desc:row.description||''};});
+  saveMetaCache();
+  dispatchRender();
 }
 function fetchMeta(force){
   if(!SHEET_URL)return Promise.resolve();
@@ -2081,13 +2080,13 @@ function _syncModalPsBtn(val){
 document.addEventListener('click',e=>{
   const btn=e.target.closest('#fColPlayStatusBtn');if(!btn)return;
   e.stopPropagation();
-  _toggleInlinePsPicker(document.getElementById('fColPsDd'),document.getElementById('fColPlayStatus'),_syncModalPsBtn);
+  _toggleInlinePsPicker(document.getElementById('fColPsDd'),document.getElementById('fColPlayStatus'),_syncModalPsBtn,btn);
 });
 
 // ── INLINE MODAL PICKERS (store + play status) ───────────────────────────────
-function _toggleInlineStorePicker(dd,stores,currentVal,onSelect){
+function _toggleInlineStorePicker(dd,stores,currentVal,onSelect,triggerEl){
   const wasOpen=dd.classList.contains('on');
-  document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on');el.style.cssText=''});
   if(wasOpen)return;
   const si=document.createElement('input');
   si.type='text';si.className='store-picker-search';si.placeholder='Search stores…';
@@ -2096,17 +2095,23 @@ function _toggleInlineStorePicker(dd,stores,currentVal,onSelect){
     const f=q?stores.filter(s=>s.toLowerCase().includes(q.toLowerCase())):stores;
     lst.innerHTML=f.map(s=>`<div class="store-pick-opt${s===currentVal?' active':''}" data-s="${esc(s)}">${esc(s)}</div>`).join('');
     lst.querySelectorAll('.store-pick-opt').forEach(opt=>{
-      opt.onclick=e=>{e.stopPropagation();onSelect(opt.dataset.s);dd.classList.remove('on')};
+      opt.onclick=e=>{e.stopPropagation();onSelect(opt.dataset.s);dd.classList.remove('on');dd.style.cssText=''};
     });
   }
   dd.innerHTML='';dd.appendChild(si);dd.appendChild(lst);
   buildList('');si.oninput=()=>buildList(si.value);
+  if(triggerEl)_positionPickDd(dd,triggerEl);
   dd.classList.add('on');
   setTimeout(()=>si.focus(),50);
 }
-function _toggleInlinePsPicker(dd,hiddenInput,syncFn){
+function _positionPickDd(dd,triggerEl){
+  const r=triggerEl.getBoundingClientRect();
+  dd.style.position='fixed';dd.style.left=r.left+'px';dd.style.top=(r.bottom+2)+'px';
+  dd.style.width=r.width+'px';dd.style.right='auto';dd.style.bottom='auto';dd.style.zIndex='620';
+}
+function _toggleInlinePsPicker(dd,hiddenInput,syncFn,triggerEl){
   const wasOpen=dd.classList.contains('on');
-  document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on');el.style.cssText=''});
   if(wasOpen)return;
   const cur=hiddenInput.value||'Unplayed';
   dd.innerHTML=Object.keys(PS_META).map(s=>{
@@ -2120,9 +2125,10 @@ function _toggleInlinePsPicker(dd,hiddenInput,syncFn){
       e.stopPropagation();
       hiddenInput.value=opt.dataset.s;
       syncFn(opt.dataset.s);
-      dd.classList.remove('on');
+      dd.classList.remove('on');dd.style.cssText='';
     });
   });
+  if(triggerEl)_positionPickDd(dd,triggerEl);
   dd.classList.add('on');
 }
 
@@ -2132,7 +2138,7 @@ document.addEventListener('click',e=>{
   e.stopPropagation();
   _toggleInlineStorePicker(document.getElementById('btcStoreDd'),getPlatformStores(btcSelPlat),document.getElementById('btcStore').value,val=>{
     document.getElementById('btcStore').value=val;document.getElementById('btcStoreLabel').textContent=val;
-  });
+  },btn);
 });
 // fColStorePick
 document.addEventListener('click',e=>{
@@ -2140,18 +2146,18 @@ document.addEventListener('click',e=>{
   e.stopPropagation();
   _toggleInlineStorePicker(document.getElementById('fColStoreDd'),getPlatformStores(_modalColPlat||'Steam'),document.getElementById('fColStore').value,val=>{
     document.getElementById('fColStore').value=val;document.getElementById('fColStoreLabel').textContent=val;
-  });
+  },btn);
 });
 // btcPlayStatusBtn
 document.addEventListener('click',e=>{
   const btn=e.target.closest('#btcPlayStatusBtn');if(!btn)return;
   e.stopPropagation();
-  _toggleInlinePsPicker(document.getElementById('btcPsDd'),document.getElementById('btcPlayStatus'),_syncBtcPsBtn);
+  _toggleInlinePsPicker(document.getElementById('btcPsDd'),document.getElementById('btcPlayStatus'),_syncBtcPsBtn,btn);
 });
 // Close .pick-dd on click outside
 document.addEventListener('click',e=>{
   if(!e.target.closest('.pick-wrap'))
-    document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));
+    document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on');el.style.cssText=''});
 });
 
 // Wire picker on rendered cards (called from bindNewCards)

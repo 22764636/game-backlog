@@ -939,7 +939,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .fbar-sort-row{display:flex;gap:.5rem;padding:.35rem .75rem .2rem;flex-wrap:wrap}
 .fbar-sort-item{display:flex;flex-direction:column;gap:.2rem;flex:1;min-width:0}
 .fbar-sort-label{font-size:.6rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}
-.fbar-sort-item .ts{width:100%;font-size:.72rem;background:var(--s1);border-color:#14528f88;color:var(--text);padding:.3rem 1.5rem .3rem .55rem}
+.fbar-sort-item .ts{width:100%;font-size:.78rem;background:var(--base);border-color:var(--bd);color:var(--text);padding:.42rem 1.5rem .42rem .65rem}
 
 /* Section */
 .fbar-section{border-bottom:1px solid var(--bd)}
@@ -1057,27 +1057,23 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   .fbar-sort-row{display:grid;grid-template-columns:1fr 1fr}
 }
 
-/* Mobile FAB */
+/* FAB (all screen sizes) */
 .fbar-fab{position:fixed;bottom:1.5rem;right:1rem;width:48px;height:48px;border-radius:99px;
   background:var(--blue);border:none;color:#031329;font-size:1.1rem;cursor:pointer;
-  z-index:87;box-shadow:0 4px 16px rgba(2,179,252,.4);display:none;align-items:center;
+  z-index:87;box-shadow:0 4px 16px rgba(2,179,252,.4);display:flex;align-items:center;
   justify-content:center;transition:transform .12s,box-shadow .12s;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .fbar-fab:active{transform:scale(.92)}
-@media(max-width:640px){.fbar-fab{display:flex}}
 .fbar-fab-badge{position:absolute;top:-4px;right:-4px;background:var(--pink);color:#fff;
   border-radius:99px;font-size:.5rem;font-weight:700;padding:1px 4px;min-width:14px;text-align:center;pointer-events:none}
 
-/* Back to top */
-#back-to-top{position:fixed;bottom:1.5rem;right:1.5rem;width:40px;height:40px;border-radius:50%;
+/* Back to top — sits above FAB */
+#back-to-top{position:fixed;bottom:5.5rem;right:1rem;width:40px;height:40px;border-radius:50%;
   background:var(--s1);border:1px solid #9cff0066;color:var(--green);font-size:1.1rem;
   cursor:pointer;z-index:86;display:flex;align-items:center;justify-content:center;
   opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;transform:translateY(8px);
   touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #back-to-top.visible{opacity:1;pointer-events:auto;transform:translateY(0)}
-@media(max-width:640px){
-  #back-to-top{bottom:5.5rem;right:1rem}
-}
 
 /* Card button active states */
 .qb:active{background:#02b3fc33;border-color:var(--blue);color:var(--blue);transform:scale(0.9);transition:transform .05s}
