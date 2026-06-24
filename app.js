@@ -805,7 +805,6 @@ async function initData(){
     games=loadOffline();
     setSyncStatus('offline','Offline mode');
     dispatchRender();
-    markQfabReady();
     return;
   }
   // Cache-first: show local data immediately, sync in background
@@ -813,7 +812,6 @@ async function initData(){
   if(cached.length){
     games=cached;
     dispatchRender();
-    markQfabReady();
   }
   setSyncStatus('syncing','Syncing…');
   try{
@@ -823,7 +821,6 @@ async function initData(){
     localStorage.setItem(KEY,JSON.stringify(games));
     setSyncStatus('ok','Loaded');
     dispatchRender();
-    markQfabReady();
     fetchMeta();
     loadPlatformStores();
     if(_migrationHappened){
@@ -836,7 +833,6 @@ async function initData(){
     console.warn('BTB: Could not load from Sheet, falling back to localStorage.',err);
     if(!cached.length){games=loadOffline();dispatchRender();}
     setSyncStatus('err','Sheet unavailable — using local cache');
-    markQfabReady();
   }
 }
 
@@ -4590,15 +4586,20 @@ function _closeAllFloating(){
     if(e)e.stopPropagation();
     fab.classList.add('open');
     ov.classList.add('on');
+    history.pushState({qfabOpen:true},'','');
   }
   function closeQfab(){
     fab.classList.remove('open');
     ov.classList.remove('on');
+    if(history.state&&history.state.qfabOpen)history.replaceState(null,'','');
   }
   btn.addEventListener('click',function(e){
     fab.classList.contains('open')?closeQfab():openQfab(e);
   });
   ov.addEventListener('click',closeQfab);
+  window.addEventListener('popstate',function(e){
+    if(fab.classList.contains('open')){fab.classList.remove('open');ov.classList.remove('on');}
+  });
 
   document.getElementById('qfabCal').addEventListener('click',()=>{closeQfab();openCalendar();});
   document.getElementById('qfabMode').addEventListener('click',()=>{
@@ -4616,11 +4617,6 @@ function _closeAllFloating(){
     if(!OFFLINE)resync();
   });
 })();
-
-function markQfabReady(){
-  const el=document.getElementById('qfab');
-  if(el&&!el.classList.contains('ready'))el.classList.add('ready');
-}
 
 // ══════════════════════════════════════════
 //  INIT
