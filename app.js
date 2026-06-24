@@ -1925,14 +1925,21 @@ function handleMarkBought(id){
     _preorderPendingId=id;
     const ttl=document.getElementById('preorderGameTitle');if(ttl)ttl.textContent=g.title||'';
     document.getElementById('preorderConfirm').classList.add('on');
+    history.pushState({preorderConfirmOpen:true},'','');
     return;
   }
   openCollectionModal(id);
 }
-document.getElementById('preorderCancel').onclick=()=>{document.getElementById('preorderConfirm').classList.remove('on');_preorderPendingId=null;};
-document.getElementById('preorderConfirm').onclick=e=>{if(e.target===e.currentTarget){e.currentTarget.classList.remove('on');_preorderPendingId=null;}};
+function _closePreorderConfirm(){
+  document.getElementById('preorderConfirm').classList.remove('on');
+  _preorderPendingId=null;
+  if(history.state&&history.state.preorderConfirmOpen)history.replaceState(null,'','');
+}
+document.getElementById('preorderCancel').onclick=_closePreorderConfirm;
+document.getElementById('preorderConfirm').onclick=e=>{if(e.target===e.currentTarget)_closePreorderConfirm();};
 document.getElementById('preorderConfirmBtn').onclick=()=>{
   const id=_preorderPendingId;_preorderPendingId=null;
+  if(history.state&&history.state.preorderConfirmOpen)history.replaceState(null,'','');
   document.getElementById('preorderConfirm').classList.remove('on');
   if(id)openCollectionModal(id);
 };
@@ -2662,6 +2669,9 @@ window.addEventListener('popstate',function(){
   if(_addPickOpen){const p=document.getElementById('addPickPop');if(p)p.style.display='none';_addPickOpen=false;return;}
   const hmenu=document.getElementById('hmenu');
   if(hmenu&&hmenu.classList.contains('on')){hmenu.classList.remove('on');return;}
+  const preorderConfirmOv=document.getElementById('preorderConfirm');
+  if(preorderConfirmOv&&preorderConfirmOv.classList.contains('on')){preorderConfirmOv.classList.remove('on');_preorderPendingId=null;return;}
+  if(window._rdcIsOpen&&window._rdcIsOpen()){if(window._rdcTryClose&&!window._rdcTryClose())history.pushState({rdcovOpen:true},'','');return;}
   const fbar=document.getElementById('fbar');
   if(fbar&&fbar.classList.contains('on')){window._rawCloseFbar&&window._rawCloseFbar();return;}
   if(document.getElementById('panel').classList.contains('on')){
@@ -3944,8 +3954,27 @@ document.addEventListener('keydown',function(e){
   const summary=document.getElementById('rdcSummary');
   const log=document.getElementById('rdcLog');
   const closeBtn=document.getElementById('rdcClose');
-  closeBtn.onclick=()=>ov.classList.remove('on');
-  ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('on')});
+
+  let _rdcRunning=false,_rdcAborted=false;
+
+  function _closeRdc(){
+    ov.classList.remove('on');
+    _rdcRunning=false;_rdcAborted=false;
+    closeBtn.textContent='Close';
+    if(history.state&&history.state.rdcovOpen)history.replaceState(null,'','');
+  }
+  function _rdcTryClose(){
+    if(_rdcRunning){
+      if(!confirm('Stop the release date check?'))return false;
+      _rdcAborted=true;
+    }
+    _closeRdc();
+    return true;
+  }
+  closeBtn.onclick=()=>_rdcTryClose();
+  ov.addEventListener('click',e=>{if(e.target===ov)_rdcTryClose();});
+  window._rdcTryClose=_rdcTryClose;
+  window._rdcIsOpen=()=>ov.classList.contains('on');
 
   function rdcLog(msg,cls){
     const d=document.createElement('div');
@@ -3971,12 +4000,16 @@ document.addEventListener('keydown',function(e){
     if(!targets.length){showToast('No unreleased Steam games found.');return}
 
     ov.classList.add('on');
+    history.pushState({rdcovOpen:true},'','');
     log.innerHTML='';
     summary.textContent=`Checking ${targets.length} game${targets.length>1?'s':''}…`;
+    _rdcRunning=true;_rdcAborted=false;
+    closeBtn.textContent='Cancel';
 
     let updated=0,unchanged=0,failed=0;
 
     for(let i=0;i<targets.length;i++){
+      if(_rdcAborted)break;
       const g=targets[i];
       summary.textContent=`${i+1}/${targets.length} — ${g.title}`;
 
@@ -4007,10 +4040,16 @@ document.addEventListener('keydown',function(e){
         failed++;
       }
 
-      if(i<targets.length-1)await new Promise(r=>setTimeout(r,400));
+      if(i<targets.length-1&&!_rdcAborted)await new Promise(r=>setTimeout(r,400));
     }
 
-    summary.textContent=`Done — ${updated} updated, ${unchanged} unchanged${failed?`, ${failed} failed`:''}`;
+    _rdcRunning=false;
+    closeBtn.textContent='Close';
+    if(_rdcAborted){
+      summary.textContent=`Stopped — ${updated} updated, ${unchanged} unchanged${failed?`, ${failed} failed`:''}`;
+    }else{
+      summary.textContent=`Done — ${updated} updated, ${unchanged} unchanged${failed?`, ${failed} failed`:''}`;
+    }
     if(updated)dispatchRender();
   }
 
