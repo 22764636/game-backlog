@@ -4438,7 +4438,7 @@ function _closeAllFloating(){
     else if(toggleId==='fbar-ccol-toggle')refreshFbarCCol();
   }
   function _fbarRefreshAll(){
-    fbarUpdateSlider();
+    fbarUpdateSlider=()=>{};  // no-op: slider replaced by chips
     ['fbar-genre-toggle','fbar-tags-toggle','fbar-prio-toggle',
      'fbar-cgenre-toggle','fbar-cplay-toggle','fbar-cplat-toggle','fbar-ccol-toggle'].forEach(id=>{
       const btn=document.getElementById(id);
@@ -4502,7 +4502,6 @@ function _closeAllFloating(){
   }
 
   // Initial state
-  fbarUpdateSlider();
   syncFbarBadges();
 })();
 
