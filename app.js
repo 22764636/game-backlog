@@ -2356,9 +2356,30 @@ function openPanel(id){
   else b+=`<div class="hr2"><div class="ht"><div class="htf" style="width:${h}%"></div></div><div class="hn">${h}</div></div>`;
   b+=`</div>`;
 
+  const devArr=Array.isArray(g.developer)?g.developer:(g.developer?[String(g.developer)]:[]);
+  const pubArr=Array.isArray(g.publisher)?g.publisher:(g.publisher?[String(g.publisher)]:[]);
+  const genreArr=genreD?genreD.split(',').map(s=>s.trim()).filter(Boolean):[];
+  const _expBtn=(hid,n)=>`<button onclick="var h=document.getElementById('${hid}');h.style.display='';this.style.display='none'" style="background:none;border:none;color:var(--blue);font-size:.68rem;cursor:pointer;padding:0;font-family:inherit;vertical-align:baseline">[+${n}]</button>`;
+  const _truncArr=(arr,max,uid)=>{
+    if(!arr.length)return'—';
+    if(arr.length<=max)return arr.map(esc).join(', ');
+    const shown=arr.slice(0,max).map(esc).join(', ');
+    const rest=arr.slice(max);
+    const hid=`ph-${uid}-${g.id}`;
+    return`${shown}, <span id="${hid}" style="display:none">${rest.map(esc).join(', ')}</span>${_expBtn(hid,rest.length)}`;
+  };
+  let genreHTML;
+  if(!genreArr.length)genreHTML='—';
+  else if(genreArr.length<=4)genreHTML=genreArr.map(s=>`<span style="display:inline-flex;align-items:center;gap:.1rem">${esc(s)}${metaTipHTML(s)}</span>`).join(', ');
+  else{
+    const shownG=genreArr.slice(0,4).map(s=>`<span style="display:inline-flex;align-items:center;gap:.1rem">${esc(s)}${metaTipHTML(s)}</span>`).join(', ');
+    const restG=genreArr.slice(4).map(s=>`<span style="display:inline-flex;align-items:center;gap:.1rem">${esc(s)}${metaTipHTML(s)}</span>`).join(', ');
+    const hidG=`ph-genre-${g.id}`;
+    genreHTML=`${shownG}, <span id="${hidG}" style="display:none">${restG}</span>${_expBtn(hidG,genreArr.length-4)}`;
+  }
   const detLeft=[
-    [t('pDev'), esc(g.developer||'—')],
-    [t('pPub'), esc(g.publisher||'—')],
+    [t('pDev'), _truncArr(devArr,2,'dev')],
+    [t('pPub'), _truncArr(pubArr,2,'pub')],
     [t('pRel'), (()=>{
       let relStr=esc(dateD);
       if(isFutureDate(g.releaseDate)){
@@ -2370,7 +2391,7 @@ function openPanel(id){
     })()],
   ];
   const detRight=[
-    [t('pGenre'), genreD?genreD.split(',').map(s=>s.trim()).map(s=>`<span style="display:inline-flex;align-items:center;gap:.1rem">${esc(s)}${metaTipHTML(s)}</span>`).join(', '):'—'],
+    [t('pGenre'), genreHTML],
     [t('pPrice'), g.price?`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>`:`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`],
     ['Added', `<span style="color:var(--t2)">${fmtAdded(daysAgo(g.added),g.added)}</span>`],
   ];
