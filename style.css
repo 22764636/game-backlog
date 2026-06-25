@@ -1079,7 +1079,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 /* ── RADIAL QUICK-ACCESS FAB (mobile only) ── */
 #qfab{
   display:none;
-  position:fixed;bottom:1.5rem;right:1rem;width:48px;height:48px;z-index:89;
+  position:fixed;bottom:1.5rem;right:1rem;width:48px;height:48px;z-index:87;
 }
 @media(max-width:640px){
   #qfab{display:block}

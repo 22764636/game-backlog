@@ -2148,12 +2148,15 @@ function _pickDdFlip(dd,triggerEl){
   if(!triggerEl)return;
   const wrap=triggerEl.closest('.pick-wrap')||triggerEl;
   const r=wrap.getBoundingClientRect();
-  const modal=wrap.closest('.modal');
-  const boundaryTop=modal?modal.getBoundingClientRect().top:0;
-  const boundaryBottom=modal?modal.getBoundingClientRect().bottom:window.innerHeight;
+  let container=null,el=wrap.parentElement;
+  while(el&&el!==document.documentElement){
+    if(getComputedStyle(el).overflowY!=='visible'){container=el;break;}
+    el=el.parentElement;
+  }
+  const cr=container?container.getBoundingClientRect():{top:0,bottom:window.innerHeight};
   const gap=6;
-  const spaceBelow=boundaryBottom-r.bottom-gap;
-  const spaceAbove=r.top-boundaryTop-gap;
+  const spaceBelow=cr.bottom-r.bottom-gap;
+  const spaceAbove=r.top-cr.top-gap;
   if(spaceBelow<230&&spaceAbove>spaceBelow){
     dd.classList.add('up');
     dd.style.maxHeight=Math.max(spaceAbove,80)+'px';
