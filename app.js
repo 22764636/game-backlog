@@ -3909,6 +3909,7 @@ function doImport(){
   document.getElementById('dhViewList').addEventListener('click',dh(()=>{if(vm!=='list'){vm='list';dispatchRender();applyVm();}}));
   document.getElementById('dhMetaBtn').addEventListener('click',dh(async()=>{fetchMeta(true);showToast('Metadata refreshed.');}));
   document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>runReleaseDateCheck()));
+  document.getElementById('dhPriceBtn').addEventListener('click',dh(()=>runPriceUpdate()));
   document.getElementById('dhExpBtn').addEventListener('click',dh(doExport));
   document.getElementById('dhImpBtn').addEventListener('click',dh(doImport));
 })();
@@ -4071,6 +4072,117 @@ document.addEventListener('keydown',function(e){
 
   window.runReleaseDateCheck=run;
   document.getElementById('hmRdcBtn').onclick=()=>{
+    document.getElementById('hmenu').classList.remove('on');
+    run();
+  };
+})();
+
+// ══════════════════════════════════════════
+//  PRICE UPDATER
+// ══════════════════════════════════════════
+(function(){
+  const ov=document.getElementById('pucov');
+  const summary=document.getElementById('puSummary');
+  const log=document.getElementById('puLog');
+  const closeBtn=document.getElementById('puClose');
+
+  let _running=false,_aborted=false;
+
+  function _close(){
+    ov.classList.remove('on');
+    _running=false;_aborted=false;
+    closeBtn.textContent='Close';
+    if(history.state&&history.state.pucovOpen)history.replaceState(null,'','');
+  }
+  function _tryClose(){
+    if(_running){
+      if(!confirm('Stop the price update?'))return false;
+      _aborted=true;
+    }
+    _close();
+    return true;
+  }
+  closeBtn.onclick=()=>_tryClose();
+  ov.addEventListener('click',e=>{if(e.target===ov)_tryClose();});
+
+  function puLog(msg,cls){
+    const d=document.createElement('div');
+    d.className=cls||'';
+    d.textContent=msg;
+    log.appendChild(d);
+    log.scrollTop=log.scrollHeight;
+  }
+
+  async function run(){
+    if(OFFLINE){showToast('Offline — cannot reach Steam.');return}
+    const today=todayISO();
+    const targets=games.filter(g=>{
+      if(!g.steamAppId||isCancelled(g))return false;
+      const price=String(g.price||'').trim();
+      if(price!=='')return false;
+      const rd=normaliseDate(g.releaseDate);
+      return/^\d{4}-\d{2}-\d{2}$/.test(rd)&&rd<=today;
+    });
+    if(!targets.length){showToast('No released Steam games with a missing price found.');return}
+
+    ov.classList.add('on');
+    history.pushState({pucovOpen:true},'','');
+    log.innerHTML='';
+    summary.textContent=`Checking ${targets.length} game${targets.length>1?'s':''}…`;
+    _running=true;_aborted=false;
+    closeBtn.textContent='Cancel';
+
+    let updated=0,unchanged=0,failed=0;
+
+    for(let i=0;i<targets.length;i++){
+      if(_aborted)break;
+      const g=targets[i];
+      summary.textContent=`${i+1}/${targets.length} — ${g.title}`;
+
+      try{
+        const res=await fetch(`${STEAM_WORKER}/?appid=${g.steamAppId}`);
+        if(!res.ok)throw new Error(`HTTP ${res.status}`);
+        const json=await res.json();
+        const entry=json[g.steamAppId];
+        if(!entry||!entry.success||!entry.data){
+          puLog(`✗ ${g.title} — no Steam data`,'rdc-err');
+          failed++;continue;
+        }
+        const d=entry.data;
+        let newPrice=null;
+        if(d.price_overview&&d.price_overview.initial!=null){
+          newPrice=(d.price_overview.initial/100).toFixed(2);
+        }else if(d.is_free){
+          newPrice='0.00';
+        }
+        if(newPrice===null){
+          puLog(`✗ ${g.title} — no price on Steam`,'rdc-err');
+          failed++;continue;
+        }
+        const gg=games.find(x=>x.id===g.id);
+        if(gg){gg.price=newPrice;save(gg.id);}
+        puLog(`✔ ${g.title} → €${newPrice}`,'rdc-ok');
+        updated++;
+      }catch(err){
+        puLog(`✗ ${g.title} — ${err.message}`,'rdc-err');
+        failed++;
+      }
+
+      if(i<targets.length-1&&!_aborted)await new Promise(r=>setTimeout(r,400));
+    }
+
+    _running=false;
+    closeBtn.textContent='Close';
+    if(_aborted){
+      summary.textContent=`Stopped — ${updated} updated${failed?`, ${failed} failed`:''}`;
+    }else{
+      summary.textContent=`Done — ${updated} updated${failed?`, ${failed} failed`:''}`;
+    }
+    if(updated)dispatchRender();
+  }
+
+  window.runPriceUpdate=run;
+  document.getElementById('hmPriceBtn').onclick=()=>{
     document.getElementById('hmenu').classList.remove('on');
     run();
   };
