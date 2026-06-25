@@ -2150,7 +2150,7 @@ function _pickDdFlip(dd,triggerEl){
   let el=wrap.parentElement,boundary=window.innerHeight;
   while(el&&el!==document.documentElement){
     const ov=getComputedStyle(el).overflowY;
-    if(ov==='auto'||ov==='hidden'||ov==='scroll'){boundary=el.getBoundingClientRect().bottom;break;}
+    if(ov==='hidden'){boundary=el.getBoundingClientRect().bottom;break;}
     el=el.parentElement;
   }
   if(boundary-r.bottom<230)dd.classList.add('up');
