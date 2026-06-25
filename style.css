@@ -169,7 +169,7 @@ button{text-transform:none;letter-spacing:0}
 .sb{margin-bottom:1rem}
 
 /* GRID */
-.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:.8rem;justify-content:start}
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:.8rem;justify-content:center}
 .gg.lv{grid-template-columns:1fr;gap:.3rem}
 
 /* CARD */
