@@ -24,16 +24,45 @@
 
 
 <header id="hdr">
-  <!-- Full logo (desktop) -->
-  <svg class="logo-svg logo-full" viewBox="0 0 220 28" height="28" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
-    <text y="19" font-family="Rajdhani,sans-serif" font-weight="700" font-size="20" letter-spacing=".4">
-      <tspan fill="#02b3fc">Building </tspan><tspan fill="#e8f4ff">the </tspan><tspan fill="#ff00aa">Backlog</tspan>
-    </text>
+  <!-- Badge mark (shared by both breakpoints) -->
+  <svg class="logo-svg logo-badge" width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <defs>
+      <linearGradient id="lg-stripes" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%"  stop-color="#02b3fc"/><stop offset="27%" stop-color="#02b3fc"/>
+        <stop offset="27%" stop-color="#ffffff"/><stop offset="35%" stop-color="#ffffff"/>
+        <stop offset="35%" stop-color="#ff00aa"/><stop offset="65%" stop-color="#ff00aa"/>
+        <stop offset="65%" stop-color="#ffffff"/><stop offset="73%" stop-color="#ffffff"/>
+        <stop offset="73%" stop-color="#02b3fc"/><stop offset="100%" stop-color="#02b3fc"/>
+      </linearGradient>
+      <linearGradient id="lg-bevel" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%"   stop-color="white" stop-opacity=".45"/><stop offset="5%"   stop-color="white" stop-opacity="0"/>
+        <stop offset="22%"  stop-color="black" stop-opacity="0"/>  <stop offset="27%"  stop-color="black" stop-opacity=".3"/>
+        <stop offset="27%"  stop-color="white" stop-opacity=".45"/><stop offset="30%"  stop-color="white" stop-opacity="0"/>
+        <stop offset="33%"  stop-color="black" stop-opacity="0"/>  <stop offset="35%"  stop-color="black" stop-opacity=".25"/>
+        <stop offset="35%"  stop-color="white" stop-opacity=".45"/><stop offset="40%"  stop-color="white" stop-opacity="0"/>
+        <stop offset="60%"  stop-color="black" stop-opacity="0"/>  <stop offset="65%"  stop-color="black" stop-opacity=".3"/>
+        <stop offset="65%"  stop-color="white" stop-opacity=".45"/><stop offset="68%"  stop-color="white" stop-opacity="0"/>
+        <stop offset="71%"  stop-color="black" stop-opacity="0"/>  <stop offset="73%"  stop-color="black" stop-opacity=".25"/>
+        <stop offset="73%"  stop-color="white" stop-opacity=".45"/><stop offset="78%"  stop-color="white" stop-opacity="0"/>
+        <stop offset="96%"  stop-color="black" stop-opacity="0"/>  <stop offset="100%" stop-color="black" stop-opacity=".3"/>
+      </linearGradient>
+      <filter id="lg-shadow" x="-60%" y="-60%" width="220%" height="220%">
+        <feDropShadow dx="1.5" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="1"/>
+        <feDropShadow dx="0"   dy="1" stdDeviation=".5" flood-color="#000" flood-opacity=".6"/>
+      </filter>
+      <clipPath id="lg-clip"><rect width="36" height="36" rx="9"/></clipPath>
+    </defs>
+    <g clip-path="url(#lg-clip)">
+      <rect width="36" height="36" fill="url(#lg-stripes)"/>
+      <rect width="36" height="36" fill="url(#lg-bevel)"/>
+    </g>
+    <text x="18" y="27" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="26" fill="white" filter="url(#lg-shadow)">B</text>
   </svg>
-  <!-- Short logo (mobile) -->
-  <svg class="logo-svg logo-short" viewBox="0 0 52 28" height="28" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
-    <text y="19" font-family="Rajdhani,sans-serif" font-weight="700" font-size="21" letter-spacing=".5">
-      <tspan fill="#02b3fc">B</tspan><tspan fill="#e8f4ff">t</tspan><tspan fill="#ff00aa">B</tspan>
+  <!-- Desktop: separator + wordmark -->
+  <svg class="logo-svg logo-full" viewBox="0 0 196 28" height="28" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <line x1="0" y1="0" x2="0" y2="28" stroke="#14528f" stroke-opacity=".6" stroke-width="1"/>
+    <text y="20" font-family="Rajdhani,sans-serif" font-weight="700" font-size="20" letter-spacing=".4">
+      <tspan x="12" fill="#02b3fc">Building </tspan><tspan fill="#e8f4ff">the </tspan><tspan fill="#ff00aa">Backlog</tspan>
     </text>
   </svg>
   <div class="hs hs-desk">

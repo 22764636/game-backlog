@@ -21,6 +21,8 @@ button{text-transform:none;letter-spacing:0}
 #hdr{height:var(--hh);min-height:var(--hh);background:var(--s1);border-bottom:1px solid var(--bd);
   display:flex;align-items:center;padding:0 1.1rem;gap:.6rem;z-index:50;position:relative;flex-shrink:0}
 .logo-svg{flex-shrink:0;display:block;user-select:none;-webkit-user-select:none}
+.logo-badge{display:block!important}
+.logo-full{display:none}
 .hs{flex:1;position:relative}
 .hs svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--t3);fill:none;pointer-events:none}
 .hs input{width:100%;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);
@@ -783,7 +785,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 @media(max-width:640px){
   #hdr{flex-wrap:nowrap;padding:0 .65rem;gap:.35rem;overflow:visible}
   .logo-full{display:none!important}
-  .logo-short{display:inline-flex!important}
   .hs-desk{display:none!important}
   .hs-mob{display:flex!important;flex:1;min-width:0}
   .sync-hdr{display:none}
@@ -796,7 +797,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 @media(min-width:641px){.hs-mob{display:none!important}.hs-desk{display:flex!important}}
 @media(min-width:641px){
   .logo-full{display:block!important}
-  .logo-short{display:none!important}
   .hb-mob{display:none!important}
   #hmenu{display:none!important}
   .hs-mob{display:none!important}
