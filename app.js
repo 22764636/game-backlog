@@ -1299,7 +1299,6 @@ function cardHTML(g){
         <div class="cq">
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
           <a href="${ggUrl}" class="qb" title="gg.deals" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_GG,'gg')}</a>
-          <a href="${sdbUrl}" class="qb qb-sdb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
           <button class="qb qb-bt${ba}" title="${t('mBt')}" onclick="event.stopPropagation();handleMarkBought('${gid_s}')">${IC.check}</button>
           <button class="qb" title="Edit" onclick="event.stopPropagation();openEditFromCard('${gid_s}')">${IC.edit}</button>
           ${rmBtn}
@@ -1396,7 +1395,6 @@ function colCardHTML(g){
         ${dlcBadge}
         <div class="cq">
           <a href="${stUrl}" class="qb" title="Steam" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_STEAM,'steam')}</a>
-          <a href="${sdbUrl}" class="qb qb-sdb" title="SteamDB" target="_blank" onclick="event.stopPropagation()">${favImg(FAV_SDB,'sdb')}</a>
           <button class="qb qb-wl ba" title="Move back to Wishlist" onclick="event.stopPropagation();startMoveToWishlist('${gid_s}')">${IC.backWl}</button>
           <button class="qb" title="Edit" onclick="event.stopPropagation();openEditFromCard('${gid_s}')">${IC.edit}</button>
           <button class="qb qb-ap" title="Add Platform" onclick="event.stopPropagation();openAddPlatformModal('${gid_s}')">${IC.plus}</button>
@@ -2269,26 +2267,19 @@ function _buildPlatTabContent(g,plat){
 
   const playSection=`<div class="ps">
     <div class="psl">Play Status</div>
-    <div class="ps-inline-edit">
-      <button id="psInlineBtn" class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start">
-        ${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span>
-      </button>
-      <input type="hidden" id="psInlineSel" value="${esc(ps)}">
-      <input type="hidden" id="psInlinePlat" value="${esc(plat)}">
-      <div class="ps-picker" id="psInlinePickerPanel" style="position:relative;box-shadow:none;border-color:var(--bd);margin-top:.3rem;display:none;flex-direction:column"></div>
+    <div class="ps-seg" id="psSegWrap">
+      ${Object.keys(PS_META).map(s=>{const m=PS_META[s];return`<button class="ps-seg-btn${s===ps?' '+m.cls:' ps-seg-idle'}" data-s="${esc(s)}" title="${esc(s)}">${m.code}</button>`;}).join('')}
     </div>
+    <input type="hidden" id="psInlineSel" value="${esc(ps)}">
+    <input type="hidden" id="psInlinePlat" value="${esc(plat)}">
   </div>`;
 
   let colSection='';
   if(isSteam){
     const chips=(p.steamCollection||[]).map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff">${esc(colLabel(s))}</span>`).join('');
-    colSection=`<div class="ps" id="colInlineWrap">
+    colSection=`<div class="ps">
       <div class="psl">Collections</div>
-      <div style="display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.4rem" id="colInlineChips">${chips}</div>
-      <div class="genre-wrap">
-        <div class="ciw" id="colInlineWrapInput"><input type="text" class="cir" id="colInlineInput" placeholder="Type to add…" autocomplete="off"></div>
-        <div class="genre-dd" id="colInlineDd"></div>
-      </div>
+      <div style="display:flex;gap:.28rem;flex-wrap:wrap">${chips||'<span style="color:var(--t3);font-size:.75rem">—</span>'}</div>
     </div>`;
   }
 
@@ -2296,66 +2287,21 @@ function _buildPlatTabContent(g,plat){
 }
 
 function wirePlatTabContent(g,plat){
-  const psInlineBtn=document.getElementById('psInlineBtn');
-  const psInlinePickerPanel=document.getElementById('psInlinePickerPanel');
+  const psSegWrap=document.getElementById('psSegWrap');
   const psInlineSel=document.getElementById('psInlineSel');
-  if(psInlineBtn&&psInlinePickerPanel){
-    const _build=()=>{
-      const cur=psInlineSel?psInlineSel.value:'Unplayed';
-      psInlinePickerPanel.innerHTML=Object.keys(PS_META).map(s=>{
-        const m=PS_META[s];
-        return'<div class="ps-pick-opt'+(s===cur?' active':'')+'" data-s="'+esc(s)+'">'+
-          '<span class="col-ps-badge '+m.cls+'" style="font-size:.52rem;padding:1px 5px;flex-shrink:0">'+m.code+'</span>'+
-          '<span class="ps-pick-label">'+esc(s)+'</span>'+
-        '</div>';
-      }).join('');
-      psInlinePickerPanel.querySelectorAll('.ps-pick-opt').forEach(opt=>{
-        opt.addEventListener('click',()=>{
-          if(psInlineSel)psInlineSel.value=opt.dataset.s;
-          const m=PS_META[opt.dataset.s]||{code:'UP',cls:'ps-UP'};
-          psInlineBtn.className='col-ps-badge '+m.cls;
-          psInlineBtn.style.cssText='font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start';
-          psInlineBtn.innerHTML=m.code+' <span style="font-size:.68rem;font-weight:400;margin-left:4px">'+esc(opt.dataset.s)+'</span>';
-          psInlinePickerPanel.style.display='none';
-          const gg=games.find(x=>x.id===openId);
-          if(gg){const p=purchaseByPlat(gg,plat);if(p){p.playStatus=opt.dataset.s;syncLegacyFromPurchases(gg);save(openId);dispatchRender();}}
-          _build();
+  if(psSegWrap&&psInlineSel){
+    psSegWrap.querySelectorAll('.ps-seg-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const s=btn.dataset.s;
+        psInlineSel.value=s;
+        psSegWrap.querySelectorAll('.ps-seg-btn').forEach(b=>{
+          const bm=PS_META[b.dataset.s]||{code:'UP',cls:'ps-UP'};
+          b.className=b.dataset.s===s?`ps-seg-btn ${bm.cls}`:'ps-seg-btn ps-seg-idle';
         });
+        const gg=games.find(x=>x.id===openId);
+        if(gg){const p=purchaseByPlat(gg,plat);if(p){p.playStatus=s;syncLegacyFromPurchases(gg);save(openId);dispatchRender();}}
       });
-    };
-    psInlineBtn.addEventListener('click',()=>{
-      const open=psInlinePickerPanel.style.display!=='none';
-      psInlinePickerPanel.style.display=open?'none':'flex';
-      if(!open)_build();
     });
-    document.addEventListener('click',function _oc(e){
-      if(!psInlinePickerPanel.isConnected){document.removeEventListener('click',_oc);return;}
-      if(psInlinePickerPanel.style.display==='none')return;
-      if(!e.target.closest('#psInlinePickerPanel')&&!e.target.closest('#psInlineBtn'))psInlinePickerPanel.style.display='none';
-    });
-    _build();
-  }
-  const colInlineInput=document.getElementById('colInlineInput');
-  const colInlineDd=document.getElementById('colInlineDd');
-  if(colInlineInput&&colInlineDd){
-    let _panelCols=[...((purchaseByPlat(g,'Steam')||{}).steamCollection||[])];
-    const _save=()=>{const gg=games.find(x=>x.id===openId);if(gg){const p=purchaseByPlat(gg,'Steam');if(p){p.steamCollection=[..._panelCols];syncLegacyFromPurchases(gg);save(openId);dispatchRender();}}};
-    const _renderChips=()=>{
-      const w=document.getElementById('colInlineChips');if(!w)return;
-      w.innerHTML=_panelCols.map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff;cursor:pointer" data-col="${esc(s)}">${esc(colLabel(s))} <span style="opacity:.6;margin-left:2px">✕</span></span>`).join('');
-      w.querySelectorAll('.cich').forEach(chip=>{chip.addEventListener('click',()=>{_panelCols=_panelCols.filter(x=>x!==chip.dataset.col);_renderChips();_updateDd();_save();});});
-    };
-    const _updateDd=()=>{
-      const q=(colInlineInput.value||'').toLowerCase().trim();
-      const opts=allSteamCollections().filter(s=>!_panelCols.includes(s)&&(!q||s.toLowerCase().includes(q)));
-      if(!opts.length){colInlineDd.classList.remove('on');return}
-      colInlineDd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
-      colInlineDd.querySelectorAll('.genre-opt').forEach(el=>{el.addEventListener('click',()=>{_panelCols.push(el.dataset.v);colInlineInput.value='';_renderChips();colInlineDd.classList.remove('on');_save();});});
-      colInlineDd.classList.add('on');
-    };
-    _renderChips();
-    colInlineInput.addEventListener('input',_updateDd);
-    colInlineInput.addEventListener('focus',_updateDd);
   }
 }
 
@@ -2380,8 +2326,15 @@ function openPanel(id){
   const genreD=(g.genres||[]).join(', ')||g.genre||'';
   const dateD=displayReleaseDate(g);
 
-  let b=`<div class="pt">${esc(g.title)}</div>
-    <div class="pm">
+  let b=`<div class="pt-row">
+    <div class="pt">${esc(g.title)}</div>
+    <div class="pt-links">
+      <a href="${stUrl}" class="pt-lnk" target="_blank" title="Steam">${favImg(FAV_STEAM,'steam')}</a>
+      <a href="${ggUrl}" class="pt-lnk" target="_blank" title="gg.deals">${favImg(FAV_GG,'gg')}</a>
+      <a href="${sdbUrl}" class="pt-lnk" target="_blank" title="SteamDB">${favImg(FAV_SDB,'sdb')}</a>
+    </div>
+  </div>
+  <div class="pm">
       ${isPreOrder(g)?`<span class="bdg b-pre">PRE-ORDER</span>`:g.status==='bought'?`<span class="bdg b-bt">${t('bdgBt')}</span>`:''}
       ${g.status==='removed'?`<span class="bdg b-rm">${t('bdgRm')}</span>`:''}
       ${isCancelled(g)?`<span class="b-cancelled">CANCELLED</span>`:''}
@@ -2491,12 +2444,7 @@ function openPanel(id){
   const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
   const todayIso=(()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`})();
   b+=`<div class="ps"><div class="psl">Notes</div>
-    <div class="note-compose">
-      <input type="date" id="noteNewDate" class="note-compose-date" value="${todayIso}">
-      <textarea class="note-add" id="noteNewTxt" placeholder="Add a note…" style="margin-bottom:0;min-height:36px;resize:none"></textarea>
-    </div>
-    <button class="note-save-btn" id="noteAddBtn">＋ Save note</button>
-    <div id="noteList" style="margin-top:.45rem">
+    <div id="noteList" style="margin-bottom:.3rem">
     ${[...notes].reverse().map(n=>`
       <div class="note-entry" data-nid="${esc(n.id)}">
         <div class="note-date">${esc(fmtDate(n.date)||n.date||'')}</div>
@@ -2514,14 +2462,17 @@ function openPanel(id){
         </div>
       </div>`).join('')}
     </div>
+    <button class="note-add-toggle" id="noteToggle">＋ Add note</button>
+    <div id="noteCompose" style="display:none;margin-top:.35rem">
+      <div class="note-compose">
+        <input type="date" id="noteNewDate" class="note-compose-date" value="${todayIso}">
+        <textarea class="note-add" id="noteNewTxt" placeholder="Add a note…" style="margin-bottom:0;min-height:36px;resize:none"></textarea>
+      </div>
+      <button class="note-save-btn" id="noteAddBtn" style="margin-top:.35rem">Save note</button>
+    </div>
   </div>`;
   if(g.status==='removed'&&g.removeNote)b+=`<div class="ps"><div class="psl" style="color:var(--pink)">${t('pRmNote')}</div><div class="pv" style="color:var(--muted)">${esc(g.removeNote)}</div></div>`;
 
-  b+=`<div class="ps"><div class="psl">${t('pLinks')}</div><div class="plks">
-    <a href="${stUrl}" class="plk" target="_blank">${favImg(FAV_STEAM,'steam')} ${t('pSteam')}</a>
-    <a href="${ggUrl}" class="plk" target="_blank">${favImg(FAV_GG,'gg')} ${t('pGG')}</a>
-    <a href="${sdbUrl}" class="plk" target="_blank">${favImg(FAV_SDB,'sdb')} ${t('pSDB')}</a>
-  </div></div>`;
 
   if(g.status==='bought'){
     b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
@@ -2586,6 +2537,13 @@ function openPanel(id){
   // Notes wiring
   function getNotes(){const gg=games.find(x=>x.id===openId);return gg?(Array.isArray(gg.notes)?gg.notes:(gg.notes?[{id:nid(),date:todayStr(),text:gg.notes}]:[])):[]}
   function saveNotes(arr){const gg=games.find(x=>x.id===openId);if(gg){gg.notes=arr;save()}}
+  document.getElementById('noteToggle').onclick=()=>{
+    const compose=document.getElementById('noteCompose');
+    const tog=document.getElementById('noteToggle');
+    const hidden=compose.style.display==='none';
+    compose.style.display=hidden?'block':'none';
+    tog.textContent=hidden?'✕ Cancel':'＋ Add note';
+  };
   document.getElementById('noteAddBtn').onclick=()=>{
     const txt=document.getElementById('noteNewTxt').value.trim();if(!txt)return;
     const ndVal=document.getElementById('noteNewDate').value;
