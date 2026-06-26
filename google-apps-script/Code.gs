@@ -201,7 +201,7 @@ function getSheet(name) {
       'priority','hotness','releaseDate','price',
       'developer','publisher','cover','storeLink','type','parentAppId',
       'myRating','myReview','steamWishlist','added','removeNote','notes',
-      'purchases','tags','shortDescription'
+      'purchases','tags','shortDescription','delisted'
     ]);
   }
   return sheet;
