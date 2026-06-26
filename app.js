@@ -2262,20 +2262,14 @@ function _buildPlatTabContent(g,plat){
     ${p.purchaseDate?`<div class="purch-cell"><div class="purch-lbl">Date</div><div class="purch-val">${esc(fmtDate(p.purchaseDate)||p.purchaseDate)}</div></div>`:''}
   </div>`;
 
-  const chipsHTML=isSteam
-    ?((p.steamCollection||[]).map(s=>`<span class="cich">${esc(colLabel(s))}</span>`).join('')||'<span style="color:var(--t3);font-size:.75rem">—</span>')
-    :'';
+  const psSpan=`<span class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px">${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span></span>`;
 
   const twoCol=isSteam
     ?`<div class="coll-2col">
-        <div class="coll-2col-cell">
-          <span class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px">${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span></span>
-        </div>
-        <div class="coll-2col-cell coll-chips-row">${chipsHTML}</div>
+        <div class="coll-2col-cell">${psSpan}</div>
+        <div class="coll-2col-cell coll-chips-row">${(p.steamCollection||[]).map(s=>`<span class="cich-ro">${esc(colLabel(s))}</span>`).join('')||'<span style="color:var(--t3);font-size:.75rem">—</span>'}</div>
       </div>`
-    :`<div class="coll-play-row">
-        <span class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px">${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span></span>
-      </div>`;
+    :`<div class="coll-play-row">${psSpan}</div>`;
 
   return`${purchaseSection}${twoCol}`;
 }
@@ -2417,7 +2411,7 @@ function openPanel(id){
     }
   }
   if(g.shortDescription)b+=`<div class="ps"><div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${esc(g.shortDescription)}</div></div>`;
-  if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich" style="display:inline-flex;align-items:center;gap:.15rem">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div></div>`;
+  if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich-ro" style="display:inline-flex;align-items:center;gap:.15rem">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div></div>`;
   // Notes — multi-note with add/edit/delete
   const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
   const todayIso=(()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`})();
