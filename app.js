@@ -1255,10 +1255,7 @@ function cardHTML(g){
 
   // Price / date / unreleased display
   let priceEl;
-  if(g.delisted){
-    const dlBdg=`<span class="b-delisted">D</span>`;
-    priceEl=g.price?`<span class="cprice">€${parseFloat(g.price).toFixed(2)}</span>${dlBdg}`:dlBdg;
-  } else if(isFutureDate(g.releaseDate)){
+  if(isFutureDate(g.releaseDate)){
     const days=Math.ceil((new Date(normaliseDate(g.releaseDate))-new Date(todayISO()))/(1000*60*60*24));
     const cd=days===1?'tomorrow':days<=30?`in ${days}d`:null;
     const cdLabel=cd?` <span style="color:var(--amber);font-size:.6rem;font-weight:700">${cd}</span>`:'';
