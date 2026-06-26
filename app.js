@@ -4038,10 +4038,18 @@ document.addEventListener('keydown',function(e){
   window._plcTryClose=_plcTryClose;
   window._plcIsOpen=()=>ov.classList.contains('on');
 
-  function plcLog(msg,cls){
+  function plcLog(msg,cls,href){
     const d=document.createElement('div');
     d.className=cls||'';
-    d.textContent=msg;
+    if(href){
+      const a=document.createElement('a');
+      a.href=href;a.target='_blank';a.rel='noopener noreferrer';
+      a.textContent=msg;
+      a.style.cssText='color:inherit;text-decoration:underline;text-underline-offset:2px';
+      d.appendChild(a);
+    }else{
+      d.textContent=msg;
+    }
     log.appendChild(d);
     log.scrollTop=log.scrollHeight;
   }
@@ -4087,7 +4095,14 @@ document.addEventListener('keydown',function(e){
           plcLog(`✔ ${g.title}  free-to-play`,'plc-ok');
           found++;
         }else{
-          plcLog(`— ${g.title}  no longer available on Steam`,'plc-skip');
+          const gg=games.find(x=>x.id===g.id);
+          if(gg){
+            if(!Array.isArray(gg.tags))gg.tags=[];
+            if(!gg.tags.includes('Delisted'))gg.tags.push('Delisted');
+            save(gg.id);
+          }
+          const sdbUrl=`https://www.steamdb.info/app/${g.steamAppId}/`;
+          plcLog(`— ${g.title}  delisted · check SteamDB for price history`,'plc-skip',sdbUrl);
           unavailable++;
         }
       }catch(err){
@@ -4101,9 +4116,9 @@ document.addEventListener('keydown',function(e){
     _plcRunning=false;
     closeBtn.textContent='Close';
     if(_plcAborted){
-      summary.textContent=`Stopped — ${found} found, ${unavailable} unavailable${failed?`, ${failed} failed`:''}`;
+      summary.textContent=`Stopped — ${found} found, ${unavailable} delisted${failed?`, ${failed} failed`:''}`;
     }else{
-      summary.textContent=`Done — ${found} found, ${unavailable} unavailable${failed?`, ${failed} failed`:''}`;
+      summary.textContent=`Done — ${found} found, ${unavailable} delisted${failed?`, ${failed} failed`:''}`;
     }
     if(found)dispatchRender();
   }
