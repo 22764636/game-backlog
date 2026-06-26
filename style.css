@@ -493,13 +493,16 @@ button{text-transform:none;letter-spacing:0}
 .tba-btn.on{background:var(--blue);border-color:var(--blue);color:#031329}
 
 /* overlays */
-#riov,#rmov,#btcov,#rdcov,#wlovConfirm,#preorderConfirm{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
+#riov,#rmov,#btcov,#rdcov,#plcov,#wlovConfirm,#preorderConfirm{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
   z-index:300;align-items:center;justify-content:center;padding:1rem}
-#riov.on,#rmov.on,#btcov.on,#rdcov.on,#wlovConfirm.on,#preorderConfirm.on{display:flex}
-#rdcLog{max-height:300px;overflow-y:auto;font-size:.72rem;font-family:monospace;line-height:1.7;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);padding:.5rem .7rem}
+#riov.on,#rmov.on,#btcov.on,#rdcov.on,#plcov.on,#wlovConfirm.on,#preorderConfirm.on{display:flex}
+#rdcLog,#plcLog{max-height:300px;overflow-y:auto;font-size:.72rem;font-family:monospace;line-height:1.7;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);padding:.5rem .7rem}
 #rdcLog .rdc-ok{color:var(--green)}
 #rdcLog .rdc-skip{color:var(--t3)}
 #rdcLog .rdc-err{color:var(--pink)}
+#plcLog .plc-ok{color:var(--green)}
+#plcLog .plc-skip{color:var(--t3)}
+#plcLog .plc-err{color:var(--pink)}
 
 
 /* notes system */
