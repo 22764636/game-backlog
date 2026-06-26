@@ -214,8 +214,7 @@ button{text-transform:none;letter-spacing:0}
 .gc.cancelled .qb{filter:grayscale(1);opacity:.5}
 .gc.cancelled .b-cancelled{filter:none!important;opacity:1!important}
 .b-cancelled{background:#cc2200;color:#fff;border:1px solid #cc2200;font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;user-select:none;-webkit-user-select:none}
-.gc.delisted{border-color:#cc660044}
-.b-delisted{background:#cc6600;color:#fff;border:1px solid #cc6600;font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;user-select:none;-webkit-user-select:none}
+.b-delisted{background:#cc6600;color:#fff;font-size:.55rem;font-weight:700;padding:2px 4px;border-radius:3px;line-height:1.4;pointer-events:none;user-select:none;-webkit-user-select:none}
 .b-plat{font-size:.54rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;white-space:nowrap;flex-shrink:0;user-select:none;-webkit-user-select:none}
 .cbot .b-plat{pointer-events:none}
 .plat-filter-pills{display:flex;flex-wrap:wrap;gap:.35rem;padding:.3rem .1rem}

@@ -1256,7 +1256,7 @@ function cardHTML(g){
   // Price / date / unreleased display
   let priceEl;
   if(g.delisted){
-    const dlBdg=`<span class="b-delisted">DELISTED</span>`;
+    const dlBdg=`<span class="b-delisted">D</span>`;
     priceEl=g.price?`<span class="cprice">€${parseFloat(g.price).toFixed(2)}</span>${dlBdg}`:dlBdg;
   } else if(isFutureDate(g.releaseDate)){
     const days=Math.ceil((new Date(normaliseDate(g.releaseDate))-new Date(todayISO()))/(1000*60*60*24));
@@ -1288,7 +1288,7 @@ function cardHTML(g){
     rmBtn=`<button class="qb qr" title="Remove" onclick="event.stopPropagation();startRemove('${gid_s}')">${IC.close}</button>`;
   }
 
-  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}${isCancelled(g)?' cancelled':''}${g.delisted?' delisted':''}" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}"${tip?` data-added-tip="${esc(tip)}"`:''}>
+  return`<div class="gc st-${g.status||'wishlist'}${g.status==='bought'?' sb2':''}${isCancelled(g)?' cancelled':''}" data-id="${gid_s}" tabindex="0" role="button" aria-label="${esc(g.title)}"${tip?` data-added-tip="${esc(tip)}"`:''}>
     <div class="cc">
       <div class="cph" ${phStyle}>🎮</div>${cImg}
       <div class="cg"></div>
@@ -2377,7 +2377,7 @@ function openPanel(id){
     [t('pPrice'), (()=>{
       const dlBdg=g.delisted?` <span class="b-delisted">DELISTED</span>`:'';
       if(g.price)return`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>${dlBdg}`;
-      if(g.delisted)return`<span class="b-delisted">DELISTED</span>`;
+      if(g.delisted)return`<span class="b-delisted">D</span>`;
       if(isGameUnreleased(g))return`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`;
       return`<span style="color:var(--t3)">—</span>`;
     })()],
@@ -4064,14 +4064,18 @@ document.addEventListener('keydown',function(e){
     log.scrollTop=log.scrollHeight;
   }
 
-  async function fetchPriceFromWayback(appId){
+  // Query Wayback Machine for a snapshot near the release date — the game was
+  // definitely for sale then, so the archived API response should have price data.
+  async function fetchPriceFromWayback(appId, releaseDate){
     try{
-      const availRes=await fetch(`https://archive.org/wayback/available?url=store.steampowered.com/api/appdetails?appids=${appId}`);
+      const ts=releaseDate?releaseDate.replace(/-/g,''):'';
+      const tsParam=ts?`&timestamp=${ts}`:'';
+      const availRes=await fetch(`https://archive.org/wayback/available?url=store.steampowered.com/api/appdetails%3Fappids%3D${appId}${tsParam}`);
       if(!availRes.ok)return null;
       const availJson=await availRes.json();
       const snap=availJson?.archived_snapshots?.closest;
       if(!snap?.available||!snap?.url)return null;
-      // Insert 'if_' after the timestamp to retrieve raw content without Wayback UI wrapper
+      // 'if_' modifier returns raw content without the Wayback Machine UI wrapper
       const ifUrl=snap.url.replace(/\/web\/(\d{14})\//, '/web/$1if_/');
       const snapRes=await fetch(ifUrl);
       if(!snapRes.ok)return null;
@@ -4128,7 +4132,7 @@ document.addEventListener('keydown',function(e){
         }else{
           // No price on Steam — try Wayback Machine for a historical snapshot
           summary.textContent=`${i+1}/${targets.length} — ${g.title} (trying archive…)`;
-          const archivedPrice=await fetchPriceFromWayback(g.steamAppId);
+          const archivedPrice=await fetchPriceFromWayback(g.steamAppId,g.releaseDate);
           const gg=games.find(x=>x.id===g.id);
           if(archivedPrice!=null){
             if(gg){gg.price=archivedPrice;gg.delisted=true;save(gg.id);}
