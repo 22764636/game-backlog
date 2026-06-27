@@ -2266,10 +2266,10 @@ function _buildPlatTabContent(g,plat){
 
   const twoCol=isSteam
     ?`<div class="coll-2col">
-        <div class="coll-2col-cell">${psSpan}</div>
-        <div class="coll-2col-cell coll-chips-row">${(p.steamCollection||[]).map(s=>`<span class="cich-ro">${esc(colLabel(s))}</span>`).join('')||'<span style="color:var(--t3);font-size:.75rem">—</span>'}</div>
+        <div class="coll-2col-cell"><div class="purch-lbl">Status</div>${psSpan}</div>
+        <div class="coll-2col-cell coll-chips-row"><div class="purch-lbl" style="width:100%;text-align:center">Collection</div>${(p.steamCollection||[]).map(s=>`<span class="cich-ro">${esc(colLabel(s))}</span>`).join('')||'<span style="color:var(--t3);font-size:.75rem">—</span>'}</div>
       </div>`
-    :`<div class="coll-play-row">${psSpan}</div>`;
+    :`<div class="coll-play-row"><div><div class="purch-lbl" style="text-align:center;margin-bottom:.25rem">Status</div>${psSpan}</div></div>`;
 
   return`${purchaseSection}${twoCol}`;
 }

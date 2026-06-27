@@ -890,7 +890,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .plat-tab-grid.plat-tab-grid-3{grid-template-columns:1.6fr 1.4fr 1.8fr}
 @media(max-width:520px){.plat-tab-grid,.plat-tab-grid.plat-tab-grid-3{grid-template-columns:1fr}}
 .coll-box{background:var(--base);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
-.coll-box-hdr{background:#0a1824;border-bottom:1px solid var(--bd);padding:.4rem .75rem;display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center}
+.coll-box-hdr{background:var(--base);border-bottom:1px solid var(--bd);padding:.4rem .75rem;display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center}
 .coll-box-body{padding:.65rem .75rem}
 .purch-3col{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.55rem}
 .purch-cell{flex:1;min-width:60px;text-align:center}
