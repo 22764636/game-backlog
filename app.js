@@ -1247,6 +1247,8 @@ function cardHTML(g){
   else if(isPreOrder(g))         lBdg=`<span class="bdg b-pre">PRE-ORDER</span>`;
   else if(g.status==='bought')   lBdg=`<span class="bdg b-bt">${t('bdgBt')}</span>`;
   else if(g.status==='removed')  lBdg=`<span class="bdg b-rm">${t('bdgRm')}</span>`;
+  else if(isGameUnreleased(g))   lBdg=`<span class="bdg b-unrel">UNRELEASED</span>`;
+  else if(g.price!=null&&parseFloat(g.price)===0) lBdg=`<span class="bdg b-free">FREE</span>`;
   else if(isNR)                  lBdg=`<span class="b-rev">${t('bdgRev')}</span>`;
   else                           lBdg=`<span class="bdg b-hot">${h}</span>`;
 
@@ -1262,6 +1264,8 @@ function cardHTML(g){
     priceEl=`<span class="b-unrel-card">${fmtDate(g.releaseDate)}${cdLabel}</span>`;
   } else if(g.releaseDate&&!/^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate)){
     priceEl=`<span class="b-unrel-card">${esc(g.releaseDate)}</span>`;
+  } else if(g.price!=null&&parseFloat(g.price)===0){
+    priceEl=`<span class="bdg b-free">FREE</span>`;
   } else if(g.price){
     priceEl=`<span class="cprice">€${parseFloat(g.price).toFixed(2)}</span>`;
   } else {
@@ -1414,7 +1418,7 @@ function colCardHTML(g){
     :_filtCost===null
       ?'<span class="cprice" style="color:var(--t3)">—</span>'
       :_filtCost===0
-        ?'<span class="cprice" style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>'
+        ?'<span class="bdg b-free">FREE</span>'
         :'<span class="cprice">€'+_filtCost.toFixed(2)+'</span>';
   const dlcs=g.type!=='dlc'?findDlcs(g):[];
   const dlcBadge=dlcs.length?`<span class="dlc-count-badge" data-id="${gid_s}">DLC (${dlcs.length})</span>`:'';
@@ -2295,7 +2299,7 @@ function _buildPlatTabContent(g,plat){
   const ps=p.playStatus||'Unplayed';const psM=PS_META[ps]||{code:'UP',cls:'ps-UP'};
   const cn=parseFloat(p.cost)||0;
   const costStr=cn===0
-    ?`<span style="color:var(--lime);font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`
+    ?`<span class="bdg b-free">FREE</span>`
     :`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`;
   const isSteam=plat==='Steam';
 
@@ -2352,7 +2356,9 @@ function openPanel(id){
       ${isPreOrder(g)?`<span class="bdg b-pre">PRE-ORDER</span>`:g.status==='bought'?`<span class="bdg b-bt">${t('bdgBt')}</span>`:''}
       ${g.status==='removed'?`<span class="bdg b-rm">${t('bdgRm')}</span>`:''}
       ${isCancelled(g)?`<span class="b-cancelled">CANCELLED</span>`:''}
-      ${isNR&&g.status==='wishlist'&&!isCancelled(g)?`<span class="b-rev">${t('bdgRev')}</span>`:''}
+      ${g.status==='wishlist'&&!isCancelled(g)&&isGameUnreleased(g)?`<span class="bdg b-unrel">UNRELEASED</span>`:''}
+      ${g.status==='wishlist'&&!isCancelled(g)&&!isGameUnreleased(g)&&g.price!=null&&parseFloat(g.price)===0?`<span class="bdg b-free">FREE</span>`:''}
+      ${isNR&&g.status==='wishlist'&&!isCancelled(g)&&!isGameUnreleased(g)&&!(g.price!=null&&parseFloat(g.price)===0)?`<span class="b-rev">${t('bdgRev')}</span>`:''}
       <span class="bdg" style="background:${prioColor(g.priority)};color:#031329">${prioLabel(g.priority)}</span>
       ${_plats.map(p=>`<span class="b-plat" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}</span>`).join('')}
       ${g.type==='dlc'?`<span class="bdg" style="background:#3a1a6e;color:#c4a0ff">DLC</span>`:''}

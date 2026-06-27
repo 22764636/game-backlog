@@ -248,6 +248,8 @@ button{text-transform:none;letter-spacing:0}
 .b-bt{background:var(--green);color:#031329}
 .b-pre{background:var(--amber);color:#031329}
 .b-rm{background:var(--s3);color:var(--muted);border:1px solid #4a5560}
+.b-unrel{background:#f472b6;color:#031329}
+.b-free{background:#ffffff;color:#031329}
 /* priority label badge on card — same style as side panel pill */
 .b-prio{font-size:.55rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
   padding:2px 5px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;color:#031329}
@@ -267,7 +269,7 @@ button{text-transform:none;letter-spacing:0}
   cursor:pointer;font-size:.62rem;transition:all .15s;text-decoration:none;flex-shrink:0;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .qb:hover{border-color:var(--blue);color:var(--blue)}
-.qb.ba{border-color:#9cff0066;color:var(--green)}
+.qb.ba{border-color:#ff00aa66;color:var(--pink)}
 .qb.qr:hover{border-color:var(--pink);color:var(--pink)}
 .qb.qri{color:var(--green);border-color:#9cff0044}
 .qb.qri:hover{border-color:var(--green);color:var(--green)}
@@ -1204,7 +1206,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .qb:active{background:#02b3fc33;border-color:var(--blue);color:var(--blue);transform:scale(0.9);transition:transform .05s}
 .gg:not(.lv) .qb:hover{background:#02b3fc18;color:var(--blue)}
 .gg:not(.lv) .qb.qr:hover{background:#ff00aa18;color:var(--pink)}
-.gg:not(.lv) .qb.ba:hover{background:#9cff0011;color:var(--green)}
+.gg:not(.lv) .qb.ba:hover{background:#ff00aa11;color:var(--pink)}
 .gg:not(.lv) .qb.qb-bt:hover{background:#9cff0011;color:var(--green)}
 .gg:not(.lv) .qb.qb-ap:hover{background:#9cff0011;color:var(--green)}
 .gg:not(.lv) .qb:active{background:#02b3fc33;color:var(--blue);transform:scale(0.9)}
