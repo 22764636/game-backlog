@@ -92,6 +92,12 @@ button{text-transform:none;letter-spacing:0}
 .ps-pick-opt.active{background:#02b3fc22;border-left:2px solid var(--blue);padding-left:6px}
 .ps-pick-opt .ps-pick-label{font-size:.72rem;color:var(--t2)}
 .ps-pick-opt:hover .ps-pick-label,.ps-pick-opt.active .ps-pick-label{color:var(--text)}
+.ps-seg{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.15rem}
+.ps-seg-btn{padding:.22rem .55rem;font-size:.6rem;font-weight:700;cursor:pointer;
+  letter-spacing:.06em;font-family:'Rajdhani',sans-serif;transition:all .15s;
+  text-transform:uppercase;line-height:1;border-radius:99px;border:1.5px solid transparent;white-space:nowrap}
+.ps-seg-idle{border-color:var(--bd)!important;background:var(--base)!important;color:var(--t3)!important}
+.ps-seg-idle:hover{border-color:var(--t2)!important;color:var(--text)!important}
 
 /* ── DLC COUNT BADGE ON CARDS ── */
 .dlc-count-badge{font-size:.62rem;color:#c4a0ff;cursor:default;white-space:nowrap;
@@ -266,6 +272,7 @@ button{text-transform:none;letter-spacing:0}
 .qb.qr:hover{border-color:var(--pink);color:var(--pink)}
 .qb.qri{color:var(--green);border-color:#9cff0044}
 .qb.qri:hover{border-color:var(--green);color:var(--green)}
+.qb.qb-bt:hover{border-color:var(--green);color:var(--green)}
 .qb img{width:12px;height:12px;object-fit:contain;display:block}
 
 /* list view */
@@ -318,7 +325,15 @@ button{text-transform:none;letter-spacing:0}
   display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:all .15s}
 .pcl:hover{background:#02b3fc18;color:var(--blue)}
 .pb2{flex:1;overflow-y:auto;padding:.85rem 1rem 2rem}
-.pt{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.35rem;line-height:1.2;margin-bottom:.4rem;color:var(--text)}
+.pt{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.35rem;line-height:1.2;color:var(--text)}
+.pt-row{display:flex;align-items:flex-start;gap:.4rem;margin-bottom:.4rem}
+.pt-row .pt{flex:1}
+.pt-links{display:flex;gap:.25rem;flex-shrink:0;padding-top:.2rem}
+.pt-lnk{display:flex;align-items:center;justify-content:center;width:26px;height:26px;
+  border-radius:var(--r);background:var(--base);border:1px solid var(--bd);
+  color:var(--t3);text-decoration:none;transition:all .15s;flex-shrink:0}
+.pt-lnk:hover{border-color:var(--blue);color:var(--blue)}
+.pt-lnk img{width:14px;height:14px;object-fit:contain;display:block}
 .pm{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.65rem}
 .ps{margin-bottom:.8rem}
 .psl{font-size:.61rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);
@@ -505,6 +520,10 @@ button{text-transform:none;letter-spacing:0}
 .note-add:focus{border-color:var(--blue)}
 .note-save-btn{width:100%;background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--t2);padding:.35rem;font-size:.72rem;font-weight:500;cursor:pointer;transition:all .15s}
 .note-save-btn:hover{border-color:var(--blue);color:var(--blue)}
+.note-add-toggle{width:100%;background:none;border:1px dashed var(--bd);border-radius:var(--r);
+  color:var(--t3);font-size:.7rem;padding:.3rem;cursor:pointer;transition:all .15s;
+  font-family:'Inter',sans-serif}
+.note-add-toggle:hover{border-color:var(--blue);color:var(--blue)}
 /* toast notification */
 #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(60px);
   background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);padding:.5rem 1rem;
@@ -1161,9 +1180,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .panel-footer .pa{flex:1;height:44px;border-radius:0;border:none;border-left:1px solid var(--bd);text-transform:uppercase;letter-spacing:.04em;
   min-width:0;font-size:.72rem;padding:.3rem .2rem;background:var(--base);color:var(--t3)}
 .panel-footer .pa:first-child{border-left:none}
-.panel-footer .pa:hover{color:var(--blue);background:transparent}
-.panel-footer .pa.d:hover{color:var(--pink);background:transparent}
+.panel-footer .pa:hover{color:var(--blue);background:transparent;box-shadow:inset 0 2px 0 var(--blue)}
+.panel-footer .pa.d:hover{color:var(--pink);background:transparent;box-shadow:inset 0 2px 0 var(--pink)}
 .panel-footer .pa.s{color:var(--green)}
-.panel-footer .pa.s:hover{color:var(--green);background:#9cff0011}
+.panel-footer .pa.s:hover{color:var(--green);background:#9cff0011;box-shadow:inset 0 2px 0 var(--green)}
 .panel-footer .pa.add{color:var(--green)}
-.panel-footer .pa.add:hover{color:var(--green);background:#9cff0011}
+.panel-footer .pa.add:hover{color:var(--green);background:#9cff0011;box-shadow:inset 0 2px 0 var(--green)}
