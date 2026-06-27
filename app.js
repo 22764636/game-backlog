@@ -1376,7 +1376,7 @@ function colCardHTML(g){
     :_filtCost===null
       ?'<span class="cprice" style="color:var(--t3)">—</span>'
       :_filtCost===0
-        ?'<span class="cprice" style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>'
+        ?'<span class="bdg b-free">FREE</span>'
         :'<span class="cprice">€'+_filtCost.toFixed(2)+'</span>';
   const dlcs=g.type!=='dlc'?findDlcs(g):[];
   const dlcBadge=dlcs.length?`<span class="dlc-count-badge" data-id="${gid_s}">DLC (${dlcs.length})</span>`:'';

@@ -249,8 +249,8 @@ button{text-transform:none;letter-spacing:0}
 .b-bt{background:var(--green);color:#031329}
 .b-pre{background:var(--amber);color:#031329}
 .b-rm{background:var(--s3);color:var(--muted);border:1px solid #4a5560}
-.b-unrel{background:var(--lime);color:#031329}
-.b-free{background:var(--cyan);color:#031329}
+.b-unrel{background:#f472b6;color:#031329}
+.b-free{background:#ffffff;color:#031329}
 /* priority label badge on card — same style as side panel pill */
 .b-prio{font-size:.55rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
   padding:2px 5px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;color:#031329}
