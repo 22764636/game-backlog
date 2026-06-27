@@ -4070,7 +4070,7 @@ document.addEventListener('keydown',function(e){
 
   async function run(){
     if(OFFLINE){showToast('Offline — cannot reach Steam.');return}
-    const targets=games.filter(g=>g.steamAppId&&!g.price&&!isGameUnreleased(g)&&!isCancelled(g)&&!g.delisted);
+    const targets=games.filter(g=>g.steamAppId&&(g.price==null||g.price==='')&&!isGameUnreleased(g)&&!isCancelled(g)&&!g.delisted);
     if(!targets.length){showToast('No released Steam games without a price found.');return}
 
     ov.classList.add('on');
