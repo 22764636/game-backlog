@@ -1382,25 +1382,29 @@ function renderMd(raw){
 }
 
 function hotnessCircleSVG(h,isNR){
-  const cx=14,cy=14,r=11,size=28,segments=10,gap=4,segAngle=360/segments-gap;
+  const cx=16,cy=16,r=13,size=32,segments=10,gap=10,segAngle=360/segments-gap;
   const circ=2*Math.PI*r,segCirc=(segAngle/360)*circ;
   function arc(startDeg,angleDeg){
     const s=(startDeg-90)*Math.PI/180,e=(startDeg-90+angleDeg)*Math.PI/180;
     const x1=cx+r*Math.cos(s),y1=cy+r*Math.sin(s),x2=cx+r*Math.cos(e),y2=cy+r*Math.sin(e);
     return`M${x1.toFixed(3)},${y1.toFixed(3)} A${r},${r},0,${angleDeg>180?1:0},1,${x2.toFixed(3)},${y2.toFixed(3)}`;
   }
-  const fgColor=isNR?'#f7cd2640':'var(--pink)';
-  const bgColor=isNR?'#f7cd2620':'#ff00aa20';
   let paths='';
-  for(let i=0;i<segments;i++){
-    const startDeg=i*(360/segments);
-    const fill=isNR?0:Math.min(1,Math.max(0,(h-i*10)/10));
-    const d=arc(startDeg,segAngle);
-    paths+=`<path d="${d}" fill="none" stroke="${bgColor}" stroke-width="2.5" stroke-linecap="round"/>`;
-    if(fill>0){
-      const dashLen=(fill*segCirc).toFixed(3);
-      paths+=`<path d="${d}" fill="none" stroke="${fgColor}" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="${dashLen} ${segCirc.toFixed(3)}"/>`;
+  if(isNR){
+    for(let i=0;i<segments;i++){
+      paths+=`<path d="${arc(i*36,segAngle)}" fill="none" stroke="var(--amber)" stroke-width="2.5" stroke-linecap="butt"/>`;
     }
+  }else{
+    for(let i=0;i<segments;i++){
+      const fill=Math.min(1,Math.max(0,(h-i*10)/10));
+      const d=arc(i*36,segAngle);
+      paths+=`<path d="${d}" fill="none" stroke="#ff00aa28" stroke-width="2.5" stroke-linecap="butt"/>`;
+      if(fill>0){
+        const dashLen=(fill*segCirc).toFixed(3);
+        paths+=`<path d="${d}" fill="none" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="butt" stroke-dasharray="${dashLen} ${segCirc.toFixed(3)}"/>`;
+      }
+    }
+    paths+=`<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-size="8" font-weight="700" fill="var(--pink)" font-family="Rajdhani,sans-serif">${h}</text>`;
   }
   const label=isNR?'Not Rated':`Hotness: ${h}`;
   return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="${label}" aria-label="${label}">${paths}</svg>`;
@@ -2493,12 +2497,16 @@ function openPanel(id){
       b+=`<div class="ps"><div class="psl">${dlcLabel}</div>${dlcCards}</div>`;
     }
   }
-  if(g.shortDescription)b+=`<div class="ps"><div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${esc(g.shortDescription)}</div></div>`;
-  if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich-tag">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div></div>`;
+  if(g.shortDescription||(g.tags&&g.tags.length)){
+    b+=`<div class="ps">`;
+    if(g.shortDescription)b+=`<div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${renderMd(g.shortDescription)}</div>`;
+    if(g.tags&&g.tags.length)b+=`<div style="display:flex;gap:.28rem;flex-wrap:wrap;margin-top:${g.shortDescription?'.5rem':'0'}">${g.tags.map(x=>`<span class="cich-tag">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div>`;
+    b+=`</div>`;
+  }
   // Notes — multi-note with add/edit/delete
   const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
   const todayIso=(()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`})();
-  const _mdTip='**bold**  *italic*  `code`  [text](url)  - bullet list';
+  const _mdTip='**bold**\n*italic*\n`code`\n[text](url)\n- bullet list';
   b+=`<div class="ps"><div class="psl">Notes <span class="meta-tip-icon" tabindex="0" data-desc="${_mdTip}">ⓘ</span></div>
     <div id="noteList" style="margin-bottom:.3rem">
     ${[...notes].reverse().map(n=>`
