@@ -2256,27 +2256,20 @@ function _buildPlatTabContent(g,plat){
     :`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`;
   const isSteam=plat==='Steam';
 
-  const purchaseSection=`<div class="ps">
-    <div class="psl">Purchase</div>
-    <div class="pv pv-kv">
-      ${p.store?`<span class="pv-kv-lbl">Store:</span><span>${esc(p.store)}</span>`:''}
-      <span class="pv-kv-lbl">Cost:</span><span>${costStr}</span>
-      ${p.purchaseDate?`<span class="pv-kv-lbl">Date:</span><span>${esc(fmtDate(p.purchaseDate)||p.purchaseDate)}</span>`:''}
-    </div>
+  const purchaseSection=`<div class="purch-3col">
+    ${p.store?`<div class="purch-cell"><div class="purch-lbl">Store</div><div class="purch-val">${esc(p.store)}</div></div>`:''}
+    <div class="purch-cell"><div class="purch-lbl">Cost</div><div class="purch-val">${costStr}</div></div>
+    ${p.purchaseDate?`<div class="purch-cell"><div class="purch-lbl">Date</div><div class="purch-val">${esc(fmtDate(p.purchaseDate)||p.purchaseDate)}</div></div>`:''}
   </div>`;
 
-  const playSection=`<div class="ps">
-    <div class="psl">Play Status</div>
+  const playSection=`<div class="coll-play-row">
     <span class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px">${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span></span>
   </div>`;
 
   let colSection='';
   if(isSteam){
     const chips=(p.steamCollection||[]).map(s=>`<span class="cich">${esc(colLabel(s))}</span>`).join('');
-    colSection=`<div class="ps">
-      <div class="psl">Collections</div>
-      <div style="display:flex;gap:.28rem;flex-wrap:wrap">${chips||'<span style="color:var(--t3);font-size:.75rem">—</span>'}</div>
-    </div>`;
+    colSection=`<div class="coll-chips-row">${chips||'<span style="color:var(--t3);font-size:.75rem">—</span>'}</div>`;
   }
 
   return`${purchaseSection}${playSection}${colSection}`;
@@ -2413,9 +2406,9 @@ function openPanel(id){
       const _ordP=[..._gPurchases].sort((a,b)=>PLATFORM_ORDER.indexOf(a.platform)-PLATFORM_ORDER.indexOf(b.platform));
       const _firstPlat=_ordP[0].platform;
       const _tabsHTML=_ordP.map((p,i)=>`<button class="plat-tab${i===0?' active':''}" data-plat="${esc(p.platform)}" style="${i===0?'background:'+platColor(p.platform)+';color:'+platTextColor(p.platform)+';border-color:transparent':''}">${esc(p.platform)}</button>`).join('');
-      b+=`<div class="ps"><div class="psl">Collection</div>
-        <div class="plat-tabs" id="platTabs">${_tabsHTML}</div>
-        <div id="platTabContent">${_buildPlatTabContent(g,_firstPlat)}</div>
+      b+=`<div class="coll-box" style="margin-bottom:.8rem">
+        <div class="coll-box-hdr" id="platTabs">${_tabsHTML}</div>
+        <div class="coll-box-body" id="platTabContent">${_buildPlatTabContent(g,_firstPlat)}</div>
       </div>`;
     }
   }
