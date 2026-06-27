@@ -307,6 +307,7 @@ function normalise(g){
     if(p.purchaseDate){const pf=fmtDate(String(p.purchaseDate));if(pf&&pf!==String(p.purchaseDate))p.purchaseDate=pf;}
   });
   syncLegacyFromPurchases(g);
+  g.delisted=g.delisted===true||g.delisted==='true'||g.delisted==='TRUE';
   return g;
 }
 function toSheetRecord(g){
@@ -2412,7 +2413,14 @@ function openPanel(id){
   ];
   const detRight=[
     [t('pGenre'), genreHTML],
-    [t('pPrice'), g.price?`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>`:`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`],
+    [t('pPrice'), (()=>{
+      const dlBdg=g.delisted?` <span class="b-delisted">DELISTED</span>`:'';
+      if(g.price!=null&&parseFloat(g.price)===0)return`<span class="bdg b-free">FREE</span>`;
+      if(g.price)return`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>${dlBdg}`;
+      if(g.delisted)return`<span class="b-delisted">DELISTED</span>`;
+      if(isGameUnreleased(g))return`<span class="bdg b-unrel">UNRELEASED</span>`;
+      return`<span style="color:var(--t3)">—</span>`;
+    })()],
     ['Added', `<span style="color:var(--t2)">${fmtAdded(daysAgo(g.added),g.added)}</span>`],
   ];
   const _kvCol=items=>`<div class="pv pv-kv">${items.map(([l,v])=>`<span class="pv-kv-lbl">${l}:</span><span>${v}</span>`).join('')}</div>`;
@@ -2722,6 +2730,7 @@ window.addEventListener('popstate',function(){
   const preorderConfirmOv=document.getElementById('preorderConfirm');
   if(preorderConfirmOv&&preorderConfirmOv.classList.contains('on')){preorderConfirmOv.classList.remove('on');_preorderPendingId=null;return;}
   if(window._rdcIsOpen&&window._rdcIsOpen()){if(window._rdcTryClose&&!window._rdcTryClose())history.pushState({rdcovOpen:true},'','');return;}
+  if(window._plcIsOpen&&window._plcIsOpen()){if(window._plcTryClose&&!window._plcTryClose())history.pushState({plcovOpen:true},'','');return;}
   const fbar=document.getElementById('fbar');
   if(fbar&&fbar.classList.contains('on')){window._rawCloseFbar&&window._rawCloseFbar();return;}
   if(document.getElementById('panel').classList.contains('on')){
@@ -3936,6 +3945,7 @@ function doImport(){
   document.getElementById('dhViewList').addEventListener('click',dh(()=>{if(vm!=='list'){vm='list';dispatchRender();applyVm();}}));
   document.getElementById('dhMetaBtn').addEventListener('click',dh(async()=>{fetchMeta(true);showToast('Metadata refreshed.');}));
   document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>runReleaseDateCheck()));
+  document.getElementById('dhPriceBtn').addEventListener('click',dh(()=>runPriceLookup()));
   document.getElementById('dhExpBtn').addEventListener('click',dh(doExport));
   document.getElementById('dhImpBtn').addEventListener('click',dh(doImport));
 })();
@@ -4106,6 +4116,73 @@ document.addEventListener('keydown',function(e){
     document.getElementById('hmenu').classList.remove('on');
     run();
   };
+})();
+
+// ══════════════════════════════════════════
+//  PRICE LOOKUP
+// ══════════════════════════════════════════
+(function(){
+  const ov=document.getElementById('plcov');
+  const summary=document.getElementById('plcSummary');
+  const log=document.getElementById('plcLog');
+  const closeBtn=document.getElementById('plcClose');
+  let _plcRunning=false,_plcAborted=false;
+  function _closePlc(){
+    ov.classList.remove('on');
+    _plcRunning=false;_plcAborted=false;
+    closeBtn.textContent='Close';
+    if(history.state&&history.state.plcovOpen)history.replaceState(null,'','');
+  }
+  function _plcTryClose(){
+    if(_plcRunning){if(!confirm('Stop the price lookup?'))return false;_plcAborted=true;}
+    _closePlc();return true;
+  }
+  closeBtn.onclick=()=>_plcTryClose();
+  ov.addEventListener('click',e=>{if(e.target===ov)_plcTryClose();});
+  window._plcTryClose=_plcTryClose;
+  window._plcIsOpen=()=>ov.classList.contains('on');
+  function plcLog(msg,cls){
+    const d=document.createElement('div');d.className=cls||'';d.textContent=msg;
+    log.appendChild(d);log.scrollTop=log.scrollHeight;
+  }
+  async function run(){
+    if(OFFLINE){showToast('Offline — cannot reach Steam.');return}
+    const targets=games.filter(g=>g.steamAppId&&(g.price==null||g.price==='')&&!isGameUnreleased(g)&&!isCancelled(g)&&!g.delisted);
+    if(!targets.length){showToast('No released Steam games without a price found.');return}
+    ov.classList.add('on');history.pushState({plcovOpen:true},'','');
+    log.innerHTML='';summary.textContent=`Checking ${targets.length} game${targets.length>1?'s':''}…`;
+    _plcRunning=true;_plcAborted=false;closeBtn.textContent='Cancel';
+    let found=0,unavailable=0,failed=0;
+    for(let i=0;i<targets.length;i++){
+      if(_plcAborted)break;
+      const g=targets[i];summary.textContent=`${i+1}/${targets.length} — ${g.title}`;
+      try{
+        const res=await fetch(`${STEAM_WORKER}/?appid=${g.steamAppId}`);
+        if(!res.ok)throw new Error(`HTTP ${res.status}`);
+        const json=await res.json();const entry=json[g.steamAppId];
+        if(!entry||!entry.success||!entry.data){plcLog(`✗ ${g.title} — not found on Steam`,'plc-err');failed++;continue;}
+        const d=entry.data;
+        if(d.price_overview&&d.price_overview.initial!=null){
+          const price=(d.price_overview.initial/100).toFixed(2);
+          const gg=games.find(x=>x.id===g.id);if(gg){gg.price=price;save(gg.id);}
+          plcLog(`✔ ${g.title}  €${price}`,'plc-ok');found++;
+        }else if(d.is_free){
+          const gg=games.find(x=>x.id===g.id);if(gg){gg.price='0.00';save(gg.id);}
+          plcLog(`✔ ${g.title}  free-to-play`,'plc-ok');found++;
+        }else{
+          const gg=games.find(x=>x.id===g.id);if(gg){gg.delisted=true;save(gg.id);}
+          plcLog(`— ${g.title}  delisted · no price available`,'plc-skip');unavailable++;
+        }
+      }catch(err){plcLog(`✗ ${g.title} — ${err.message}`,'plc-err');failed++;}
+      if(i<targets.length-1&&!_plcAborted)await new Promise(r=>setTimeout(r,400));
+    }
+    _plcRunning=false;closeBtn.textContent='Close';
+    if(_plcAborted){summary.textContent=`Stopped — ${found} found, ${unavailable} delisted${failed?`, ${failed} failed`:''}`;}
+    else{summary.textContent=`Done — ${found} found, ${unavailable} delisted${failed?`, ${failed} failed`:''}`;}
+    if(found)dispatchRender();
+  }
+  window.runPriceLookup=run;
+  document.getElementById('hmPriceBtn').onclick=()=>{document.getElementById('hmenu').classList.remove('on');run();};
 })();
 
 // ══════════════════════════════════════════
