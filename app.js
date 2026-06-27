@@ -1393,8 +1393,7 @@ function hotnessCircleSVG(h,isNR){
   if(isNR){
     for(let i=0;i<segments;i++)
       paths+=`<path d="${arc(i*36,segAngle)}" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="butt"/>`;
-    const label='Not Rated';
-    return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="${label}" aria-label="${label}">${paths}</svg>`;
+    return`<span class="hotness-circle-wrap"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="Not Rated" aria-label="Not Rated">${paths}</svg></span>`;
   }
   for(let i=0;i<segments;i++){
     const fill=Math.min(1,Math.max(0,(h-i*10)/10));
