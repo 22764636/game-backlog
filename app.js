@@ -2286,24 +2286,7 @@ function _buildPlatTabContent(g,plat){
   return`${purchaseSection}${playSection}${colSection}`;
 }
 
-function wirePlatTabContent(g,plat){
-  const psSegWrap=document.getElementById('psSegWrap');
-  const psInlineSel=document.getElementById('psInlineSel');
-  if(psSegWrap&&psInlineSel){
-    psSegWrap.querySelectorAll('.ps-seg-btn').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const s=btn.dataset.s;
-        psInlineSel.value=s;
-        psSegWrap.querySelectorAll('.ps-seg-btn').forEach(b=>{
-          const bm=PS_META[b.dataset.s]||{code:'UP',cls:'ps-UP'};
-          b.className=b.dataset.s===s?`ps-seg-btn ${bm.cls}`:'ps-seg-btn ps-seg-idle';
-        });
-        const gg=games.find(x=>x.id===openId);
-        if(gg){const p=purchaseByPlat(gg,plat);if(p){p.playStatus=s;syncLegacyFromPurchases(gg);save(openId);dispatchRender();}}
-      });
-    });
-  }
-}
+function wirePlatTabContent(g,plat){}
 
 function openPanel(id){
   const sid=String(id);
