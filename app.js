@@ -1342,7 +1342,49 @@ function findDlcs(g){
   if(!g.steamAppId)return[];
   return games.filter(x=>x.type==='dlc'&&x.parentAppId&&String(x.parentAppId)===String(g.steamAppId)&&x.status==='bought');
 }
+function findAllKnownDlcs(g){
+  if(!g.steamAppId)return[];
+  return games.filter(x=>x.type==='dlc'&&x.parentAppId&&String(x.parentAppId)===String(g.steamAppId));
+}
 
+function mdInline(s){
+  return s
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`(.+?)`/g,'<code>$1</code>');
+}
+function renderMd(raw){
+  const s=raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines=s.split('\n');
+  const out=[];let inList=false;
+  for(const line of lines){
+    const li=line.match(/^[-*]\s+(.+)/);
+    if(li){
+      if(!inList){out.push('<ul>');inList=true;}
+      out.push(`<li>${mdInline(li[1])}</li>`);
+    }else{
+      if(inList){out.push('</ul>');inList=false;}
+      if(line.trim()==='')out.push('<br>');
+      else out.push(mdInline(line)+'<br>');
+    }
+  }
+  if(inList)out.push('</ul>');
+  // strip trailing <br>
+  let r=out.join('');
+  while(r.endsWith('<br>'))r=r.slice(0,-4);
+  return r;
+}
+
+function navPanel(dir){
+  if(!openId)return;
+  const ids=[...document.querySelectorAll('.gc[data-id]')].map(el=>el.dataset.id);
+  if(!ids.length)return;
+  const idx=ids.indexOf(String(openId));
+  if(idx===-1)return;
+  const next=idx+dir;
+  if(next<0||next>=ids.length)return;
+  openPanel(ids[next]);
+}
 
 function colTypeBadge(g){
   if(g.type==='dlc') return '';
@@ -2291,7 +2333,7 @@ function openPanel(id){
   const ggUrl=g.steamAppId?`https://gg.deals/steam/app/${g.steamAppId}/`:`https://gg.deals/search/?title=${sl}`;
   const sdbUrl=g.steamAppId?`https://www.steamdb.info/app/${g.steamAppId}/`:`https://www.steamdb.info/search/?q=${sl}`;
   const stUrl=g.storeLink||(g.steamAppId?`https://store.steampowered.com/app/${g.steamAppId}/`:`https://store.steampowered.com/search/?term=${sl}`);
-  const sh=[1,2,3,4,5].map(i=>`<span class="star${cStars>=i?' on':''}" data-s="${i}">★</span>`).join('');
+  const sh=[1,2,3,4,5].map(i=>`<span class="star-pos" data-pos="${i}"><span class="star-half star-l${cStars>=i-0.5?' on':''}" data-v="${i-0.5}">★</span><span class="star-half star-r${cStars>=i?' on':''}" data-v="${i}">★</span></span>`).join('');
   const _plats=ownedPlatforms(g);
 
   const genreD=(g.genres||[]).join(', ')||g.genre||'';
@@ -2394,20 +2436,25 @@ function openPanel(id){
   }
   // DLC section — shown for parent games that have DLCs
   if(g.type!=='dlc'){
-    const gameDlcs=findDlcs(g);
+    const gameDlcs=findAllKnownDlcs(g);
     if(gameDlcs.length){
       const dlcCards=gameDlcs.map(d=>{
         const dCover=d.cover||(d.steamAppId?sc(d.steamAppId):'');
         const dThumb=dCover?`<img class="panel-base-thumb" src="${esc(dCover)}" alt="">`:`<div class="panel-base-thumb" style="background:var(--base);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--t3)">🎮</div>`;
+        const dotCls=d.status==='bought'?'owned':d.status==='wishlist'?'wishlisted':'removed';
         return`<div class="panel-dlc-item panel-base-game" data-did="${esc(d.id)}">
           ${dThumb}
           <div class="panel-base-info">
+            <span class="dlc-dot ${dotCls}" title="${d.status==='bought'?'Owned':d.status==='wishlist'?'Wishlisted':'Removed'}"></span>
             <span class="panel-base-title">${esc(d.title)}</span>
             <span class="panel-base-arrow">›</span>
           </div>
         </div>`;
       }).join('');
-      b+=`<div class="ps"><div class="psl">DLC (${gameDlcs.length})</div>${dlcCards}</div>`;
+      const ownedCount=gameDlcs.filter(d=>d.status==='bought').length;
+      const totalCount=gameDlcs.length;
+      const dlcLabel=ownedCount===totalCount?`DLC (${totalCount})`:`DLC (${ownedCount}/${totalCount} owned)`;
+      b+=`<div class="ps"><div class="psl">${dlcLabel}</div>${dlcCards}</div>`;
     }
   }
   if(g.shortDescription)b+=`<div class="ps"><div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${esc(g.shortDescription)}</div></div>`;
@@ -2420,7 +2467,7 @@ function openPanel(id){
     ${[...notes].reverse().map(n=>`
       <div class="note-entry" data-nid="${esc(n.id)}">
         <div class="note-date">${esc(fmtDate(n.date)||n.date||'')}</div>
-        <div class="note-text">${esc(n.text)}</div>
+        <div class="note-text note-md">${renderMd(n.text)}</div>
         <div class="note-edit-wrap" style="display:none">
           <div class="note-compose" style="margin-bottom:.25rem">
             <input type="date" class="note-compose-date note-edit-date">
@@ -2447,10 +2494,16 @@ function openPanel(id){
 
 
   if(g.status==='bought'){
+    const scoreDisp=cStars>0?`${cStars}<span class="review-score-denom">/5</span>`:`<span style="color:var(--t3);font-size:1rem">—</span>`;
     b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
-      <div class="stars" id="pstars">${sh}</div>
-      <textarea class="rta" id="prevta" placeholder="Your thoughts…">${esc(g.myReview||'')}</textarea>
-      <button class="pa s" style="width:100%;margin-top:.35rem" id="psrv">${t('pSaveRev')}</button>
+      <div class="review-card">
+        <div class="review-rating-row">
+          <div class="stars" id="pstars">${sh}</div>
+          <div class="review-score" id="previewScore">${scoreDisp}</div>
+        </div>
+        <textarea class="rta" id="prevta" placeholder="Your thoughts…">${esc(g.myReview||'')}</textarea>
+        <button class="pa s" style="width:100%;margin-top:.35rem" id="psrv">${t('pSaveRev')}</button>
+      </div>
     </div>`;
   }
 
@@ -2463,6 +2516,32 @@ function openPanel(id){
       :`<button class="pa d" id="prm">${t('pRemove')}</button>`;
 
   document.getElementById('pbody').innerHTML=b;
+
+  // Parallax scroll on cover image
+  const _pb2El=document.getElementById('pbody');
+  const _pimgEl=document.getElementById('pimg');
+  _pimgEl.style.transform='';_pimgEl.style.filter='';
+  _pb2El.scrollTop=0;
+  function _onPanelScroll(){
+    const s=_pb2El.scrollTop;
+    if(_pimgEl.style.display!=='none'){
+      _pimgEl.style.transform=`translateY(${Math.min(s*0.35,55)}px)`;
+      _pimgEl.style.filter=`blur(${Math.min(s*0.06,7)}px)`;
+    }
+  }
+  _pb2El.removeEventListener('scroll',_pb2El._panelScrollFn);
+  _pb2El._panelScrollFn=_onPanelScroll;
+  _pb2El.addEventListener('scroll',_onPanelScroll,{passive:true});
+
+  // Nav buttons
+  {
+    const _navIds=[...document.querySelectorAll('.gc[data-id]')].map(el=>el.dataset.id);
+    const _navIdx=_navIds.indexOf(String(openId));
+    const _prevBtn=document.getElementById('pnavPrev');
+    const _nextBtn=document.getElementById('pnavNext');
+    if(_prevBtn){_prevBtn.disabled=_navIdx<=0;_prevBtn.onclick=()=>navPanel(-1);}
+    if(_nextBtn){_nextBtn.disabled=_navIdx<0||_navIdx>=_navIds.length-1;_nextBtn.onclick=()=>navPanel(1);}
+  }
 
   // Sticky footer actions
   const panelFooterEl=document.getElementById('panelFooter');
@@ -2556,8 +2635,26 @@ function openPanel(id){
     };
   });
   if(g.status==='bought'){
-    document.querySelectorAll('#pstars .star').forEach(s=>{
-      s.onclick=()=>{cStars=parseInt(s.dataset.s);document.querySelectorAll('#pstars .star').forEach((x,i)=>x.classList.toggle('on',i<cStars))};
+    const _updateStars=(v)=>{
+      document.querySelectorAll('#pstars .star-half').forEach(x=>x.classList.toggle('on',parseFloat(x.dataset.v)<=v));
+      const sc=document.getElementById('previewScore');
+      if(sc)sc.innerHTML=v>0?`${v}<span class="review-score-denom">/5</span>`:`<span style="color:var(--t3);font-size:1rem">—</span>`;
+    };
+    document.querySelectorAll('#pstars .star-pos').forEach(pos=>{
+      pos.addEventListener('mousemove',e=>{
+        const r=pos.getBoundingClientRect();
+        const half=e.clientX<r.left+r.width/2;
+        const base=parseFloat(pos.dataset.pos);
+        _updateStars(half?base-0.5:base);
+      });
+      pos.addEventListener('mouseleave',()=>_updateStars(cStars));
+      pos.addEventListener('click',e=>{
+        const r=pos.getBoundingClientRect();
+        const half=e.clientX<r.left+r.width/2;
+        const base=parseFloat(pos.dataset.pos);
+        cStars=half?base-0.5:base;
+        _updateStars(cStars);
+      });
     });
     document.getElementById('psrv').onclick=()=>{const gg=games.find(x=>x.id===openId);if(gg){gg.myRating=cStars;gg.myReview=document.getElementById('prevta').value;save()}};
   }
@@ -3881,8 +3978,13 @@ document.addEventListener('keydown',function(e){
     if(document.getElementById('panel').classList.contains('on')){closePanel();return}
     return;
   }
-  if(inField)return;
   if(e.ctrlKey||e.metaKey)return;
+  // Panel navigation — works even in text fields to avoid blocking arrow keys globally
+  if(!inField&&document.getElementById('panel').classList.contains('on')){
+    if(e.key==='ArrowLeft'||e.key==='k'||e.key==='K'){e.preventDefault();navPanel(-1);return}
+    if(e.key==='ArrowRight'||e.key==='j'||e.key==='J'){e.preventDefault();navPanel(1);return}
+  }
+  if(inField)return;
   if(e.key==='/'){e.preventDefault();const si=document.getElementById('searchInput');if(si){si.focus();si.select()}return}
   if(e.key==='a'||e.key==='A'||e.key==='n'||e.key==='N'){openAdd();return}
   if(e.key==='c'||e.key==='C'){openCalendar();return}
