@@ -2257,7 +2257,7 @@ function _buildPlatTabContent(g,plat){
   const ps=p.playStatus||'Unplayed';const psM=PS_META[ps]||{code:'UP',cls:'ps-UP'};
   const cn=parseFloat(p.cost)||0;
   const costStr=cn===0
-    ?`<span style="color:var(--lime);font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`
+    ?`<span class="bdg b-free">FREE</span>`
     :`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`;
   const isSteam=plat==='Steam';
 
@@ -4068,31 +4068,6 @@ document.addEventListener('keydown',function(e){
     log.scrollTop=log.scrollHeight;
   }
 
-  // Query Wayback Machine for a snapshot near the release date — the game was
-  // definitely for sale then, so the archived API response should have price data.
-  async function fetchPriceFromWayback(appId, releaseDate){
-    try{
-      const ts=releaseDate?releaseDate.replace(/-/g,''):'';
-      const tsParam=ts?`&timestamp=${ts}`:'';
-      const availRes=await fetch(`https://archive.org/wayback/available?url=store.steampowered.com/api/appdetails%3Fappids%3D${appId}${tsParam}`);
-      if(!availRes.ok)return null;
-      const availJson=await availRes.json();
-      const snap=availJson?.archived_snapshots?.closest;
-      if(!snap?.available||!snap?.url)return null;
-      // 'if_' modifier returns raw content without the Wayback Machine UI wrapper
-      const ifUrl=snap.url.replace(/\/web\/(\d{14})\//, '/web/$1if_/');
-      const snapRes=await fetch(ifUrl);
-      if(!snapRes.ok)return null;
-      const snapJson=await snapRes.json();
-      const entry=snapJson?.[String(appId)];
-      if(!entry?.success||!entry?.data)return null;
-      const d=entry.data;
-      if(d.price_overview?.initial!=null)return(d.price_overview.initial/100).toFixed(2);
-      if(d.is_free)return'0.00';
-      return null;
-    }catch(e){return null;}
-  }
-
   async function run(){
     if(OFFLINE){showToast('Offline — cannot reach Steam.');return}
     const targets=games.filter(g=>g.steamAppId&&(g.price==null||g.price==='')&&!isGameUnreleased(g)&&!isCancelled(g)&&!g.delisted);
@@ -4134,19 +4109,10 @@ document.addEventListener('keydown',function(e){
           plcLog(`✔ ${g.title}  free-to-play`,'plc-ok');
           found++;
         }else{
-          // No price on Steam — try Wayback Machine for a historical snapshot
-          summary.textContent=`${i+1}/${targets.length} — ${g.title} (trying archive…)`;
-          const archivedPrice=await fetchPriceFromWayback(g.steamAppId,g.releaseDate);
           const gg=games.find(x=>x.id===g.id);
-          if(archivedPrice!=null){
-            if(gg){gg.price=archivedPrice;gg.delisted=true;save(gg.id);}
-            plcLog(`✔ ${g.title}  €${archivedPrice} (archived · delisted)`,'plc-ok');
-            found++;
-          }else{
-            if(gg){gg.delisted=true;save(gg.id);}
-            plcLog(`— ${g.title}  delisted · no archived price found`,'plc-skip');
-            unavailable++;
-          }
+          if(gg){gg.delisted=true;save(gg.id);}
+          plcLog(`— ${g.title}  delisted · no price available`,'plc-skip');
+          unavailable++;
         }
       }catch(err){
         plcLog(`✗ ${g.title} — ${err.message}`,'plc-err');
