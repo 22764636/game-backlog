@@ -1354,6 +1354,7 @@ function findAllKnownDlcs(g){
 
 function mdInline(s){
   return s
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
     .replace(/\*(.+?)\*/g,'<em>$1</em>')
     .replace(/`(.+?)`/g,'<code>$1</code>');
@@ -1378,6 +1379,31 @@ function renderMd(raw){
   let r=out.join('');
   while(r.endsWith('<br>'))r=r.slice(0,-4);
   return r;
+}
+
+function hotnessCircleSVG(h,isNR){
+  const cx=14,cy=14,r=11,size=28,segments=10,gap=4,segAngle=360/segments-gap;
+  const circ=2*Math.PI*r,segCirc=(segAngle/360)*circ;
+  function arc(startDeg,angleDeg){
+    const s=(startDeg-90)*Math.PI/180,e=(startDeg-90+angleDeg)*Math.PI/180;
+    const x1=cx+r*Math.cos(s),y1=cy+r*Math.sin(s),x2=cx+r*Math.cos(e),y2=cy+r*Math.sin(e);
+    return`M${x1.toFixed(3)},${y1.toFixed(3)} A${r},${r},0,${angleDeg>180?1:0},1,${x2.toFixed(3)},${y2.toFixed(3)}`;
+  }
+  const fgColor=isNR?'#f7cd2640':'var(--pink)';
+  const bgColor=isNR?'#f7cd2620':'#ff00aa20';
+  let paths='';
+  for(let i=0;i<segments;i++){
+    const startDeg=i*(360/segments);
+    const fill=isNR?0:Math.min(1,Math.max(0,(h-i*10)/10));
+    const d=arc(startDeg,segAngle);
+    paths+=`<path d="${d}" fill="none" stroke="${bgColor}" stroke-width="2.5" stroke-linecap="round"/>`;
+    if(fill>0){
+      const dashLen=(fill*segCirc).toFixed(3);
+      paths+=`<path d="${d}" fill="none" stroke="${fgColor}" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="${dashLen} ${segCirc.toFixed(3)}"/>`;
+    }
+  }
+  const label=isNR?'Not Rated':`Hotness: ${h}`;
+  return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="${label}" aria-label="${label}">${paths}</svg>`;
 }
 
 function navPanel(dir){
@@ -2362,12 +2388,8 @@ function openPanel(id){
       <span class="bdg" style="background:${prioColor(g.priority)};color:#031329">${prioLabel(g.priority)}</span>
       ${_plats.map(p=>`<span class="b-plat" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}</span>`).join('')}
       ${g.type==='dlc'?`<span class="bdg" style="background:#3a1a6e;color:#c4a0ff">DLC</span>`:''}
+      ${hotnessCircleSVG(h,isNR)}
     </div>`;
-
-  b+=`<div class="ps"><div class="psl">${t('pHotness')}</div>`;
-  if(isNR)b+=`<div class="pv" style="color:var(--amber)">${t('bdgRev')}</div>`;
-  else b+=`<div class="hr2"><div class="ht"><div class="htf" style="width:${h}%"></div></div><div class="hn">${h}</div></div>`;
-  b+=`</div>`;
 
   // Collection box — immediately after hotness (bought games only)
   if(g.status==='bought'){
@@ -2472,11 +2494,12 @@ function openPanel(id){
     }
   }
   if(g.shortDescription)b+=`<div class="ps"><div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${esc(g.shortDescription)}</div></div>`;
-  if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich-ro" style="display:inline-flex;align-items:center;gap:.15rem">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div></div>`;
+  if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich-tag">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div></div>`;
   // Notes — multi-note with add/edit/delete
   const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
   const todayIso=(()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`})();
-  b+=`<div class="ps"><div class="psl">Notes</div>
+  const _mdTip='**bold**  *italic*  `code`  [text](url)  - bullet list';
+  b+=`<div class="ps"><div class="psl">Notes <span class="meta-tip-icon" tabindex="0" data-desc="${_mdTip}">ⓘ</span></div>
     <div id="noteList" style="margin-bottom:.3rem">
     ${[...notes].reverse().map(n=>`
       <div class="note-entry" data-nid="${esc(n.id)}">
@@ -2536,13 +2559,7 @@ function openPanel(id){
   const _pimgEl=document.getElementById('pimg');
   _pimgEl.style.transform='';_pimgEl.style.filter='';
   _pb2El.scrollTop=0;
-  function _onPanelScroll(){
-    const s=_pb2El.scrollTop;
-    if(_pimgEl.style.display!=='none'){
-      _pimgEl.style.transform=`translateY(${Math.min(s*0.35,55)}px)`;
-      _pimgEl.style.filter=`blur(${Math.min(s*0.06,7)}px)`;
-    }
-  }
+  function _onPanelScroll(){}
   _pb2El.removeEventListener('scroll',_pb2El._panelScrollFn);
   _pb2El._panelScrollFn=_onPanelScroll;
   _pb2El.addEventListener('scroll',_onPanelScroll,{passive:true});
@@ -3139,7 +3156,8 @@ async function steamAutoFill(appId,{fromUrl=false}={}){
 
     // Short description — plain text, populate textarea directly
     if(d.short_description){
-      const plain=d.short_description.replace(/<[^>]+>/g,'').trim();
+      const _tmp=document.createElement('textarea');_tmp.innerHTML=d.short_description.replace(/<[^>]+>/g,'').trim();
+      const plain=_tmp.value.trim();
       if(plain){
         const _fsd2=document.getElementById('fShortDesc');
         if(_fsd2&&!_fsd2.value.trim())_fsd2.value=plain;
