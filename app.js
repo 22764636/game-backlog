@@ -2257,7 +2257,7 @@ function _buildPlatTabContent(g,plat){
   const ps=p.playStatus||'Unplayed';const psM=PS_META[ps]||{code:'UP',cls:'ps-UP'};
   const cn=parseFloat(p.cost)||0;
   const costStr=cn===0
-    ?`<span style="color:var(--lime);font-weight:700;text-transform:uppercase;letter-spacing:.04em">FREE</span>`
+    ?`<span class="bdg b-free">FREE</span>`
     :`<b style="color:var(--blue)">€${cn.toFixed(2)}</b>`;
   const isSteam=plat==='Steam';
 
