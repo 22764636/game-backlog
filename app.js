@@ -2267,16 +2267,12 @@ function _buildPlatTabContent(g,plat){
 
   const playSection=`<div class="ps">
     <div class="psl">Play Status</div>
-    <div class="ps-seg" id="psSegWrap">
-      ${Object.keys(PS_META).map(s=>{const m=PS_META[s];return`<button class="ps-seg-btn${s===ps?' '+m.cls:' ps-seg-idle'}" data-s="${esc(s)}" title="${esc(s)}">${m.code}</button>`;}).join('')}
-    </div>
-    <input type="hidden" id="psInlineSel" value="${esc(ps)}">
-    <input type="hidden" id="psInlinePlat" value="${esc(plat)}">
+    <span class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px">${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span></span>
   </div>`;
 
   let colSection='';
   if(isSteam){
-    const chips=(p.steamCollection||[]).map(s=>`<span class="cich" style="background:#1a0a3a;border-color:#4a2080;color:#c4a0ff">${esc(colLabel(s))}</span>`).join('');
+    const chips=(p.steamCollection||[]).map(s=>`<span class="cich">${esc(colLabel(s))}</span>`).join('');
     colSection=`<div class="ps">
       <div class="psl">Collections</div>
       <div style="display:flex;gap:.28rem;flex-wrap:wrap">${chips||'<span style="color:var(--t3);font-size:.75rem">—</span>'}</div>
