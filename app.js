@@ -1391,9 +1391,7 @@ function hotnessCircleSVG(h,isNR){
   }
   let paths='';
   if(isNR){
-    for(let i=0;i<segments;i++){
-      paths+=`<path d="${arc(i*36,segAngle)}" fill="none" stroke="var(--amber)" stroke-width="2.5" stroke-linecap="butt"/>`;
-    }
+    paths=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--amber)" stroke-width="1.5"/>`;
   }else{
     for(let i=0;i<segments;i++){
       const fill=Math.min(1,Math.max(0,(h-i*10)/10));
