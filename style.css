@@ -214,7 +214,7 @@ button{text-transform:none;letter-spacing:0}
 .gc.cancelled .qb{filter:grayscale(1);opacity:.5}
 .gc.cancelled .b-cancelled{filter:none!important;opacity:1!important}
 .b-cancelled{background:#cc2200;color:#fff;border:1px solid #cc2200;font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;user-select:none;-webkit-user-select:none}
-.b-delisted{background:#cc6600;color:#fff;font-size:.55rem;font-weight:700;padding:2px 4px;border-radius:3px;line-height:1.4;pointer-events:none;user-select:none;-webkit-user-select:none}
+.b-delisted{background:#cc6600;color:#fff;font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;user-select:none;-webkit-user-select:none}
 .b-plat{font-size:.54rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;white-space:nowrap;flex-shrink:0;user-select:none;-webkit-user-select:none}
 .cbot .b-plat{pointer-events:none}
 .plat-filter-pills{display:flex;flex-wrap:wrap;gap:.35rem;padding:.3rem .1rem}
@@ -268,7 +268,7 @@ button{text-transform:none;letter-spacing:0}
   cursor:pointer;font-size:.62rem;transition:all .15s;text-decoration:none;flex-shrink:0;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .qb:hover{border-color:var(--blue);color:var(--blue)}
-.qb.ba{border-color:#9cff0066;color:var(--green)}
+.qb.ba{border-color:#ff00aa66;color:var(--pink)}
 .qb.qr:hover{border-color:var(--pink);color:var(--pink)}
 .qb.qri{color:var(--green);border-color:#9cff0044}
 .qb.qri:hover{border-color:var(--green);color:var(--green)}
@@ -1168,7 +1168,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .qb:active{background:#02b3fc33;border-color:var(--blue);color:var(--blue);transform:scale(0.9);transition:transform .05s}
 .gg:not(.lv) .qb:hover{background:#02b3fc18;color:var(--blue)}
 .gg:not(.lv) .qb.qr:hover{background:#ff00aa18;color:var(--pink)}
-.gg:not(.lv) .qb.ba:hover{background:#9cff0011;color:var(--green)}
+.gg:not(.lv) .qb.ba:hover{background:#ff00aa11;color:var(--pink)}
 .gg:not(.lv) .qb.qb-bt:hover{background:#9cff0011;color:var(--green)}
 .gg:not(.lv) .qb.qb-ap:hover{background:#9cff0011;color:var(--green)}
 .gg:not(.lv) .qb:active{background:#02b3fc33;color:var(--blue);transform:scale(0.9)}

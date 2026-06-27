@@ -2374,7 +2374,7 @@ function openPanel(id){
     [t('pPrice'), (()=>{
       const dlBdg=g.delisted?` <span class="b-delisted">DELISTED</span>`:'';
       if(g.price)return`<b style="color:var(--blue)">€${parseFloat(g.price).toFixed(2)}</b>${dlBdg}`;
-      if(g.delisted)return`<span class="b-delisted">D</span>`;
+      if(g.delisted)return`<span class="b-delisted">DELISTED</span>`;
       if(isGameUnreleased(g))return`<span style="color:var(--lime);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Unreleased</span>`;
       return`<span style="color:var(--t3)">—</span>`;
     })()],
