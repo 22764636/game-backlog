@@ -400,10 +400,18 @@ button{text-transform:none;letter-spacing:0}
 /* Review card */
 .review-card{background:var(--base);border:1px solid var(--bd);border-radius:var(--r);padding:.65rem .75rem}
 .review-rating-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
-.review-row{display:grid;grid-template-columns:auto 1fr auto;gap:.4rem .65rem;align-items:center}
-.review-row-date{font-size:.6rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);white-space:nowrap;padding-top:.1rem}
-.review-row-text{font-size:.78rem;line-height:1.5;color:var(--t2)}
-.review-row-stars{display:flex;flex-direction:column;align-items:flex-end}
+/* Mobile: stars+score left | date right on row 1; text spans full width on row 2 */
+.review-row{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;gap:.3rem .5rem;align-items:center}
+.review-row-stars{grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:flex-start}
+.review-row-date{grid-column:2;grid-row:1;font-size:.6rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);white-space:nowrap;align-self:center}
+.review-row-text{grid-column:1/-1;grid-row:2;font-size:.78rem;line-height:1.5;color:var(--t2)}
+/* Desktop: stars top | date bottom in col 1; text spans both rows in col 2 */
+@media(min-width:641px){
+  .review-row{grid-template-columns:auto 1fr;grid-template-rows:auto auto}
+  .review-row-stars{grid-column:1;grid-row:1;align-items:flex-start}
+  .review-row-date{grid-column:1;grid-row:2;align-self:start}
+  .review-row-text{grid-column:2;grid-row:1/-1;align-self:center}
+}
 .stars-zero{font-size:.65rem;color:var(--t3);cursor:pointer;line-height:1;flex-shrink:0;padding:1px 3px;border-radius:3px;transition:color .12s}
 .stars-zero:hover{color:var(--pink)}
 .stars-zero.active{color:var(--amber)}

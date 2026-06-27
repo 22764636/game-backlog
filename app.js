@@ -864,6 +864,7 @@ const PLAT_COLORS={'Steam':'#66c0f4','Epic Games':'#101014','GOG':'#9b4dca','Oth
 function platColor(p){return PLAT_COLORS[p]||'#555'}
 function platTextColor(p){return p==='Epic Games'?'#fff':p==='GOG'?'#fff':p==='PS'?'#fff':p==='Xbox'?'#fff':p==='Nintendo'?'#fff':'#031329'}
 function platBadgesHTML(g){
+  if(g.status!=='bought')return'';
   const ps=ownedPlatforms(g);
   if(!ps.length)return'';
   return`<div class="cc-plats">${ps.map(p=>`<span class="b-plat" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}</span>`).join('')}</div>`;
@@ -1391,9 +1392,8 @@ function hotnessCircleSVG(h,isNR){
   }
   let paths='';
   if(isNR){
-    for(let i=0;i<segments;i++)
-      paths+=`<path d="${arc(i*36,segAngle)}" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="butt"/>`;
-    return`<span class="hotness-circle-wrap"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="Not Rated" aria-label="Not Rated">${paths}</svg></span>`;
+    const nrSvg=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--amber)" stroke-width="1.5"/>`;
+    return`<span class="hotness-circle-wrap"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="Not Rated" aria-label="Not Rated">${nrSvg}</svg></span>`;
   }
   for(let i=0;i<segments;i++){
     const fill=Math.min(1,Math.max(0,(h-i*10)/10));
@@ -2389,7 +2389,6 @@ function openPanel(id){
       ${g.status==='wishlist'&&!isCancelled(g)&&!isGameUnreleased(g)&&g.price!=null&&parseFloat(g.price)===0?`<span class="bdg b-free">FREE</span>`:''}
       ${isNR&&g.status==='wishlist'&&!isCancelled(g)&&!isGameUnreleased(g)&&!(g.price!=null&&parseFloat(g.price)===0)?`<span class="b-rev">${t('bdgRev')}</span>`:''}
       <span class="bdg" style="background:${prioColor(g.priority)};color:#031329">${prioLabel(g.priority)}</span>
-      ${_plats.map(p=>`<span class="b-plat" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}</span>`).join('')}
       ${g.type==='dlc'?`<span class="bdg" style="background:#3a1a6e;color:#c4a0ff">DLC</span>`:''}
       ${hotnessCircleSVG(h,isNR)}
     </div>`;
