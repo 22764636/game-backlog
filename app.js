@@ -1391,21 +1391,22 @@ function hotnessCircleSVG(h,isNR){
   }
   let paths='';
   if(isNR){
-    paths=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--amber)" stroke-width="1.5"/>`;
-  }else{
-    for(let i=0;i<segments;i++){
-      const fill=Math.min(1,Math.max(0,(h-i*10)/10));
-      const d=arc(i*36,segAngle);
-      paths+=`<path d="${d}" fill="none" stroke="#ff00aa28" stroke-width="2.5" stroke-linecap="butt"/>`;
-      if(fill>0){
-        const dashLen=(fill*segCirc).toFixed(3);
-        paths+=`<path d="${d}" fill="none" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="butt" stroke-dasharray="${dashLen} ${segCirc.toFixed(3)}"/>`;
-      }
-    }
-    paths+=`<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-size="8" font-weight="700" fill="var(--pink)" font-family="Rajdhani,sans-serif">${h}</text>`;
+    for(let i=0;i<segments;i++)
+      paths+=`<path d="${arc(i*36,segAngle)}" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="butt"/>`;
+    const label='Not Rated';
+    return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="${label}" aria-label="${label}">${paths}</svg>`;
   }
-  const label=isNR?'Not Rated':`Hotness: ${h}`;
-  return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="${label}" aria-label="${label}">${paths}</svg>`;
+  for(let i=0;i<segments;i++){
+    const fill=Math.min(1,Math.max(0,(h-i*10)/10));
+    const d=arc(i*36,segAngle);
+    paths+=`<path d="${d}" fill="none" stroke="#ff00aa28" stroke-width="2.5" stroke-linecap="butt"/>`;
+    if(fill>0){
+      const dashLen=(fill*segCirc).toFixed(3);
+      paths+=`<path d="${d}" fill="none" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="butt" stroke-dasharray="${dashLen} ${segCirc.toFixed(3)}"/>`;
+    }
+  }
+  const label=`Hotness: ${h}`;
+  return`<span class="hotness-circle-wrap"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="${label}" aria-label="${label}">${paths}</svg><span class="hotness-circle-num">${h}</span></span>`;
 }
 
 function navPanel(dir){
@@ -2543,13 +2544,17 @@ function openPanel(id){
     const _revDateStr=g.myReviewDate?`<div class="note-date">${esc(fmtDate(g.myReviewDate)||g.myReviewDate)}</div>`:'';
     const _composeStars=_hasRev?sh:shBlank;
     const _composeDateVal=g.myReviewDate||todayIso;
+    const _initScore=_hasRev?_scoreDisp:'<span style="color:var(--t3);font-size:.9rem">—</span>';
     const _composeSection=`
       <div id="reviewCompose" style="display:none">
         <div class="note-compose" style="margin-bottom:.35rem">
           <input type="date" id="reviewDate" class="note-compose-date" value="${_composeDateVal}">
-          <div class="stars" id="pstarsEdit">${_composeStars}</div>
+          <div style="display:flex;align-items:center;gap:.35rem">
+            <span id="starsZero" class="stars-zero" title="Clear stars">✕</span>
+            <div class="stars" id="pstarsEdit" style="margin-bottom:0">${_composeStars}</div>
+            <div class="review-score" id="previewScore" style="font-size:.9rem;line-height:1">${_initScore}</div>
+          </div>
         </div>
-        <div class="review-score" id="previewScore" style="margin-bottom:.35rem">${_hasRev?_scoreDisp:'<span style="color:var(--t3);font-size:1rem">—</span>'}</div>
         <textarea class="rta" id="prevta" placeholder="Your thoughts…" style="min-height:60px;resize:none">${_hasRev?esc(g.myReview):''}</textarea>
         <div style="display:flex;gap:.4rem;margin-top:.35rem">
           <button class="note-save-btn" id="psrv" disabled>${t('pSaveRev')}</button>
@@ -2557,15 +2562,16 @@ function openPanel(id){
         </div>
       </div>`;
     if(_hasRev){
+      const _dateCol=g.myReviewDate?esc(fmtDate(g.myReviewDate)||g.myReviewDate):'—';
       b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
-        <div id="reviewView">
-          ${_revDateStr}
-          <div class="review-rating-row">
-            <div class="stars" id="pstars">${sh}</div>
-            <div class="review-score">${_scoreDisp}</div>
+        <div id="reviewView" class="review-row">
+          <div class="review-row-date">${_dateCol}</div>
+          <div class="review-row-text note-md">${renderMd(g.myReview)}</div>
+          <div class="review-row-stars">
+            <div class="stars" id="pstars" style="margin-bottom:.2rem">${sh}</div>
+            <div class="review-score" style="font-size:1rem;text-align:right">${_scoreDisp}</div>
+            <button class="note-btn edit-btn" id="reviewEditBtn" style="margin-top:.3rem">Edit</button>
           </div>
-          <div class="note-text note-md" style="margin-top:.4rem">${renderMd(g.myReview)}</div>
-          <button class="note-btn edit-btn" id="reviewEditBtn" style="margin-top:.4rem">Edit</button>
         </div>
         ${_composeSection}
       </div>`;
@@ -2705,11 +2711,13 @@ function openPanel(id){
       const btn=document.getElementById('psrv');
       const ta=document.getElementById('prevta');
       if(btn)btn.disabled=(_editStars===null||!ta||!ta.value.trim());
+      const zb=document.getElementById('starsZero');
+      if(zb)zb.classList.toggle('active',_editStars===0);
     };
     const _updateEditStars=(v,commit)=>{
       document.querySelectorAll('#pstarsEdit .star-half').forEach(x=>x.classList.toggle('on',parseFloat(x.dataset.v)<=v));
       const sc=document.getElementById('previewScore');
-      if(sc)sc.innerHTML=v>0?`${v}<span class="review-score-denom">/5</span>`:`<span style="color:var(--t3);font-size:1rem">—</span>`;
+      if(sc)sc.innerHTML=v>0?`${v}<span class="review-score-denom">/5</span>`:`<span style="color:var(--t3);font-size:.9rem">—</span>`;
       if(commit){_editStars=v;_checkSave();}
     };
     document.querySelectorAll('#pstarsEdit .star-pos').forEach(pos=>{
@@ -2724,6 +2732,8 @@ function openPanel(id){
         _updateEditStars(_editStars===val?0:val,true);
       });
     });
+    const _starsZeroBtn=document.getElementById('starsZero');
+    if(_starsZeroBtn)_starsZeroBtn.addEventListener('click',()=>_updateEditStars(0,true));
     const _prevta=document.getElementById('prevta');
     if(_prevta)_prevta.addEventListener('input',_checkSave);
     const _revEditBtn=document.getElementById('reviewEditBtn');

@@ -367,7 +367,10 @@ button{text-transform:none;letter-spacing:0}
 .pa.s{border-color:#9cff0066;color:var(--green);background:#9cff0011}
 .pa.s:hover{background:#9cff0022}
 .hr2{display:flex;align-items:center;gap:.6rem}
-.hotness-circle{margin-left:auto;flex-shrink:0;display:block;width:32px;height:32px}
+.hotness-circle{display:block;width:32px;height:32px;flex-shrink:0}
+.hotness-circle-wrap{margin-left:auto;display:inline-flex;align-items:center;gap:.25rem;flex-shrink:0}
+.hotness-circle-num{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;color:var(--pink);line-height:1;min-width:1.6rem}
+svg.hotness-circle:only-child{margin-left:auto}
 .ht{flex:1;height:5px;background:var(--s3);border-radius:99px;overflow:hidden}
 .htf{height:100%;background:var(--pink);transition:width .3s}
 .hn{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;color:var(--pink);min-width:2rem;text-align:right}
@@ -390,14 +393,21 @@ button{text-transform:none;letter-spacing:0}
 /* Half-star rating */
 .stars{display:flex;gap:.15rem;margin-bottom:.35rem}
 .star-pos{position:relative;display:inline-block;width:1.15rem;height:1.15rem;flex-shrink:0;cursor:pointer}
-.star-half{position:absolute;top:0;left:0;font-size:1.1rem;color:var(--s3);line-height:1;overflow:hidden;width:100%;transition:color .1s;user-select:none;pointer-events:none}
+.star-half{position:absolute;top:0;left:0;font-size:1.1rem;color:var(--s3);line-height:1;width:100%;transition:color .1s;user-select:none;pointer-events:none}
 .star-half.on{color:var(--amber)}
-.star-l{width:50%}
+.star-l{clip-path:inset(0 50% 0 0)}
 .star-r{clip-path:inset(0 0 0 50%)}
 
 /* Review card */
 .review-card{background:var(--base);border:1px solid var(--bd);border-radius:var(--r);padding:.65rem .75rem}
 .review-rating-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.review-row{display:grid;grid-template-columns:auto 1fr auto;gap:.4rem .65rem;align-items:start}
+.review-row-date{font-size:.6rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);white-space:nowrap;padding-top:.1rem}
+.review-row-text{font-size:.78rem;line-height:1.5;color:var(--t2)}
+.review-row-stars{display:flex;flex-direction:column;align-items:flex-end}
+.stars-zero{font-size:.65rem;color:var(--t3);cursor:pointer;line-height:1;flex-shrink:0;padding:1px 3px;border-radius:3px;transition:color .12s}
+.stars-zero:hover{color:var(--pink)}
+.stars-zero.active{color:var(--amber)}
 .review-score{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.6rem;color:var(--amber);line-height:1}
 .review-score-denom{font-size:.85rem;color:var(--t3);font-weight:400;margin-left:.1rem}
 
