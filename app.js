@@ -2262,17 +2262,22 @@ function _buildPlatTabContent(g,plat){
     ${p.purchaseDate?`<div class="purch-cell"><div class="purch-lbl">Date</div><div class="purch-val">${esc(fmtDate(p.purchaseDate)||p.purchaseDate)}</div></div>`:''}
   </div>`;
 
-  const playSection=`<div class="coll-play-row">
-    <span class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px">${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span></span>
-  </div>`;
+  const chipsHTML=isSteam
+    ?((p.steamCollection||[]).map(s=>`<span class="cich">${esc(colLabel(s))}</span>`).join('')||'<span style="color:var(--t3);font-size:.75rem">—</span>')
+    :'';
 
-  let colSection='';
-  if(isSteam){
-    const chips=(p.steamCollection||[]).map(s=>`<span class="cich">${esc(colLabel(s))}</span>`).join('');
-    colSection=`<div class="coll-chips-row">${chips||'<span style="color:var(--t3);font-size:.75rem">—</span>'}</div>`;
-  }
+  const twoCol=isSteam
+    ?`<div class="coll-2col">
+        <div class="coll-2col-cell">
+          <span class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px">${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span></span>
+        </div>
+        <div class="coll-2col-cell coll-chips-row">${chipsHTML}</div>
+      </div>`
+    :`<div class="coll-play-row">
+        <span class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px">${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span></span>
+      </div>`;
 
-  return`${purchaseSection}${playSection}${colSection}`;
+  return`${purchaseSection}${twoCol}`;
 }
 
 function wirePlatTabContent(g,plat){}
@@ -2320,6 +2325,20 @@ function openPanel(id){
   if(isNR)b+=`<div class="pv" style="color:var(--amber)">${t('bdgRev')}</div>`;
   else b+=`<div class="hr2"><div class="ht"><div class="htf" style="width:${h}%"></div></div><div class="hn">${h}</div></div>`;
   b+=`</div>`;
+
+  // Collection box — immediately after hotness (bought games only)
+  if(g.status==='bought'){
+    const _gPurchasesEarly=gamePurchases(g);
+    if(_gPurchasesEarly.length){
+      const _ordPE=[..._gPurchasesEarly].sort((a,b)=>PLATFORM_ORDER.indexOf(a.platform)-PLATFORM_ORDER.indexOf(b.platform));
+      const _firstPlatE=_ordPE[0].platform;
+      const _tabsHTMLE=_ordPE.map((p,i)=>`<button class="plat-tab${i===0?' active':''}" data-plat="${esc(p.platform)}" style="${i===0?'background:'+platColor(p.platform)+';color:'+platTextColor(p.platform)+';border-color:transparent':''}">${esc(p.platform)}</button>`).join('');
+      b+=`<div class="coll-box" style="margin-bottom:.8rem">
+        <div class="coll-box-hdr" id="platTabs">${_tabsHTMLE}</div>
+        <div class="coll-box-body" id="platTabContent">${_buildPlatTabContent(g,_firstPlatE)}</div>
+      </div>`;
+    }
+  }
 
   const devArr=Array.isArray(g.developer)?g.developer:(g.developer?[String(g.developer)]:[]);
   const pubArr=Array.isArray(g.publisher)?g.publisher:(g.publisher?[String(g.publisher)]:[]);
@@ -2399,19 +2418,6 @@ function openPanel(id){
   }
   if(g.shortDescription)b+=`<div class="ps"><div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${esc(g.shortDescription)}</div></div>`;
   if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich" style="display:inline-flex;align-items:center;gap:.15rem">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div></div>`;
-  // Collection details — platform tabs (only for bought games)
-  if(g.status==='bought'){
-    const _gPurchases=gamePurchases(g);
-    if(_gPurchases.length){
-      const _ordP=[..._gPurchases].sort((a,b)=>PLATFORM_ORDER.indexOf(a.platform)-PLATFORM_ORDER.indexOf(b.platform));
-      const _firstPlat=_ordP[0].platform;
-      const _tabsHTML=_ordP.map((p,i)=>`<button class="plat-tab${i===0?' active':''}" data-plat="${esc(p.platform)}" style="${i===0?'background:'+platColor(p.platform)+';color:'+platTextColor(p.platform)+';border-color:transparent':''}">${esc(p.platform)}</button>`).join('');
-      b+=`<div class="coll-box" style="margin-bottom:.8rem">
-        <div class="coll-box-hdr" id="platTabs">${_tabsHTML}</div>
-        <div class="coll-box-body" id="platTabContent">${_buildPlatTabContent(g,_firstPlat)}</div>
-      </div>`;
-    }
-  }
   // Notes — multi-note with add/edit/delete
   const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
   const todayIso=(()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`})();

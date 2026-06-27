@@ -104,7 +104,7 @@ button{text-transform:none;letter-spacing:0}
   margin-left:auto;flex-shrink:0;user-select:none;transition:background .12s}
 .dlc-count-badge:hover{background:#2a1050}
 /* ── COLLECTION TYPE BADGE ── */
-.col-type-badge{font-size:.6rem;background:#0e2535;color:#5db8e8;border:1px solid #1a4060;
+.col-type-badge{font-size:.6rem;background:#1a0a3a;color:#c4a0ff;border:1px solid #4a2080;
   border-radius:4px;padding:1px 5px;max-width:120px;overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;display:inline-block;line-height:1.5}
 /* ── PANEL DLC GRID ── */
@@ -891,11 +891,13 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .coll-box-hdr{background:#0a1824;border-bottom:1px solid var(--bd);padding:.4rem .75rem;display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center}
 .coll-box-body{padding:.65rem .75rem}
 .purch-3col{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.55rem}
-.purch-cell{flex:1;min-width:60px}
+.purch-cell{flex:1;min-width:60px;text-align:center}
 .purch-lbl{font-size:.56rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:.12rem}
 .purch-val{font-size:.8rem;color:var(--t2)}
 .coll-play-row{margin-bottom:.5rem}
-.coll-chips-row{display:flex;gap:.28rem;flex-wrap:wrap;margin-top:.5rem}
+.coll-2col{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.coll-2col-cell{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.coll-chips-row{display:flex;gap:.28rem;flex-wrap:wrap;justify-content:center}
 .plat-tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.6rem;justify-content:center}
 .plat-tab{padding:.22rem .6rem;border-radius:4px;border:1px solid var(--bd);background:transparent;
   color:var(--t2);font-size:.68rem;font-weight:700;cursor:pointer;transition:all .15s;
