@@ -203,7 +203,7 @@ button{text-transform:none;letter-spacing:0}
 /* Singleton fixed tooltip for clipped contexts */
 #metaFloatTip{position:fixed;background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);
   padding:.4rem .55rem;font-size:.68rem;color:var(--t2);line-height:1.45;
-  white-space:normal;width:180px;z-index:9999;pointer-events:none;
+  white-space:pre-line;width:180px;z-index:9999;pointer-events:none;
   box-shadow:0 4px 16px #00000055;display:none}
 .gc.cancelled{border-color:#cc220033}
 .gc.cancelled .cc,.gc.cancelled .cb,.gc.cancelled .ct,
@@ -367,7 +367,7 @@ button{text-transform:none;letter-spacing:0}
 .pa.s{border-color:#9cff0066;color:var(--green);background:#9cff0011}
 .pa.s:hover{background:#9cff0022}
 .hr2{display:flex;align-items:center;gap:.6rem}
-.hotness-circle{margin-left:auto;flex-shrink:0;display:block}
+.hotness-circle{margin-left:auto;flex-shrink:0;display:block;width:32px;height:32px}
 .ht{flex:1;height:5px;background:var(--s3);border-radius:99px;overflow:hidden}
 .htf{height:100%;background:var(--pink);transition:width .3s}
 .hn{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;color:var(--pink);min-width:2rem;text-align:right}

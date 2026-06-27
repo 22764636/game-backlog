@@ -1382,25 +1382,27 @@ function renderMd(raw){
 }
 
 function hotnessCircleSVG(h,isNR){
-  const cx=14,cy=14,r=11,size=28,segments=10,gap=4,segAngle=360/segments-gap;
+  const cx=16,cy=16,r=13,size=32,segments=10,gap=10,segAngle=360/segments-gap;
   const circ=2*Math.PI*r,segCirc=(segAngle/360)*circ;
   function arc(startDeg,angleDeg){
     const s=(startDeg-90)*Math.PI/180,e=(startDeg-90+angleDeg)*Math.PI/180;
     const x1=cx+r*Math.cos(s),y1=cy+r*Math.sin(s),x2=cx+r*Math.cos(e),y2=cy+r*Math.sin(e);
     return`M${x1.toFixed(3)},${y1.toFixed(3)} A${r},${r},0,${angleDeg>180?1:0},1,${x2.toFixed(3)},${y2.toFixed(3)}`;
   }
-  const fgColor=isNR?'#f7cd2640':'var(--pink)';
-  const bgColor=isNR?'#f7cd2620':'#ff00aa20';
   let paths='';
-  for(let i=0;i<segments;i++){
-    const startDeg=i*(360/segments);
-    const fill=isNR?0:Math.min(1,Math.max(0,(h-i*10)/10));
-    const d=arc(startDeg,segAngle);
-    paths+=`<path d="${d}" fill="none" stroke="${bgColor}" stroke-width="2.5" stroke-linecap="round"/>`;
-    if(fill>0){
-      const dashLen=(fill*segCirc).toFixed(3);
-      paths+=`<path d="${d}" fill="none" stroke="${fgColor}" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="${dashLen} ${segCirc.toFixed(3)}"/>`;
+  if(isNR){
+    paths=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--amber)" stroke-width="1.5"/>`;
+  }else{
+    for(let i=0;i<segments;i++){
+      const fill=Math.min(1,Math.max(0,(h-i*10)/10));
+      const d=arc(i*36,segAngle);
+      paths+=`<path d="${d}" fill="none" stroke="#ff00aa28" stroke-width="2.5" stroke-linecap="butt"/>`;
+      if(fill>0){
+        const dashLen=(fill*segCirc).toFixed(3);
+        paths+=`<path d="${d}" fill="none" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="butt" stroke-dasharray="${dashLen} ${segCirc.toFixed(3)}"/>`;
+      }
     }
+    paths+=`<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-size="8" font-weight="700" fill="var(--pink)" font-family="Rajdhani,sans-serif">${h}</text>`;
   }
   const label=isNR?'Not Rated':`Hotness: ${h}`;
   return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="${label}" aria-label="${label}">${paths}</svg>`;
@@ -2365,6 +2367,7 @@ function openPanel(id){
   const sdbUrl=g.steamAppId?`https://www.steamdb.info/app/${g.steamAppId}/`:`https://www.steamdb.info/search/?q=${sl}`;
   const stUrl=g.storeLink||(g.steamAppId?`https://store.steampowered.com/app/${g.steamAppId}/`:`https://store.steampowered.com/search/?term=${sl}`);
   const sh=[1,2,3,4,5].map(i=>`<span class="star-pos" data-pos="${i}"><span class="star-half star-l${cStars>=i-0.5?' on':''}" data-v="${i-0.5}">★</span><span class="star-half star-r${cStars>=i?' on':''}" data-v="${i}">★</span></span>`).join('');
+  const shBlank=[1,2,3,4,5].map(i=>`<span class="star-pos" data-pos="${i}"><span class="star-half star-l" data-v="${i-0.5}">★</span><span class="star-half star-r" data-v="${i}">★</span></span>`).join('');
   const _plats=ownedPlatforms(g);
 
   const genreD=(g.genres||[]).join(', ')||g.genre||'';
@@ -2493,12 +2496,16 @@ function openPanel(id){
       b+=`<div class="ps"><div class="psl">${dlcLabel}</div>${dlcCards}</div>`;
     }
   }
-  if(g.shortDescription)b+=`<div class="ps"><div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${esc(g.shortDescription)}</div></div>`;
-  if(g.tags&&g.tags.length)b+=`<div class="ps"><div class="psl">${t('pTags')}</div><div style="display:flex;gap:.28rem;flex-wrap:wrap">${g.tags.map(x=>`<span class="cich-tag">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div></div>`;
+  if(g.shortDescription||(g.tags&&g.tags.length)){
+    b+=`<div class="ps">`;
+    if(g.shortDescription)b+=`<div class="psl">About</div><div class="pv" style="color:var(--t2);font-size:.78rem;line-height:1.55">${renderMd(g.shortDescription)}</div>`;
+    if(g.tags&&g.tags.length)b+=`<div style="display:flex;gap:.28rem;flex-wrap:wrap;margin-top:${g.shortDescription?'.5rem':'0'}">${g.tags.map(x=>`<span class="cich-tag">${esc(x)}${metaTipHTML(x)}</span>`).join('')}</div>`;
+    b+=`</div>`;
+  }
   // Notes — multi-note with add/edit/delete
   const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
   const todayIso=(()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`})();
-  const _mdTip='**bold**  *italic*  `code`  [text](url)  - bullet list';
+  const _mdTip='**bold**\n*italic*\n`code`\n[text](url)\n- bullet list';
   b+=`<div class="ps"><div class="psl">Notes <span class="meta-tip-icon" tabindex="0" data-desc="${_mdTip}">ⓘ</span></div>
     <div id="noteList" style="margin-bottom:.3rem">
     ${[...notes].reverse().map(n=>`
@@ -2531,17 +2538,43 @@ function openPanel(id){
 
 
   if(g.status==='bought'){
-    const scoreDisp=cStars>0?`${cStars}<span class="review-score-denom">/5</span>`:`<span style="color:var(--t3);font-size:1rem">—</span>`;
-    b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
-      <div class="review-card">
-        <div class="review-rating-row">
-          <div class="stars" id="pstars">${sh}</div>
-          <div class="review-score" id="previewScore">${scoreDisp}</div>
+    const _hasRev=!!(g.myReview&&g.myReview.trim());
+    const _scoreDisp=cStars>0?`${cStars}<span class="review-score-denom">/5</span>`:`<span style="color:var(--t3);font-size:1rem">—</span>`;
+    const _revDateStr=g.myReviewDate?`<div class="note-date">${esc(fmtDate(g.myReviewDate)||g.myReviewDate)}</div>`:'';
+    const _composeStars=_hasRev?sh:shBlank;
+    const _composeDateVal=g.myReviewDate||todayIso;
+    const _composeSection=`
+      <div id="reviewCompose" style="display:none">
+        <div class="note-compose" style="margin-bottom:.35rem">
+          <input type="date" id="reviewDate" class="note-compose-date" value="${_composeDateVal}">
+          <div class="stars" id="pstarsEdit">${_composeStars}</div>
         </div>
-        <textarea class="rta" id="prevta" placeholder="Your thoughts…">${esc(g.myReview||'')}</textarea>
-        <button class="pa s" style="width:100%;margin-top:.35rem" id="psrv">${t('pSaveRev')}</button>
-      </div>
-    </div>`;
+        <div class="review-score" id="previewScore" style="margin-bottom:.35rem">${_hasRev?_scoreDisp:'<span style="color:var(--t3);font-size:1rem">—</span>'}</div>
+        <textarea class="rta" id="prevta" placeholder="Your thoughts…" style="min-height:60px;resize:none">${_hasRev?esc(g.myReview):''}</textarea>
+        <div style="display:flex;gap:.4rem;margin-top:.35rem">
+          <button class="note-save-btn" id="psrv" disabled>${t('pSaveRev')}</button>
+          <button class="note-save-btn" id="reviewCancel">Cancel</button>
+        </div>
+      </div>`;
+    if(_hasRev){
+      b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
+        <div id="reviewView">
+          ${_revDateStr}
+          <div class="review-rating-row">
+            <div class="stars" id="pstars">${sh}</div>
+            <div class="review-score">${_scoreDisp}</div>
+          </div>
+          <div class="note-text note-md" style="margin-top:.4rem">${renderMd(g.myReview)}</div>
+          <button class="note-btn edit-btn" id="reviewEditBtn" style="margin-top:.4rem">Edit</button>
+        </div>
+        ${_composeSection}
+      </div>`;
+    }else{
+      b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
+        <button class="note-add-toggle" id="reviewToggle">＋ Write review</button>
+        ${_composeSection}
+      </div>`;
+    }
   }
 
   const bl=g.status==='bought'?'Move to Wishlist':'Add to Collection';
@@ -2666,28 +2699,58 @@ function openPanel(id){
     };
   });
   if(g.status==='bought'){
-    const _updateStars=(v)=>{
-      document.querySelectorAll('#pstars .star-half').forEach(x=>x.classList.toggle('on',parseFloat(x.dataset.v)<=v));
+    const _hasRev2=!!(g.myReview&&g.myReview.trim());
+    let _editStars=_hasRev2?cStars:null;
+    const _checkSave=()=>{
+      const btn=document.getElementById('psrv');
+      const ta=document.getElementById('prevta');
+      if(btn)btn.disabled=(_editStars===null||!ta||!ta.value.trim());
+    };
+    const _updateEditStars=(v,commit)=>{
+      document.querySelectorAll('#pstarsEdit .star-half').forEach(x=>x.classList.toggle('on',parseFloat(x.dataset.v)<=v));
       const sc=document.getElementById('previewScore');
       if(sc)sc.innerHTML=v>0?`${v}<span class="review-score-denom">/5</span>`:`<span style="color:var(--t3);font-size:1rem">—</span>`;
+      if(commit){_editStars=v;_checkSave();}
     };
-    document.querySelectorAll('#pstars .star-pos').forEach(pos=>{
+    document.querySelectorAll('#pstarsEdit .star-pos').forEach(pos=>{
       pos.addEventListener('mousemove',e=>{
         const r=pos.getBoundingClientRect();
-        const half=e.clientX<r.left+r.width/2;
-        const base=parseFloat(pos.dataset.pos);
-        _updateStars(half?base-0.5:base);
+        _updateEditStars((e.clientX<r.left+r.width/2?parseFloat(pos.dataset.pos)-0.5:parseFloat(pos.dataset.pos)),false);
       });
-      pos.addEventListener('mouseleave',()=>_updateStars(cStars));
+      pos.addEventListener('mouseleave',()=>_updateEditStars(_editStars===null?0:_editStars,false));
       pos.addEventListener('click',e=>{
         const r=pos.getBoundingClientRect();
-        const half=e.clientX<r.left+r.width/2;
-        const base=parseFloat(pos.dataset.pos);
-        cStars=half?base-0.5:base;
-        _updateStars(cStars);
+        const val=e.clientX<r.left+r.width/2?parseFloat(pos.dataset.pos)-0.5:parseFloat(pos.dataset.pos);
+        _updateEditStars(_editStars===val?0:val,true);
       });
     });
-    document.getElementById('psrv').onclick=()=>{const gg=games.find(x=>x.id===openId);if(gg){gg.myRating=cStars;gg.myReview=document.getElementById('prevta').value;save()}};
+    const _prevta=document.getElementById('prevta');
+    if(_prevta)_prevta.addEventListener('input',_checkSave);
+    const _revEditBtn=document.getElementById('reviewEditBtn');
+    if(_revEditBtn)_revEditBtn.onclick=()=>{
+      document.getElementById('reviewView').style.display='none';
+      document.getElementById('reviewCompose').style.display='';
+      _editStars=cStars;_checkSave();
+    };
+    const _revToggle=document.getElementById('reviewToggle');
+    if(_revToggle)_revToggle.onclick=()=>{
+      _revToggle.style.display='none';
+      document.getElementById('reviewCompose').style.display='';
+    };
+    const _revCancel=document.getElementById('reviewCancel');
+    if(_revCancel)_revCancel.onclick=()=>{
+      document.getElementById('reviewCompose').style.display='none';
+      if(_hasRev2)document.getElementById('reviewView').style.display='';
+      else{const t=document.getElementById('reviewToggle');if(t)t.style.display='';}
+    };
+    const _psrv=document.getElementById('psrv');
+    if(_psrv)_psrv.onclick=()=>{
+      const gg=games.find(x=>x.id===openId);if(!gg)return;
+      gg.myRating=_editStars||0;
+      gg.myReview=document.getElementById('prevta').value.trim();
+      const de=document.getElementById('reviewDate');if(de&&de.value)gg.myReviewDate=de.value;
+      save();openPanel(openId);
+    };
   }
   document.getElementById('ped').onclick=()=>{
     const _pov=document.getElementById('pov');
@@ -3663,7 +3726,7 @@ document.getElementById('msave').onclick=()=>{
           updatedPurchases.push({platform:_modalColPlat,store:colFields.store,cost:colFields.cost,purchaseDate:colFields.purchaseDate,playStatus:colFields.playStatus,steamCollection:_modalColPlat==='Steam'?[...cModalCol]:[]});
         }
       }
-      const preserved={notes:[..._modalNotes],status:games[i].status,added:games[i].added,removeNote:games[i].removeNote,myRating:games[i].myRating,myReview:games[i].myReview,shortDescription:data.shortDescription||games[i].shortDescription,steamWishlist:_modalSteamWishlist,...colFields,purchases:updatedPurchases};
+      const preserved={notes:[..._modalNotes],status:games[i].status,added:games[i].added,removeNote:games[i].removeNote,myRating:games[i].myRating,myReview:games[i].myReview,myReviewDate:games[i].myReviewDate,shortDescription:data.shortDescription||games[i].shortDescription,steamWishlist:_modalSteamWishlist,...colFields,purchases:updatedPurchases};
       // parentAppId comes from data object, not preserved
       games[i]={...games[i],...data,...preserved};
     }
