@@ -1383,7 +1383,7 @@ function renderMd(raw){
 }
 
 function hotnessCircleSVG(h,isNR){
-  const cx=16,cy=16,rO=13,rI=8,size=32,segments=10,gap=22,segAngle=360/segments-gap;
+  const cx=16,cy=16,rO=13,rI=11,size=32,segments=10,gap=10,segAngle=360/segments-gap;
   function seg(startDeg,angleDeg){
     if(angleDeg<=0)return'';
     const laf=angleDeg>180?1:0;
