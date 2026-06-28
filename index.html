@@ -348,16 +348,22 @@
   </div>
 </div>
 
-<!-- GG.DEALS RATE LIMIT MODAL -->
-<div id="ggRateOv">
-  <div class="modal" style="max-width:400px">
+<!-- GG.DEALS FETCH PROGRESS MODAL -->
+<div id="ggFetchOv">
+  <div class="modal" style="max-width:380px">
     <div class="modal-body">
-      <div class="mt" style="color:var(--pink)">⚠ Rate Limit Reached</div>
-      <p id="ggRateMsg" style="font-size:.85rem;color:var(--t2);margin:.4rem 0 .3rem"></p>
-      <p id="ggRateRetry" style="font-size:.82rem;color:var(--amber);margin:0"></p>
+      <div class="mt">Fetching Live Prices</div>
+      <div style="margin:.8rem 0 .5rem">
+        <div style="font-size:.85rem;color:var(--t2);margin-bottom:.4rem" id="ggFetchProgress">Preparing…</div>
+        <div style="height:6px;background:var(--s2);border-radius:3px;overflow:hidden">
+          <div id="ggFetchBar" style="height:100%;background:var(--cyan);width:0%;transition:width .4s"></div>
+        </div>
+      </div>
+      <div style="font-size:.82rem;color:var(--amber);min-height:1.2em" id="ggFetchStatus"></div>
     </div>
     <div class="ma">
-      <button class="mb2 c" id="ggRateClose">Close</button>
+      <button class="mb2 c" id="ggFetchClose" style="display:none">Close</button>
+      <button class="mb2" id="ggFetchCancel">Cancel</button>
     </div>
   </div>
 </div>
