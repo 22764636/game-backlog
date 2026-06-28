@@ -2875,6 +2875,8 @@ window.addEventListener('popstate',function(){
   if(wlov&&wlov.classList.contains('on')){wlov.classList.remove('on');return;}
   const calOv=document.getElementById('calOv');
   if(calOv&&calOv.style.display!=='none'){_rawCloseCalendar();return;}
+  const ggRateOv=document.getElementById('ggRateOv');
+  if(ggRateOv&&ggRateOv.classList.contains('on')){ggRateOv.classList.remove('on');return;}
 });
 
 // ── PANEL DRAG RESIZE (desktop only) ──────────────────────────
@@ -4412,10 +4414,15 @@ function _ggShowRateModal(entries,n,usedHour,usedMin){
     retryEl.textContent='';
   }
   document.getElementById('ggRateOv').classList.add('on');
+  history.pushState({ggRateOpen:true},'','');
 }
 
-document.getElementById('ggRateClose').onclick=()=>document.getElementById('ggRateOv').classList.remove('on');
-document.getElementById('ggRateOv').addEventListener('click',e=>{if(e.target===document.getElementById('ggRateOv'))document.getElementById('ggRateOv').classList.remove('on');});
+function _closeGgRateModal(){
+  document.getElementById('ggRateOv').classList.remove('on');
+  if(history.state&&history.state.ggRateOpen)history.replaceState(null,'','');
+}
+document.getElementById('ggRateClose').onclick=_closeGgRateModal;
+document.getElementById('ggRateOv').addEventListener('click',e=>{if(e.target===document.getElementById('ggRateOv'))_closeGgRateModal();});
 
 function _logGGPricesToSheet(data,eligible){
   if(!SHEET_URL)return;
