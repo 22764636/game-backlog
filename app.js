@@ -2599,10 +2599,12 @@ function openPanel(id){
     <button class="note-add-toggle" id="noteToggle">＋ Add note</button>
     <div id="noteCompose" style="display:none;margin-top:.35rem">
       <div class="note-compose">
-        <input type="date" id="noteNewDate" class="note-compose-date" value="${todayIso}">
         <textarea class="note-add" id="noteNewTxt" placeholder="Add a note…" style="margin-bottom:0"></textarea>
+        <div class="note-compose-footer">
+          <input type="date" id="noteNewDate" class="note-compose-date" value="${todayIso}">
+          <button class="note-save-btn" id="noteAddBtn">Save note</button>
+        </div>
       </div>
-      <button class="note-save-btn" id="noteAddBtn" style="margin-top:.35rem">Save note</button>
     </div>
   </div>`;
   if(g.status==='removed'&&g.removeNote)b+=`<div class="ps"><div class="psl" style="color:var(--pink)">${t('pRmNote')}</div><div class="pv" style="color:var(--muted)">${esc(g.removeNote)}</div></div>`;

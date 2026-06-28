@@ -649,10 +649,12 @@
     <div class="fr" id="modalNotesSection">
       <label>Notes <span class="meta-tip-icon" tabindex="0" data-desc="**bold**&#10;*italic*&#10;`code`&#10;[text](url)&#10;- bullet list">ⓘ</span></label>
       <div class="note-compose">
-        <input type="date" id="fNoteDate" class="note-compose-date">
         <textarea class="note-add" id="fNoteTxt" placeholder="Add a note…" style="margin-bottom:0"></textarea>
+        <div class="note-compose-footer">
+          <input type="date" id="fNoteDate" class="note-compose-date">
+          <button class="note-save-btn" id="fNoteSaveBtn">＋ Save note</button>
+        </div>
       </div>
-      <button class="note-save-btn" id="fNoteSaveBtn" style="margin-top:.3rem">＋ Save note</button>
       <div id="fNoteList" style="margin-top:.45rem"></div>
     </div>
     </div><!-- /.modal-body -->
