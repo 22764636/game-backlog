@@ -247,6 +247,7 @@ let _migrationHappened=false;
 let _modalAddType='wishlist'; // 'wishlist' or 'collection'
 let _modalColPlat='Steam';    // selected platform in collection add/edit
 let _modalSteamWishlist=false;// state of steamWishlist toggle in modal
+let _originalAppId='';        // App ID as loaded into modal — duplicate check only fires when changed
 function normalise(g){
   if(!Array.isArray(g.genres)){
     if(g.genres&&typeof g.genres==='string'){try{g.genres=JSON.parse(g.genres)}catch(e){g.genres=g.genres.split(',').map(s=>s.trim()).filter(Boolean)}}
@@ -3399,6 +3400,7 @@ function clearModal(){
   document.getElementById('coverHint').style.display='none';
   document.getElementById('appIdErr').classList.remove('on');
   document.getElementById('fAppId').classList.remove('err');
+  _originalAppId='';
   setTbaState(false);
   cGenres=[];cTags=[];cDev=[];cPub=[];cModalCol=[];renderGenres();renderTags();renderDev();renderPub();renderModalCol();
   _modalNotes=[];renderModalNoteList();
@@ -3524,6 +3526,7 @@ function openEdit(id){
   document.getElementById('modalTitle').textContent=`Edit: ${esc(g.title)}`;
   document.getElementById('fTitle').value=g.title||'';
   document.getElementById('fAppId').value=g.steamAppId||'';
+  _originalAppId=g.steamAppId||'';
   cDev=[...(Array.isArray(g.developer)?g.developer:[])];
   cPub=[...(Array.isArray(g.publisher)?g.publisher:[])];
   renderDev();renderPub();
@@ -3723,7 +3726,8 @@ document.getElementById('mov').onclick=e=>{if(e.target===e.currentTarget)history
 document.getElementById('msave').onclick=()=>{
   const title=document.getElementById('fTitle').value.trim();
   if(!title){alert('Please enter a title.');return}
-  if(checkAppIdDup()){showToast('Fix the duplicate App ID before saving.','err');return}
+  const _appIdChanged=document.getElementById('fAppId').value.trim()!==_originalAppId;
+  if(_appIdChanged&&checkAppIdDup()){showToast('Fix the duplicate App ID before saving.','err');return}
   const hotRaw=document.getElementById('fHotness').value.trim();
   const hotness=hotRaw===''?null:Math.min(100,Math.max(1,parseInt(hotRaw)||1));
   const appId=document.getElementById('fAppId').value.trim()||null;
