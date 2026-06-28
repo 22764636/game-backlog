@@ -1383,7 +1383,7 @@ function renderMd(raw){
 }
 
 function hotnessCircleSVG(h,isNR){
-  const cx=16,cy=16,rO=13,rI=8,size=32,segments=10,gap=10,segAngle=360/segments-gap;
+  const cx=16,cy=16,rO=13,rI=8,size=32,segments=10,gap=22,segAngle=360/segments-gap;
   function seg(startDeg,angleDeg){
     if(angleDeg<=0)return'';
     const laf=angleDeg>180?1:0;
@@ -2370,6 +2370,7 @@ function openPanel(id){
   const stUrl=g.storeLink||(g.steamAppId?`https://store.steampowered.com/app/${g.steamAppId}/`:`https://store.steampowered.com/search/?term=${sl}`);
   const sh=[1,2,3,4,5].map(i=>`<span class="star-pos" data-pos="${i}"><span class="star-half star-l${cStars>=i-0.5?' on':''}" data-v="${i-0.5}">★</span><span class="star-half star-r${cStars>=i?' on':''}" data-v="${i}">★</span></span>`).join('');
   const shBlank=[1,2,3,4,5].map(i=>`<span class="star-pos" data-pos="${i}"><span class="star-half star-l" data-v="${i-0.5}">★</span><span class="star-half star-r" data-v="${i}">★</span></span>`).join('');
+  const todayIso=(()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`})();
   const _plats=ownedPlatforms(g);
 
   const genreD=(g.genres||[]).join(', ')||g.genre||'';
@@ -2406,6 +2407,57 @@ function openPanel(id){
         <div class="coll-box-hdr" id="platTabs">${_tabsHTMLE}</div>
         <div class="coll-box-body" id="platTabContent">${_buildPlatTabContent(g,_firstPlatE)}</div>
       </div>`;
+    }
+    // Review — shown right after collection details
+    {
+      const _hasRev=!!(g.myReview&&g.myReview.trim());
+      const _scoreDisp=cStars>0?`${cStars}<span class="review-score-denom">/5</span>`:`<span style="color:var(--t3);font-size:1rem">—</span>`;
+      const _composeStars=_hasRev?sh:shBlank;
+      const _composeDateVal=g.myReviewDate||todayIso;
+      const _initScore=_hasRev?_scoreDisp:'<span style="color:var(--t3);font-size:.9rem">—</span>';
+      const _composeSection=`
+        <div id="reviewCompose" style="display:none">
+          <div class="note-compose" style="margin-bottom:.35rem">
+            <input type="date" id="reviewDate" class="note-compose-date" value="${_composeDateVal}">
+            <div style="display:flex;align-items:center;gap:.35rem">
+              <span id="starsZero" class="stars-zero" title="Clear stars">✕</span>
+              <div class="stars" id="pstarsEdit" style="margin-bottom:0">${_composeStars}</div>
+              <div class="review-score" id="previewScore" style="font-size:.9rem;line-height:1">${_initScore}</div>
+            </div>
+          </div>
+          <textarea class="rta" id="prevta" placeholder="Your thoughts…" style="min-height:60px;resize:none">${_hasRev?esc(g.myReview):''}</textarea>
+          <div style="display:flex;gap:.4rem;margin-top:.35rem">
+            <button class="note-save-btn" id="psrv" disabled>${t('pSaveRev')}</button>
+            <button class="note-save-btn" id="reviewCancel">Cancel</button>
+          </div>
+        </div>`;
+      if(_hasRev){
+        const _dateCol=g.myReviewDate?esc(fmtDate(g.myReviewDate)||g.myReviewDate):'—';
+        b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
+          <div id="reviewView">
+            <div class="review-row">
+              <div class="review-row-stars">
+                <div style="display:flex;align-items:center;gap:.35rem">
+                  <div class="stars" id="pstars">${sh}</div>
+                  <div class="review-score" style="font-size:.85rem">${_scoreDisp}</div>
+                </div>
+              </div>
+              <div class="review-row-date">${_dateCol}</div>
+              <div class="review-row-text note-md">${renderMd(g.myReview)}</div>
+            </div>
+            <div class="note-actions">
+              <button class="note-btn edit-btn" id="reviewEditBtn">Edit</button>
+              <button class="note-btn del-btn del" id="reviewDelBtn">Delete</button>
+            </div>
+          </div>
+          ${_composeSection}
+        </div>`;
+      }else{
+        b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
+          <button class="note-add-toggle" id="reviewToggle">＋ Write review</button>
+          ${_composeSection}
+        </div>`;
+      }
     }
   }
 
@@ -2505,7 +2557,6 @@ function openPanel(id){
   }
   // Notes — multi-note with add/edit/delete
   const notes=Array.isArray(g.notes)?g.notes:(g.notes?[{id:nid(),date:todayStr(),text:g.notes}]:[]);
-  const todayIso=(()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`})();
   const _mdTip='**bold**\n*italic*\n`code`\n[text](url)\n- bullet list';
   b+=`<div class="ps"><div class="psl">Notes <span class="meta-tip-icon" tabindex="0" data-desc="${_mdTip}">ⓘ</span></div>
     <div id="noteList" style="margin-bottom:.3rem">
@@ -2536,59 +2587,6 @@ function openPanel(id){
     </div>
   </div>`;
   if(g.status==='removed'&&g.removeNote)b+=`<div class="ps"><div class="psl" style="color:var(--pink)">${t('pRmNote')}</div><div class="pv" style="color:var(--muted)">${esc(g.removeNote)}</div></div>`;
-
-
-  if(g.status==='bought'){
-    const _hasRev=!!(g.myReview&&g.myReview.trim());
-    const _scoreDisp=cStars>0?`${cStars}<span class="review-score-denom">/5</span>`:`<span style="color:var(--t3);font-size:1rem">—</span>`;
-    const _revDateStr=g.myReviewDate?`<div class="note-date">${esc(fmtDate(g.myReviewDate)||g.myReviewDate)}</div>`:'';
-    const _composeStars=_hasRev?sh:shBlank;
-    const _composeDateVal=g.myReviewDate||todayIso;
-    const _initScore=_hasRev?_scoreDisp:'<span style="color:var(--t3);font-size:.9rem">—</span>';
-    const _composeSection=`
-      <div id="reviewCompose" style="display:none">
-        <div class="note-compose" style="margin-bottom:.35rem">
-          <input type="date" id="reviewDate" class="note-compose-date" value="${_composeDateVal}">
-          <div style="display:flex;align-items:center;gap:.35rem">
-            <span id="starsZero" class="stars-zero" title="Clear stars">✕</span>
-            <div class="stars" id="pstarsEdit" style="margin-bottom:0">${_composeStars}</div>
-            <div class="review-score" id="previewScore" style="font-size:.9rem;line-height:1">${_initScore}</div>
-          </div>
-        </div>
-        <textarea class="rta" id="prevta" placeholder="Your thoughts…" style="min-height:60px;resize:none">${_hasRev?esc(g.myReview):''}</textarea>
-        <div style="display:flex;gap:.4rem;margin-top:.35rem">
-          <button class="note-save-btn" id="psrv" disabled>${t('pSaveRev')}</button>
-          <button class="note-save-btn" id="reviewCancel">Cancel</button>
-        </div>
-      </div>`;
-    if(_hasRev){
-      const _dateCol=g.myReviewDate?esc(fmtDate(g.myReviewDate)||g.myReviewDate):'—';
-      b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
-        <div id="reviewView">
-          <div class="review-row">
-            <div class="review-row-stars">
-              <div style="display:flex;align-items:center;gap:.35rem">
-                <div class="stars" id="pstars">${sh}</div>
-                <div class="review-score" style="font-size:.85rem">${_scoreDisp}</div>
-              </div>
-            </div>
-            <div class="review-row-date">${_dateCol}</div>
-            <div class="review-row-text note-md">${renderMd(g.myReview)}</div>
-          </div>
-          <div class="note-actions">
-            <button class="note-btn edit-btn" id="reviewEditBtn">Edit</button>
-            <button class="note-btn del-btn del" id="reviewDelBtn">Delete</button>
-          </div>
-        </div>
-        ${_composeSection}
-      </div>`;
-    }else{
-      b+=`<div class="ps"><div class="psl">${t('pReview')}</div>
-        <button class="note-add-toggle" id="reviewToggle">＋ Write review</button>
-        ${_composeSection}
-      </div>`;
-    }
-  }
 
   const bl=g.status==='bought'?'Move to Wishlist':'Add to Collection';
   // Bought games cannot be removed
