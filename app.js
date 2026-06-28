@@ -2436,8 +2436,8 @@ function openPanel(id){
       const _initScore=_hasRev?_scoreDisp:'<span style="color:var(--t3);font-size:.9rem">—</span>';
       const _composeSection=`
         <div id="reviewCompose" style="display:none">
-          <div class="note-compose" style="margin-bottom:.35rem">
-            <input type="date" id="reviewDate" class="note-compose-date" value="${_composeDateVal}">
+          <div class="note-compose" style="margin-bottom:.35rem;display:grid;grid-template-columns:auto 1fr;gap:.4rem;align-items:center">
+            <input type="date" id="reviewDate" class="note-compose-date" style="position:static;width:120px;border-radius:var(--r);font-size:.72rem;padding:.42rem .5rem;color:var(--text)">
             <div style="display:flex;align-items:center;gap:.35rem">
               <span id="starsZero" class="stars-zero" title="Clear stars">✕</span>
               <div class="stars" id="pstarsEdit" style="margin-bottom:0">${_composeStars}</div>
@@ -2599,8 +2599,8 @@ function openPanel(id){
     <button class="note-add-toggle" id="noteToggle">＋ Add note</button>
     <div id="noteCompose" style="display:none;margin-top:.35rem">
       <div class="note-compose">
+        <textarea class="note-add" id="noteNewTxt" placeholder="Add a note…" style="margin-bottom:0"></textarea>
         <input type="date" id="noteNewDate" class="note-compose-date" value="${todayIso}">
-        <textarea class="note-add" id="noteNewTxt" placeholder="Add a note…" style="margin-bottom:0;min-height:36px;resize:none"></textarea>
       </div>
       <button class="note-save-btn" id="noteAddBtn" style="margin-top:.35rem">Save note</button>
     </div>
