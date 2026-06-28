@@ -1383,28 +1383,28 @@ function renderMd(raw){
 }
 
 function hotnessCircleSVG(h,isNR){
-  const cx=16,cy=16,r=13,size=32,segments=10,gap=10,segAngle=360/segments-gap;
-  const circ=2*Math.PI*r,segCirc=(segAngle/360)*circ;
-  function arc(startDeg,angleDeg){
+  const cx=16,cy=16,rO=13,rI=8,size=32,segments=10,gap=10,segAngle=360/segments-gap;
+  function seg(startDeg,angleDeg){
+    if(angleDeg<=0)return'';
+    const laf=angleDeg>180?1:0;
     const s=(startDeg-90)*Math.PI/180,e=(startDeg-90+angleDeg)*Math.PI/180;
-    const x1=cx+r*Math.cos(s),y1=cy+r*Math.sin(s),x2=cx+r*Math.cos(e),y2=cy+r*Math.sin(e);
-    return`M${x1.toFixed(3)},${y1.toFixed(3)} A${r},${r},0,${angleDeg>180?1:0},1,${x2.toFixed(3)},${y2.toFixed(3)}`;
+    const ox1=cx+rO*Math.cos(s),oy1=cy+rO*Math.sin(s);
+    const ox2=cx+rO*Math.cos(e),oy2=cy+rO*Math.sin(e);
+    const ix1=cx+rI*Math.cos(s),iy1=cy+rI*Math.sin(s);
+    const ix2=cx+rI*Math.cos(e),iy2=cy+rI*Math.sin(e);
+    return`M${ox1.toFixed(3)},${oy1.toFixed(3)} A${rO},${rO},0,${laf},1,${ox2.toFixed(3)},${oy2.toFixed(3)} L${ix2.toFixed(3)},${iy2.toFixed(3)} A${rI},${rI},0,${laf},0,${ix1.toFixed(3)},${iy1.toFixed(3)} Z`;
   }
   let paths='';
   if(isNR){
-    let nrPaths='';
     for(let i=0;i<segments;i++)
-      nrPaths+=`<path d="${arc(i*36,segAngle)}" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="butt"/>`;
-    return`<span class="hotness-circle-wrap"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="Not Rated" aria-label="Not Rated">${nrPaths}</svg></span>`;
+      paths+=`<path d="${seg(i*36,segAngle)}" fill="none" stroke="var(--amber)" stroke-width="1"/>`;
+    return`<span class="hotness-circle-wrap"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="Not Rated" aria-label="Not Rated">${paths}</svg></span>`;
   }
   for(let i=0;i<segments;i++){
     const fill=Math.min(1,Math.max(0,(h-i*10)/10));
-    const d=arc(i*36,segAngle);
-    paths+=`<path d="${d}" fill="none" stroke="#ff00aa28" stroke-width="2.5" stroke-linecap="butt"/>`;
-    if(fill>0){
-      const dashLen=(fill*segCirc).toFixed(3);
-      paths+=`<path d="${d}" fill="none" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="butt" stroke-dasharray="${dashLen} ${segCirc.toFixed(3)}"/>`;
-    }
+    paths+=`<path d="${seg(i*36,segAngle)}" fill="none" stroke="#ff00aa30" stroke-width="1"/>`;
+    if(fill>0)
+      paths+=`<path d="${seg(i*36,fill*segAngle)}" fill="var(--pink)" stroke="none"/>`;
   }
   const label=`Hotness: ${h}`;
   return`<span class="hotness-circle-wrap"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="hotness-circle" title="${label}" aria-label="${label}">${paths}</svg><span class="hotness-circle-num">${h}</span></span>`;
@@ -2567,8 +2567,10 @@ function openPanel(id){
         <div id="reviewView">
           <div class="review-row">
             <div class="review-row-stars">
-              <div class="stars" id="pstars" style="margin-bottom:.2rem">${sh}</div>
-              <div class="review-score" style="font-size:1rem">${_scoreDisp}</div>
+              <div style="display:flex;align-items:center;gap:.35rem">
+                <div class="stars" id="pstars">${sh}</div>
+                <div class="review-score" style="font-size:.85rem">${_scoreDisp}</div>
+              </div>
             </div>
             <div class="review-row-date">${_dateCol}</div>
             <div class="review-row-text note-md">${renderMd(g.myReview)}</div>
