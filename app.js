@@ -2599,8 +2599,8 @@ function openPanel(id){
     <button class="note-add-toggle" id="noteToggle">＋ Add note</button>
     <div id="noteCompose" style="display:none;margin-top:.35rem">
       <div class="note-compose">
-        <textarea class="note-add" id="noteNewTxt" placeholder="Add a note…" style="margin-bottom:0"></textarea>
         <input type="date" id="noteNewDate" class="note-compose-date" value="${todayIso}">
+        <textarea class="note-add" id="noteNewTxt" placeholder="Add a note…" style="margin-bottom:0"></textarea>
       </div>
       <button class="note-save-btn" id="noteAddBtn" style="margin-top:.35rem">Save note</button>
     </div>
