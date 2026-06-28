@@ -261,8 +261,8 @@ button{text-transform:none;letter-spacing:0}
 .cbot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-top:auto}
 .cprice{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);flex-shrink:0}
 .ggp-ov{position:absolute;bottom:3px;left:0;right:0;display:flex;align-items:flex-end;justify-content:space-between;padding:0 .3rem .25rem;z-index:3;pointer-events:none}
-.ggp-retail{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:#e0f7ff;text-shadow:0 1px 3px #000a}
-.ggp-keys{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:var(--amber);text-shadow:0 1px 3px #000a}
+.ggp-retail{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:#e0f7ff;background:rgba(3,19,41,.6);border-radius:3px;padding:.05rem .3rem}
+.ggp-keys{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:var(--amber);background:rgba(3,19,41,.6);border-radius:3px;padding:.05rem .3rem}
 .ggp-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:var(--green);background:#0a1a0acc;border-radius:3px;padding:.05rem .3rem;text-shadow:none}
 .ggp-hist-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:#ffd700;background:#1a140acc;border-radius:3px;padding:.05rem .3rem;text-shadow:none}
 .gg.lv .ggp-ov{display:none}

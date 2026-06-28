@@ -1290,7 +1290,7 @@ function cardHTML(g){
     const gp=ggPriceCache[g.steamAppId];
     const r=parseFloat(gp.retail),k=parseFloat(gp.keyshop),hr=parseFloat(gp.histRetail);
     const retailStr=!isNaN(r)&&r>0?`<span class="ggp-retail">€${r.toFixed(2)}</span>`:`<span></span>`;
-    const keysStr=!isNaN(k)&&k>0?`<span class="ggp-keys">🔑 €${k.toFixed(2)}</span>`:`<span></span>`;
+    const keysStr=!isNaN(k)&&k>0?`<span class="ggp-keys">🔑 €${k.toFixed(2)}</span>`:`<span class="ggp-keys" style="opacity:.45">🔑 N/A</span>`;
     const nearLow=!isNaN(r)&&r>0&&!isNaN(hr)&&hr>0&&r<=hr*1.10;
     const badgeStr=gp.personalLow
       ?`<span class="ggp-hist-low">★ Historic low</span>`
