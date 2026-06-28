@@ -29,8 +29,9 @@ function doGet(e) {
       case 'getAll':      result = getAll();      break;
       case 'getMeta':     result = getMeta();     break;
       case 'getPlatStores': result = getPlatStores(); break;
-      case 'getRateLog':  result = getRateLog();  break;
-      default:            result = { error: 'Unknown action: ' + action };
+      case 'getRateLog':    result = getRateLog();      break;
+      case 'getGamePrices': result = getGamePrices();   break;
+      default:              result = { error: 'Unknown action: ' + action };
     }
   } catch (err) {
     result = { error: err.message };
@@ -208,6 +209,21 @@ function getRateLog() {
     .filter(r => Number(r[0]) >= oneHourAgo)
     .map(r => ({ ts: Number(r[0]), count: Number(r[1]) }));
   return { entries };
+}
+
+// ── Read saved game prices ───────────────────────────────────────
+function getGamePrices() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(GAME_PRICES_SHEET);
+  if (!sheet) return [];
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(String);
+  return rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i]; });
+    return obj;
+  });
 }
 
 // ── GG.deals rate-limit log: append + prune rows older than 1h ──

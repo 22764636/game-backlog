@@ -826,6 +826,7 @@ async function initData(){
     dispatchRender();
     fetchMeta();
     loadPlatformStores();
+    loadSavedPrices();
     if(_migrationHappened){
       _migrationHappened=false;
       postToSheet({action:'setAll',data:JSON.stringify(games.map(toSheetRecord))})
@@ -4321,6 +4322,36 @@ document.addEventListener('keydown',function(e){
 // ══════════════════════════════════════════
 let _ggFetchCancelled=false;
 let _ggFetchHidden=false;
+
+async function loadSavedPrices(){
+  if(!SHEET_URL)return;
+  try{
+    const res=await fetch(SHEET_URL+'?action=getGamePrices&_='+Date.now(),{mode:'cors'});
+    const rows=await res.json();
+    if(!Array.isArray(rows))return;
+    rows.forEach(row=>{
+      const appid=String(row.appid||'').trim();
+      if(!appid)return;
+      const retail=parseFloat(row.last_retail)||0;
+      const keyshop=parseFloat(row.last_keyshop)||0;
+      const personalLowRetail=parseFloat(row.personal_low_retail)||0;
+      if(!ggPriceCache[appid]){
+        ggPriceCache[appid]={
+          retail:retail||'',
+          keyshop:keyshop||'',
+          histRetail:'',
+          histKeyshop:'',
+          currency:'EUR',
+          fetchedAt:row.last_fetched||0,
+          personalLow:personalLowRetail>0&&retail>0&&retail<=personalLowRetail,
+        };
+      }
+    });
+    dispatchRender();
+  }catch(e){
+    console.warn('BTB: Could not load saved prices.',e);
+  }
+}
 
 async function runGGDealsFetch(){
   if(!GG_WORKER){showToast('GG.deals worker not configured.');return;}
