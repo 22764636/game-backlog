@@ -10,10 +10,12 @@
 //  4. Copy the deployment URL and paste it into app.js as SHEET_URL
 // ============================================================
 
-const SHEET_NAME = 'Games';         // Sheet tab that stores games
-const META_SHEET = 'Meta';          // Optional: sheet tab for genre/tag metadata
-const PLAT_STORES_SHEET = 'PlatformStores'; // Optional: platform → store mappings
-const RATE_LOG_SHEET = 'RateLog';   // GG.deals rate-limit tracking
+const SHEET_NAME = 'Games';
+const META_SHEET = 'Meta';
+const PLAT_STORES_SHEET = 'PlatformStores';
+const RATE_LOG_SHEET = 'RateLog';
+const GAME_PRICES_SHEET = 'GamePrices';
+const PRICE_HISTORY_SHEET = 'PriceHistory';
 
 // ── Entry point ──────────────────────────────────────────────
 function doGet(e) {
@@ -54,7 +56,8 @@ function doPost(e) {
       case 'setRows':   result = setRows(JSON.parse(e.postData.contents));   break;
       case 'setAll':    result = setAll(JSON.parse(e.postData.contents));    break;
       case 'deleteRow': result = deleteRow(params.id);                       break;
-      case 'logPrices': result = logPrices(JSON.parse(e.postData.contents)); break;
+      case 'upsertGamePrices':  result = upsertGamePrices(JSON.parse(e.postData.contents));  break;
+      case 'appendPriceHistory': result = appendPriceHistory(JSON.parse(e.postData.contents)); break;
       case 'logFetch':  result = logFetch(JSON.parse(e.postData.contents));  break;
       default:         result = { error: 'Unknown action: ' + action };
     }
@@ -225,19 +228,82 @@ function logFetch(entry) {
   return { ok: true };
 }
 
-// ── Append price history rows ────────────────────────────────
-function logPrices(entries) {
+// ── Upsert GamePrices + compute personal lows ────────────────
+function upsertGamePrices(entries) {
+  if (!Array.isArray(entries) || !entries.length) return { ok: true, newLows: [] };
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(GAME_PRICES_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(GAME_PRICES_SHEET);
+    sheet.appendRow(['appid','title','last_retail','last_keyshop','personal_low_retail','personal_low_keyshop','last_fetched']);
+  }
+
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(String);
+  const c = h => headers.indexOf(h);
+
+  // Index existing rows by appid
+  const idx = {};
+  for (let i = 1; i < data.length; i++) idx[String(data[i][c('appid')])] = i;
+
+  const newLows = [];
+  const now = Date.now();
+  const toAppend = [];
+
+  entries.forEach(entry => {
+    const retail  = parseFloat(entry.retail)  || 0;
+    const keyshop = parseFloat(entry.keyshop) || 0;
+    const key = String(entry.appid);
+
+    if (key in idx) {
+      const i = idx[key];
+      const prevLowR = parseFloat(data[i][c('personal_low_retail')])  || Infinity;
+      const prevLowK = parseFloat(data[i][c('personal_low_keyshop')]) || Infinity;
+      data[i][c('title')]        = entry.title;
+      data[i][c('last_retail')]  = retail  || '';
+      data[i][c('last_keyshop')] = keyshop || '';
+      data[i][c('last_fetched')] = now;
+      if (retail  > 0 && retail  <= prevLowR) { data[i][c('personal_low_retail')]  = retail;  newLows.push(key); }
+      if (keyshop > 0 && keyshop <= prevLowK)   data[i][c('personal_low_keyshop')] = keyshop;
+    } else {
+      const row = new Array(headers.length).fill('');
+      row[c('appid')]               = entry.appid;
+      row[c('title')]               = entry.title;
+      row[c('last_retail')]         = retail  || '';
+      row[c('last_keyshop')]        = keyshop || '';
+      row[c('personal_low_retail')] = retail  || '';
+      row[c('personal_low_keyshop')]= keyshop || '';
+      row[c('last_fetched')]        = now;
+      toAppend.push(row);
+      idx[key] = data.length;
+      data.push(row);
+      if (retail > 0) newLows.push(key);
+    }
+  });
+
+  // Write back entire range in one call, then append new rows
+  sheet.getRange(1, 1, data.length, headers.length).setValues(data);
+  if (toAppend.length) {
+    sheet.getRange(data.length + 1, 1, toAppend.length, headers.length).setValues(toAppend);
+  }
+
+  return { ok: true, newLows };
+}
+
+// ── Append rows to PriceHistory ──────────────────────────────
+function appendPriceHistory(entries) {
   if (!Array.isArray(entries) || !entries.length) return { ok: true };
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheetName = 'PriceHistory';
-  let sheet = ss.getSheetByName(sheetName);
+  let sheet = ss.getSheetByName(PRICE_HISTORY_SHEET);
   if (!sheet) {
-    sheet = ss.insertSheet(sheetName);
-    sheet.appendRow(['date', 'steamAppId', 'title', 'retail', 'keyshop', 'currency']);
+    sheet = ss.insertSheet(PRICE_HISTORY_SHEET);
+    sheet.appendRow(['id','appid','title','fetched_at','retail','keyshop','currency']);
   }
-  entries.forEach(e => {
-    sheet.appendRow([e.date, e.steamAppId, e.title, e.retail, e.keyshop, e.currency]);
-  });
+  const lastRow = sheet.getLastRow();
+  const rows = entries.map((e, i) => [
+    lastRow + i, e.appid, e.title, e.fetched_at, e.retail, e.keyshop, e.currency
+  ]);
+  sheet.getRange(lastRow + 1, 1, rows.length, 7).setValues(rows);
   return { ok: true };
 }
 

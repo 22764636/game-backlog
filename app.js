@@ -1292,7 +1292,8 @@ function cardHTML(g){
     const keysStr=!isNaN(k)&&k>0?`<span class="ggp-keys">🔑 €${k.toFixed(2)}</span>`:'';
     const nearLow=!isNaN(r)&&r>0&&!isNaN(hr)&&hr>0&&r<=hr*1.10;
     const lowStr=nearLow?`<span class="ggp-low">★ Near low</span>`:'';
-    if(retailStr||keysStr)ggpEl=`<div class="ggp">${retailStr}${keysStr}${lowStr}</div>`;
+    const histLowStr=gp.personalLow?`<span class="ggp-hist-low">★ Historic low</span>`:'';
+    if(retailStr||keysStr)ggpEl=`<div class="ggp">${retailStr}${keysStr}${lowStr}${histLowStr}</div>`;
   }
 
   // Remove/Reinstate button: removed→reinstate, bought→disabled, else→remove
@@ -2876,7 +2877,10 @@ window.addEventListener('popstate',function(){
   const calOv=document.getElementById('calOv');
   if(calOv&&calOv.style.display!=='none'){_rawCloseCalendar();return;}
   const ggFetchOv=document.getElementById('ggFetchOv');
-  if(ggFetchOv&&ggFetchOv.classList.contains('on')){_closeGgFetchModal();return;}
+  if(ggFetchOv&&(ggFetchOv.classList.contains('on')||_ggFetchHidden)){
+    if(_ggFetchHidden){_showGgFetchModal();}else{_closeGgFetchModal();}
+    return;
+  }
 });
 
 // ── PANEL DRAG RESIZE (desktop only) ──────────────────────────
@@ -4314,6 +4318,7 @@ document.addEventListener('keydown',function(e){
 //  GG.DEALS LIVE PRICES
 // ══════════════════════════════════════════
 let _ggFetchCancelled=false;
+let _ggFetchHidden=false;
 
 async function runGGDealsFetch(){
   if(!GG_WORKER){showToast('GG.deals worker not configured.');return;}
@@ -4335,24 +4340,33 @@ async function runGGDealsFetch(){
   const total=eligible.length;
   let fetched=0;
   _ggFetchCancelled=false;
+  _ggFetchHidden=false;
 
   const ov=document.getElementById('ggFetchOv');
   const progressEl=document.getElementById('ggFetchProgress');
   const statusEl=document.getElementById('ggFetchStatus');
   const barEl=document.getElementById('ggFetchBar');
+  const listEl=document.getElementById('ggFetchList');
   const closeBtn=document.getElementById('ggFetchClose');
+  const hideBtn=document.getElementById('ggFetchHide');
   const cancelBtn=document.getElementById('ggFetchCancel');
+  const bubble=document.getElementById('ggFetchBubble');
 
   function setProgress(status){
+    const pct=total>0?Math.round(fetched/total*100):0;
     progressEl.textContent=`${fetched} / ${total} fetched`;
-    barEl.style.width=`${Math.round(fetched/total*100)}%`;
+    barEl.style.width=`${pct}%`;
+    bubble.textContent=`${fetched}\n/${total}`;
     if(status!==undefined)statusEl.textContent=status;
   }
 
   closeBtn.style.display='none';
+  hideBtn.style.display='';
   cancelBtn.style.display='';
   cancelBtn.textContent='Cancel';
   cancelBtn.onclick=()=>{_ggFetchCancelled=true;};
+  hideBtn.onclick=_hideGgFetchModal;
+  listEl.innerHTML='';
   ov.classList.add('on');
   history.pushState({ggFetchOpen:true},'','');
   setProgress('Starting…');
@@ -4360,6 +4374,7 @@ async function runGGDealsFetch(){
   for(let b=0;b<batches.length&&!_ggFetchCancelled;b++){
     const batch=batches[b];
     setProgress(`Fetching batch ${b+1} of ${batches.length}…`);
+    listEl.innerHTML=batch.map(g=>`<div>${esc(g.title)}</div>`).join('');
     try{
       const ids=batch.map(g=>g.steamAppId).join(',');
       const res=await fetch(`${GG_WORKER}?ids=${encodeURIComponent(ids)}&region=it`);
@@ -4368,29 +4383,41 @@ async function runGGDealsFetch(){
       if(json.error)throw new Error(json.error);
       if(!json.success)throw new Error('GG.deals API returned an error');
       const fetchTs=Date.now();
-      if(SHEET_URL){
-        fetch(SHEET_URL+'?action=logFetch',{method:'POST',mode:'cors',
-          headers:{'Content-Type':'text/plain'},
-          body:JSON.stringify({ts:fetchTs,count:batch.length}),
-        }).catch(()=>{});
-      }
+
+      const priceEntries=[];
+      const historyEntries=[];
       batch.forEach(g=>{
         const d=json.data[g.steamAppId];
         if(d&&d.prices){
           ggPriceCache[g.steamAppId]={
             retail:d.prices.currentRetail,keyshop:d.prices.currentKeyshops,
             histRetail:d.prices.historicalRetail,histKeyshop:d.prices.historicalKeyshops,
-            currency:d.prices.currency,fetchedAt:fetchTs,
+            currency:d.prices.currency,fetchedAt:fetchTs,personalLow:false,
           };
+          priceEntries.push({appid:g.steamAppId,title:g.title,retail:d.prices.currentRetail,keyshop:d.prices.currentKeyshops});
+          historyEntries.push({appid:g.steamAppId,title:g.title,fetched_at:fetchTs,retail:d.prices.currentRetail,keyshop:d.prices.currentKeyshops,currency:d.prices.currency});
         }
       });
       fetched+=batch.length;
-      _logGGPricesToSheet(json.data,batch);
       dispatchRender();
+      setProgress(`Batch ${b+1} done.`);
+
+      if(SHEET_URL&&priceEntries.length){
+        try{
+          const r=await fetch(SHEET_URL+'?action=upsertGamePrices',{method:'POST',mode:'cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(priceEntries)});
+          const result=await r.json();
+          if(result.newLows&&result.newLows.length){
+            result.newLows.forEach(appid=>{if(ggPriceCache[appid])ggPriceCache[appid].personalLow=true;});
+            dispatchRender();
+          }
+        }catch(e){}
+        fetch(SHEET_URL+'?action=appendPriceHistory',{method:'POST',mode:'cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(historyEntries)}).catch(()=>{});
+        fetch(SHEET_URL+'?action=logFetch',{method:'POST',mode:'cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({ts:fetchTs,count:batch.length})}).catch(()=>{});
+      }
     }catch(err){
       setProgress(`Error: ${err.message}`);
       console.error('BTB GG.deals error:',err);
-      closeBtn.style.display='';cancelBtn.style.display='none';
+      closeBtn.style.display='';hideBtn.style.display='none';cancelBtn.style.display='none';
       closeBtn.onclick=_closeGgFetchModal;
       return;
     }
@@ -4398,13 +4425,14 @@ async function runGGDealsFetch(){
     if(b<batches.length-1&&!_ggFetchCancelled){
       let secs=61;
       while(secs>0&&!_ggFetchCancelled){
-        setProgress(`${fetched} / ${total} fetched — next batch in ${secs}s…`);
+        setProgress(`Next batch in ${secs}s…`);
         await new Promise(r=>setTimeout(r,1000));
         secs--;
       }
     }
   }
 
+  listEl.innerHTML='';
   if(_ggFetchCancelled){
     setProgress('Cancelled.');
   }else{
@@ -4412,37 +4440,37 @@ async function runGGDealsFetch(){
     barEl.style.width='100%';
     statusEl.textContent='All done!';
   }
-  closeBtn.style.display='';cancelBtn.style.display='none';
+  closeBtn.style.display='';hideBtn.style.display='none';cancelBtn.style.display='none';
   closeBtn.onclick=_closeGgFetchModal;
+  // If hidden, show done state in bubble then restore modal
+  if(_ggFetchHidden){
+    bubble.textContent='Done';
+    bubble.onclick=_showGgFetchModal;
+  }
+}
+
+function _hideGgFetchModal(){
+  _ggFetchHidden=true;
+  document.getElementById('ggFetchOv').classList.remove('on');
+  document.getElementById('ggFetchBubble').classList.add('on');
+}
+
+function _showGgFetchModal(){
+  _ggFetchHidden=false;
+  document.getElementById('ggFetchBubble').classList.remove('on');
+  document.getElementById('ggFetchOv').classList.add('on');
+  history.pushState({ggFetchOpen:true},'','');
 }
 
 function _closeGgFetchModal(){
   _ggFetchCancelled=true;
+  _ggFetchHidden=false;
   document.getElementById('ggFetchOv').classList.remove('on');
+  document.getElementById('ggFetchBubble').classList.remove('on');
   if(history.state&&history.state.ggFetchOpen)history.replaceState(null,'','');
 }
 document.getElementById('ggFetchOv').addEventListener('click',e=>{if(e.target===document.getElementById('ggFetchOv'))_closeGgFetchModal();});
-
-function _logGGPricesToSheet(data,eligible){
-  if(!SHEET_URL)return;
-  const date=todayISO();
-  const entries=eligible
-    .filter(g=>data[g.steamAppId]&&data[g.steamAppId].prices)
-    .map(g=>({
-      date,
-      steamAppId:g.steamAppId,
-      title:g.title,
-      retail:data[g.steamAppId].prices.currentRetail,
-      keyshop:data[g.steamAppId].prices.currentKeyshops,
-      currency:data[g.steamAppId].prices.currency,
-    }));
-  if(!entries.length)return;
-  fetch(SHEET_URL+'?action=logPrices',{
-    method:'POST',mode:'cors',
-    headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify(entries),
-  }).catch(()=>{});
-}
+document.getElementById('ggFetchBubble').onclick=_showGgFetchModal;
 
 document.getElementById('hmPriceBtn').onclick=()=>{
   document.getElementById('hmenu').classList.remove('on');

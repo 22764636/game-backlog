@@ -264,7 +264,11 @@ button{text-transform:none;letter-spacing:0}
 .ggp-retail{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;color:var(--blue);background:#02b3fc18;border-radius:3px;padding:.1rem .35rem}
 .ggp-keys{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;color:var(--amber);background:#f7cd2618;border-radius:3px;padding:.1rem .35rem}
 .ggp-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.72rem;color:var(--green);background:#9cff0018;border-radius:3px;padding:.1rem .35rem}
+.ggp-hist-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.72rem;color:#ffd700;background:#ffd70018;border-radius:3px;padding:.1rem .35rem}
 .gg.lv .ggp{display:none}
+#ggFetchBubble{display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;background:var(--cyan);border:none;cursor:pointer;z-index:400;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:#031329;text-align:center;line-height:1.2;box-shadow:0 2px 16px rgba(2,179,252,.45);animation:ggPulse 1.8s ease-in-out infinite}
+#ggFetchBubble.on{display:flex}
+@keyframes ggPulse{0%,100%{box-shadow:0 2px 16px rgba(2,179,252,.45)}50%{box-shadow:0 2px 24px rgba(2,179,252,.8)}}
 .b-unrel-card{font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.04em;
   text-transform:uppercase;color:var(--lime);flex-shrink:0}
 /* buttons row — centered */
