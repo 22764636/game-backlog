@@ -1293,8 +1293,8 @@ function cardHTML(g){
     const keysStr=!isNaN(k)&&k>0?`<span class="ggp-keys">🔑 €${k.toFixed(2)}</span>`:`<span class="ggp-keys" style="opacity:.45">🔑 N/A</span>`;
     const nearLow=!isNaN(r)&&r>0&&!isNaN(hr)&&hr>0&&r<=hr*1.10;
     const badgeStr=gp.personalLow
-      ?`<span class="ggp-hist-low">★ Historic low</span>`
-      :nearLow?`<span class="ggp-low">★ Near low</span>`
+      ?`<span class="ggp-hist-low">★ High</span>`
+      :nearLow?`<span class="ggp-low">★ Low</span>`
       :`<span></span>`;
     if(!isNaN(r)&&r>0||!isNaN(k)&&k>0)ggpOv=`<div class="ggp-ov">${retailStr}${badgeStr}${keysStr}</div>`;
   }

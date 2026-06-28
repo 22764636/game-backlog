@@ -260,11 +260,11 @@ button{text-transform:none;letter-spacing:0}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .cbot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-top:auto}
 .cprice{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);flex-shrink:0}
-.ggp-ov{position:absolute;bottom:3px;left:0;right:0;display:flex;align-items:flex-end;justify-content:space-between;padding:0 .3rem .25rem;z-index:3;pointer-events:none}
-.ggp-retail{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:#e0f7ff;background:rgba(3,19,41,.6);border-radius:3px;padding:.05rem .3rem}
-.ggp-keys{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:var(--amber);background:rgba(3,19,41,.6);border-radius:3px;padding:.05rem .3rem}
-.ggp-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:var(--green);background:#0a1a0acc;border-radius:3px;padding:.05rem .3rem;text-shadow:none}
-.ggp-hist-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:#ffd700;background:#1a140acc;border-radius:3px;padding:.05rem .3rem;text-shadow:none}
+.ggp-ov{position:absolute;bottom:3px;left:0;right:0;display:flex;flex-wrap:nowrap;align-items:flex-end;justify-content:space-between;padding:0 .3rem .25rem;z-index:3;pointer-events:none}
+.ggp-retail{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:#e0f7ff;background:rgba(3,19,41,.6);border-radius:3px;padding:.05rem .3rem;white-space:nowrap}
+.ggp-keys{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:var(--amber);background:rgba(3,19,41,.6);border-radius:3px;padding:.05rem .3rem;white-space:nowrap}
+.ggp-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:var(--green);background:#0a1a0acc;border-radius:3px;padding:.05rem .3rem;white-space:nowrap}
+.ggp-hist-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:#ffd700;background:#1a140acc;border-radius:3px;padding:.05rem .3rem;white-space:nowrap}
 .gg.lv .ggp-ov{display:none}
 #ggFetchBubble{display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;background:var(--cyan);border:none;cursor:pointer;z-index:400;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:#031329;text-align:center;line-height:1.2;box-shadow:0 2px 16px rgba(2,179,252,.45);animation:ggPulse 1.8s ease-in-out infinite}
 #ggFetchBubble.on{display:flex}
