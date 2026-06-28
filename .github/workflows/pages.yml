@@ -14,11 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Write SHEET_URL to btb-url.js
+      - name: Write secrets to btb-url.js
         env:
           SHEET_URL: ${{ secrets.SHEET_URL }}
+          GGDEALS_KEY: ${{ secrets.GGDEALS_KEY }}
         run: |
           printf 'window.BTB_SHEET_URL = "%s";\n' "$SHEET_URL" > btb-url.js
+          printf 'window.BTB_GGDEALS_KEY = "%s";\n' "$GGDEALS_KEY" >> btb-url.js
           echo "btb-url.js: $(wc -c < btb-url.js) bytes"
 
       - name: Push to gh-pages branch

@@ -13,6 +13,7 @@
 const SHEET_NAME = 'Games';         // Sheet tab that stores games
 const META_SHEET = 'Meta';          // Optional: sheet tab for genre/tag metadata
 const PLAT_STORES_SHEET = 'PlatformStores'; // Optional: platform → store mappings
+const RATE_LOG_SHEET = 'RateLog';   // GG.deals rate-limit tracking
 
 // ── Entry point ──────────────────────────────────────────────
 function doGet(e) {
@@ -26,6 +27,7 @@ function doGet(e) {
       case 'getAll':      result = getAll();      break;
       case 'getMeta':     result = getMeta();     break;
       case 'getPlatStores': result = getPlatStores(); break;
+      case 'getRateLog':  result = getRateLog();  break;
       default:            result = { error: 'Unknown action: ' + action };
     }
   } catch (err) {
@@ -49,9 +51,11 @@ function doPost(e) {
   let result;
   try {
     switch (action) {
-      case 'setRows':  result = setRows(JSON.parse(e.postData.contents));  break;
-      case 'setAll':   result = setAll(JSON.parse(e.postData.contents));   break;
-      case 'deleteRow':result = deleteRow(params.id);                      break;
+      case 'setRows':   result = setRows(JSON.parse(e.postData.contents));   break;
+      case 'setAll':    result = setAll(JSON.parse(e.postData.contents));    break;
+      case 'deleteRow': result = deleteRow(params.id);                       break;
+      case 'logPrices': result = logPrices(JSON.parse(e.postData.contents)); break;
+      case 'logFetch':  result = logFetch(JSON.parse(e.postData.contents));  break;
       default:         result = { error: 'Unknown action: ' + action };
     }
   } catch (err) {
@@ -187,6 +191,54 @@ function deleteRow(id) {
     }
   }
   return { error: 'Row not found: ' + id };
+}
+
+// ── GG.deals rate-limit log: read entries from last hour ────
+function getRateLog() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(RATE_LOG_SHEET);
+  if (!sheet) return { entries: [] };
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length < 2) return { entries: [] };
+  const oneHourAgo = Date.now() - 3600000;
+  const entries = rows.slice(1)
+    .filter(r => Number(r[0]) >= oneHourAgo)
+    .map(r => ({ ts: Number(r[0]), count: Number(r[1]) }));
+  return { entries };
+}
+
+// ── GG.deals rate-limit log: append + prune rows older than 1h ──
+function logFetch(entry) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(RATE_LOG_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(RATE_LOG_SHEET);
+    sheet.appendRow(['ts', 'count']);
+  }
+  const rows = sheet.getDataRange().getValues();
+  const oneHourAgo = Date.now() - 3600000;
+  const keep = rows.slice(1).filter(r => Number(r[0]) >= oneHourAgo);
+  keep.push([entry.ts, entry.count]);
+  sheet.clearContents();
+  sheet.getRange(1, 1, 1, 2).setValues([rows[0] || ['ts', 'count']]);
+  if (keep.length) sheet.getRange(2, 1, keep.length, 2).setValues(keep);
+  return { ok: true };
+}
+
+// ── Append price history rows ────────────────────────────────
+function logPrices(entries) {
+  if (!Array.isArray(entries) || !entries.length) return { ok: true };
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetName = 'PriceHistory';
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.appendRow(['date', 'steamAppId', 'title', 'retail', 'keyshop', 'currency']);
+  }
+  entries.forEach(e => {
+    sheet.appendRow([e.date, e.steamAppId, e.title, e.retail, e.keyshop, e.currency]);
+  });
+  return { ok: true };
 }
 
 // ── Helper: get or create sheet tab ─────────────────────────

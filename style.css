@@ -260,6 +260,11 @@ button{text-transform:none;letter-spacing:0}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .cbot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-top:auto}
 .cprice{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);flex-shrink:0}
+.ggp{display:flex;align-items:center;gap:.3rem;flex-wrap:wrap}
+.ggp-retail{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;color:var(--blue);background:#02b3fc18;border-radius:3px;padding:.1rem .35rem}
+.ggp-keys{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;color:var(--amber);background:#f7cd2618;border-radius:3px;padding:.1rem .35rem}
+.ggp-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.72rem;color:var(--green);background:#9cff0018;border-radius:3px;padding:.1rem .35rem}
+.gg.lv .ggp{display:none}
 .b-unrel-card{font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.04em;
   text-transform:uppercase;color:var(--lime);flex-shrink:0}
 /* buttons row — centered */
@@ -551,9 +556,9 @@ button{text-transform:none;letter-spacing:0}
 .tba-btn.on{background:var(--blue);border-color:var(--blue);color:#031329}
 
 /* overlays */
-#riov,#rmov,#btcov,#rdcov,#plcov,#wlovConfirm,#preorderConfirm{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
+#riov,#rmov,#btcov,#rdcov,#plcov,#wlovConfirm,#preorderConfirm,#ggRateOv{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
   z-index:300;align-items:center;justify-content:center;padding:1rem}
-#riov.on,#rmov.on,#btcov.on,#rdcov.on,#plcov.on,#wlovConfirm.on,#preorderConfirm.on{display:flex}
+#riov.on,#rmov.on,#btcov.on,#rdcov.on,#plcov.on,#wlovConfirm.on,#preorderConfirm.on,#ggRateOv.on{display:flex}
 #rdcLog,#plcLog{max-height:300px;overflow-y:auto;font-size:.72rem;font-family:monospace;line-height:1.7;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);padding:.5rem .7rem}
 #rdcLog .rdc-ok{color:var(--green)}
 #rdcLog .rdc-skip{color:var(--t3)}

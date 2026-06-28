@@ -6,6 +6,8 @@
 //  Leave empty / unset to use offline mode (localStorage only).
 // ══════════════════════════════════════════
 const SHEET_URL = (typeof window !== 'undefined' && window.BTB_SHEET_URL) || '';
+const GGDEALS_KEY = (typeof window !== 'undefined' && window.BTB_GGDEALS_KEY) || '';
+let ggPriceCache = {};
 
 // Use JSONP on file:// (fetch can't read cross-origin responses there);
 // use fetch+CORS on http/https and fall back to JSONP on failure.
@@ -1281,6 +1283,17 @@ function cardHTML(g){
   const gid_s=String(g.id);
   const tip=addedTip(g);
 
+  // GG.deals live price row (wishlist only, shown when cache has data)
+  let ggpEl='';
+  if(g.status==='wishlist'&&g.steamAppId&&ggPriceCache[g.steamAppId]){
+    const gp=ggPriceCache[g.steamAppId];
+    const r=parseFloat(gp.retail),k=parseFloat(gp.keyshop),hr=parseFloat(gp.histRetail);
+    const retailStr=!isNaN(r)&&r>0?`<span class="ggp-retail">€${r.toFixed(2)}</span>`:'';
+    const keysStr=!isNaN(k)&&k>0?`<span class="ggp-keys">🔑 €${k.toFixed(2)}</span>`:'';
+    const nearLow=!isNaN(r)&&r>0&&!isNaN(hr)&&hr>0&&r<=hr*1.10;
+    const lowStr=nearLow?`<span class="ggp-low">★ Near low</span>`:'';
+    if(retailStr||keysStr)ggpEl=`<div class="ggp">${retailStr}${keysStr}${lowStr}</div>`;
+  }
 
   // Remove/Reinstate button: removed→reinstate, bought→disabled, else→remove
   let rmBtn='';
@@ -1300,6 +1313,7 @@ function cardHTML(g){
     <div class="pb">${lBdg}<div class="pb-r">${prioLbl}</div></div>
     <div class="cb">
       <div class="ct">${esc(g.title)}</div>
+      ${ggpEl}
       <div class="cbot">
         ${priceEl}
         <div class="cq">
@@ -4054,7 +4068,8 @@ function doImport(){
   document.getElementById('dhViewList').addEventListener('click',dh(()=>{if(vm!=='list'){vm='list';dispatchRender();applyVm();}}));
   document.getElementById('dhMetaBtn').addEventListener('click',dh(async()=>{fetchMeta(true);showToast('Metadata refreshed.');}));
   document.getElementById('dhDatesBtn').addEventListener('click',dh(()=>runReleaseDateCheck()));
-  document.getElementById('dhPriceBtn').addEventListener('click',dh(()=>runPriceLookup()));
+  document.getElementById('dhPriceBtn').addEventListener('click',dh(()=>runGGDealsFetch()));
+  document.getElementById('dhSteamPriceBtn').addEventListener('click',dh(()=>runPriceLookup()));
   document.getElementById('dhExpBtn').addEventListener('click',dh(doExport));
   document.getElementById('dhImpBtn').addEventListener('click',dh(doImport));
 })();
@@ -4291,8 +4306,146 @@ document.addEventListener('keydown',function(e){
     if(found)dispatchRender();
   }
   window.runPriceLookup=run;
-  document.getElementById('hmPriceBtn').onclick=()=>{document.getElementById('hmenu').classList.remove('on');run();};
 })();
+
+// ══════════════════════════════════════════
+//  GG.DEALS LIVE PRICES
+// ══════════════════════════════════════════
+async function runGGDealsFetch(){
+  if(!GGDEALS_KEY){showToast('GG.deals API key not configured.');return;}
+  const today=todayISO();
+  const eligible=games.filter(g=>
+    g.status==='wishlist'&&
+    g.steamAppId&&
+    g.releaseDate&&
+    /^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate)&&
+    g.releaseDate<=today&&
+    !isCancelled(g)&&
+    !g.delisted
+  );
+  if(!eligible.length){showToast('No released wishlist Steam games found.');return;}
+  const n=eligible.length;
+
+  // Rate check via sheet (skip if no sheet configured — offline mode)
+  if(SHEET_URL){
+    showToast('Checking rate limit…');
+    let entries=[];
+    try{
+      const res=await fetch(`${SHEET_URL}?action=getRateLog&_=${Date.now()}`,{mode:'cors'});
+      const json=await res.json();
+      entries=Array.isArray(json.entries)?json.entries:[];
+    }catch(e){ /* network issue — proceed without rate check */ }
+    const now=Date.now();
+    const lastHour=entries.filter(e=>now-e.ts<3_600_000);
+    const lastMin=entries.filter(e=>now-e.ts<60_000);
+    const usedHour=lastHour.reduce((s,e)=>s+e.count,0);
+    const usedMin=lastMin.reduce((s,e)=>s+e.count,0);
+    if(usedHour+n>1000||usedMin+n>100){
+      _ggShowRateModal(entries,n,usedHour,usedMin);
+      return;
+    }
+  }
+
+  showToast(`Fetching prices for ${n} game${n!==1?'s':''}…`);
+  try{
+    const ids=eligible.map(g=>g.steamAppId).join(',');
+    const res=await fetch(`https://gg.deals/api/prices/?ids=${ids}&key=${GGDEALS_KEY}&region=it`);
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const json=await res.json();
+    if(!json.success)throw new Error('GG.deals API returned an error');
+    const fetchTs=Date.now();
+    if(SHEET_URL){
+      fetch(SHEET_URL+'?action=logFetch',{
+        method:'POST',mode:'cors',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({ts:fetchTs,count:n}),
+      }).catch(()=>{});
+    }
+    let found=0;
+    eligible.forEach(g=>{
+      const d=json.data[g.steamAppId];
+      if(d&&d.prices){
+        ggPriceCache[g.steamAppId]={
+          retail:d.prices.currentRetail,
+          keyshop:d.prices.currentKeyshops,
+          histRetail:d.prices.historicalRetail,
+          histKeyshop:d.prices.historicalKeyshops,
+          currency:d.prices.currency,
+          fetchedAt:fetchTs,
+        };
+        found++;
+      }
+    });
+    _logGGPricesToSheet(json.data,eligible);
+    dispatchRender();
+    showToast(`Prices updated for ${found} game${found!==1?'s':''}.`);
+  }catch(err){
+    showToast(`GG.deals fetch failed: ${err.message}`);
+    console.error('BTB GG.deals error:',err);
+  }
+}
+
+function _ggShowRateModal(entries,n,usedHour,usedMin){
+  const now=Date.now();
+  const hitHour=usedHour+n>1000;
+  const hitMin=usedMin+n>100;
+  const msg=document.getElementById('ggRateMsg');
+  const retryEl=document.getElementById('ggRateRetry');
+  msg.textContent=hitHour
+    ?`${usedHour}/1000 records used this hour.`
+    :`${usedMin}/100 records used this minute.`;
+  let retryTs=null;
+  if(hitHour){
+    const h=entries.filter(e=>now-e.ts<3_600_000);
+    if(h.length)retryTs=Math.min(...h.map(e=>e.ts))+3_600_000;
+  }
+  if(hitMin){
+    const m=entries.filter(e=>now-e.ts<60_000);
+    if(m.length){const r=Math.min(...m.map(e=>e.ts))+60_000;retryTs=retryTs?Math.max(retryTs,r):r;}
+  }
+  if(retryTs){
+    const d=new Date(retryTs);
+    const t=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const sameDay=d.toDateString()===new Date().toDateString();
+    retryEl.textContent=`Try again at ${sameDay?'':d.toLocaleDateString()+' '}${t}.`;
+  }else{
+    retryEl.textContent='';
+  }
+  document.getElementById('ggRateOv').classList.add('on');
+}
+
+document.getElementById('ggRateClose').onclick=()=>document.getElementById('ggRateOv').classList.remove('on');
+document.getElementById('ggRateOv').addEventListener('click',e=>{if(e.target===document.getElementById('ggRateOv'))document.getElementById('ggRateOv').classList.remove('on');});
+
+function _logGGPricesToSheet(data,eligible){
+  if(!SHEET_URL)return;
+  const date=todayISO();
+  const entries=eligible
+    .filter(g=>data[g.steamAppId]&&data[g.steamAppId].prices)
+    .map(g=>({
+      date,
+      steamAppId:g.steamAppId,
+      title:g.title,
+      retail:data[g.steamAppId].prices.currentRetail,
+      keyshop:data[g.steamAppId].prices.currentKeyshops,
+      currency:data[g.steamAppId].prices.currency,
+    }));
+  if(!entries.length)return;
+  fetch(SHEET_URL+'?action=logPrices',{
+    method:'POST',mode:'cors',
+    headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify(entries),
+  }).catch(()=>{});
+}
+
+document.getElementById('hmPriceBtn').onclick=()=>{
+  document.getElementById('hmenu').classList.remove('on');
+  runGGDealsFetch();
+};
+document.getElementById('hmSteamPriceBtn').onclick=()=>{
+  document.getElementById('hmenu').classList.remove('on');
+  runPriceLookup();
+};
 
 // ══════════════════════════════════════════
 //  WEB SHARE TARGET

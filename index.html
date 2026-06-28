@@ -113,7 +113,8 @@
 <!-- Mobile dropdown menu — outside header to avoid overflow:hidden clipping -->
 <div id="hmenu">
   <button class="hmi" id="hmRdcBtn">Check release dates</button>
-  <button class="hmi" id="hmPriceBtn">Check prices</button>
+  <button class="hmi" id="hmPriceBtn">Check live prices</button>
+  <button class="hmi" id="hmSteamPriceBtn">Fill missing prices</button>
   <div class="hmi-row2">
     <button class="hmi" id="hmExpBtn">Export</button>
     <button class="hmi" id="hmImpBtn">Import</button>
@@ -124,7 +125,8 @@
   <div class="hmi-theme"><span class="hmi-theme-label">View</span><div class="mode-tog" id="dhViewTog"><button class="mode-btn on" id="dhViewGrid" title="Grid view">⊞</button><button class="mode-btn" id="dhViewList" title="List view">☰</button></div></div>
   <button class="hmi" id="dhMetaBtn">Refresh genre &amp; tag data</button>
   <button class="hmi" id="dhDatesBtn">Check release dates</button>
-  <button class="hmi" id="dhPriceBtn">Check prices</button>
+  <button class="hmi" id="dhPriceBtn">Check live prices</button>
+  <button class="hmi" id="dhSteamPriceBtn">Fill missing prices</button>
   <div class="hmi-row2">
     <button class="hmi" id="dhExpBtn">Export</button>
     <button class="hmi" id="dhImpBtn">Import</button>
@@ -342,6 +344,20 @@
     </div>
     <div class="ma">
       <button class="mb2 c" id="plcClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- GG.DEALS RATE LIMIT MODAL -->
+<div id="ggRateOv">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-body">
+      <div class="mt" style="color:var(--pink)">⚠ Rate Limit Reached</div>
+      <p id="ggRateMsg" style="font-size:.85rem;color:var(--t2);margin:.4rem 0 .3rem"></p>
+      <p id="ggRateRetry" style="font-size:.82rem;color:var(--amber);margin:0"></p>
+    </div>
+    <div class="ma">
+      <button class="mb2 c" id="ggRateClose">Close</button>
     </div>
   </div>
 </div>
