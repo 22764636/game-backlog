@@ -27,8 +27,9 @@ function doGet(e) {
       case 'getAll':      result = getAll();      break;
       case 'getMeta':     result = getMeta();     break;
       case 'getPlatStores': result = getPlatStores(); break;
-      case 'getRateLog':  result = getRateLog();  break;
-      default:            result = { error: 'Unknown action: ' + action };
+      case 'getRateLog':    result = getRateLog();           break;
+      case 'getGGPrices':   result = getGGPrices(params);    break;
+      default:              result = { error: 'Unknown action: ' + action };
     }
   } catch (err) {
     result = { error: err.message };
@@ -191,6 +192,22 @@ function deleteRow(id) {
     }
   }
   return { error: 'Row not found: ' + id };
+}
+
+// ── GG.deals API proxy (avoids browser CORS restrictions) ──
+function getGGPrices(params) {
+  const ids = params.ids || '';
+  const key  = params.key  || '';
+  const region = params.region || 'it';
+  if (!ids || !key) return { error: 'Missing ids or key' };
+
+  const url = 'https://gg.deals/api/prices/?ids=' + encodeURIComponent(ids)
+            + '&key=' + encodeURIComponent(key)
+            + '&region=' + encodeURIComponent(region);
+  const resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  const code = resp.getResponseCode();
+  if (code !== 200) return { error: 'GG.deals returned HTTP ' + code };
+  return JSON.parse(resp.getContentText());
 }
 
 // ── GG.deals rate-limit log: read entries from last hour ────

@@ -2875,6 +2875,8 @@ window.addEventListener('popstate',function(){
   if(wlov&&wlov.classList.contains('on')){wlov.classList.remove('on');return;}
   const calOv=document.getElementById('calOv');
   if(calOv&&calOv.style.display!=='none'){_rawCloseCalendar();return;}
+  const ggRateOv=document.getElementById('ggRateOv');
+  if(ggRateOv&&ggRateOv.classList.contains('on')){ggRateOv.classList.remove('on');return;}
 });
 
 // ── PANEL DRAG RESIZE (desktop only) ──────────────────────────
@@ -4313,8 +4315,9 @@ document.addEventListener('keydown',function(e){
 // ══════════════════════════════════════════
 async function runGGDealsFetch(){
   if(!GGDEALS_KEY){showToast('GG.deals API key not configured.');return;}
+  if(!SHEET_URL){showToast('GG.deals requires the sheet backend to be configured.');return;}
   const today=todayISO();
-  // Sort by hotness descending so highest-priority games are fetched first when > 100 eligible
+  // Sort by hotness desc so highest-priority games are fetched first when >100 eligible
   const eligible=games.filter(g=>
     g.status==='wishlist'&&
     g.steamAppId&&
@@ -4326,45 +4329,41 @@ async function runGGDealsFetch(){
   ).sort((a,b)=>(parseInt(b.hotness)||0)-(parseInt(a.hotness)||0));
   if(!eligible.length){showToast('No released wishlist Steam games found.');return;}
 
-  // Determine how many we can fetch: API max is 100 per request, rate limit is 100/min and 1000/hr
-  let batchSize=Math.min(eligible.length,100);
-  if(SHEET_URL){
-    showToast('Checking rate limit…');
-    let entries=[];
-    try{
-      const res=await fetch(`${SHEET_URL}?action=getRateLog&_=${Date.now()}`,{mode:'cors'});
-      const json=await res.json();
-      entries=Array.isArray(json.entries)?json.entries:[];
-    }catch(e){ /* network issue — proceed without rate check */ }
-    const now=Date.now();
-    const usedHour=entries.filter(e=>now-e.ts<3_600_000).reduce((s,e)=>s+e.count,0);
-    const usedMin=entries.filter(e=>now-e.ts<60_000).reduce((s,e)=>s+e.count,0);
-    const capMin=Math.max(0,100-usedMin);
-    const capHour=Math.max(0,1000-usedHour);
-    if(capMin===0||capHour===0){
-      _ggShowRateModal(entries,usedHour,usedMin);
-      return;
-    }
-    batchSize=Math.min(batchSize,capMin,capHour);
-  }
+  showToast('Checking rate limit…');
+  let entries=[];
+  try{
+    const res=await fetch(`${SHEET_URL}?action=getRateLog&_=${Date.now()}`,{mode:'cors'});
+    const json=await res.json();
+    entries=Array.isArray(json.entries)?json.entries:[];
+  }catch(e){ /* network issue — proceed without rate check */ }
+  const now=Date.now();
+  const usedHour=entries.filter(e=>now-e.ts<3_600_000).reduce((s,e)=>s+e.count,0);
+  const usedMin=entries.filter(e=>now-e.ts<60_000).reduce((s,e)=>s+e.count,0);
+  const capMin=Math.max(0,100-usedMin);
+  const capHour=Math.max(0,1000-usedHour);
+  if(capMin===0||capHour===0){_ggShowRateModal(entries,usedHour,usedMin);return;}
 
+  const batchSize=Math.min(eligible.length,100,capMin,capHour);
   const batch=eligible.slice(0,batchSize);
   const skipped=eligible.length-batchSize;
+
   showToast(`Fetching prices for ${batchSize} game${batchSize!==1?'s':''}…`);
   try{
     const ids=batch.map(g=>g.steamAppId).join(',');
-    const res=await fetch(`https://gg.deals/api/prices/?ids=${ids}&key=${GGDEALS_KEY}&region=it`);
+    const res=await fetch(
+      `${SHEET_URL}?action=getGGPrices&ids=${encodeURIComponent(ids)}&key=${encodeURIComponent(GGDEALS_KEY)}&region=it`,
+      {mode:'cors'}
+    );
     if(!res.ok)throw new Error(`HTTP ${res.status}`);
     const json=await res.json();
+    if(json.error)throw new Error(json.error);
     if(!json.success)throw new Error('GG.deals API returned an error');
     const fetchTs=Date.now();
-    if(SHEET_URL){
-      fetch(SHEET_URL+'?action=logFetch',{
-        method:'POST',mode:'cors',
-        headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({ts:fetchTs,count:batchSize}),
-      }).catch(()=>{});
-    }
+    fetch(SHEET_URL+'?action=logFetch',{
+      method:'POST',mode:'cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({ts:fetchTs,count:batchSize}),
+    }).catch(()=>{});
     let found=0;
     batch.forEach(g=>{
       const d=json.data[g.steamAppId];
@@ -4383,7 +4382,7 @@ async function runGGDealsFetch(){
     _logGGPricesToSheet(json.data,batch);
     dispatchRender();
     showToast(skipped>0
-      ?`Prices updated for ${found} games. ${skipped} skipped — fetch again in 1 min for more.`
+      ?`Prices updated for ${found} games. ${skipped} skipped — fetch again for more.`
       :`Prices updated for ${found} game${found!==1?'s':''}.`
     );
   }catch(err){
@@ -4394,8 +4393,8 @@ async function runGGDealsFetch(){
 
 function _ggShowRateModal(entries,usedHour,usedMin){
   const now=Date.now();
-  const hitHour=usedHour+n>1000;
-  const hitMin=usedMin+n>100;
+  const hitHour=usedHour>=1000;
+  const hitMin=usedMin>=100;
   const msg=document.getElementById('ggRateMsg');
   const retryEl=document.getElementById('ggRateRetry');
   msg.textContent=hitHour
@@ -4419,10 +4418,15 @@ function _ggShowRateModal(entries,usedHour,usedMin){
     retryEl.textContent='';
   }
   document.getElementById('ggRateOv').classList.add('on');
+  history.pushState({ggRateOpen:true},'','');
 }
 
-document.getElementById('ggRateClose').onclick=()=>document.getElementById('ggRateOv').classList.remove('on');
-document.getElementById('ggRateOv').addEventListener('click',e=>{if(e.target===document.getElementById('ggRateOv'))document.getElementById('ggRateOv').classList.remove('on');});
+function _closeGgRateModal(){
+  document.getElementById('ggRateOv').classList.remove('on');
+  if(history.state&&history.state.ggRateOpen)history.replaceState(null,'','');
+}
+document.getElementById('ggRateClose').onclick=_closeGgRateModal;
+document.getElementById('ggRateOv').addEventListener('click',e=>{if(e.target===document.getElementById('ggRateOv'))_closeGgRateModal();});
 
 function _logGGPricesToSheet(data,eligible){
   if(!SHEET_URL)return;
