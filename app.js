@@ -6,7 +6,7 @@
 //  Leave empty / unset to use offline mode (localStorage only).
 // ══════════════════════════════════════════
 const SHEET_URL = (typeof window !== 'undefined' && window.BTB_SHEET_URL) || '';
-const GGDEALS_KEY = (typeof window !== 'undefined' && window.BTB_GGDEALS_KEY) || '';
+const GG_WORKER = (typeof window !== 'undefined' && window.BTB_GGDEALS_WORKER) || '';
 let ggPriceCache = {};
 
 // Use JSONP on file:// (fetch can't read cross-origin responses there);
@@ -4314,8 +4314,7 @@ document.addEventListener('keydown',function(e){
 //  GG.DEALS LIVE PRICES
 // ══════════════════════════════════════════
 async function runGGDealsFetch(){
-  if(!GGDEALS_KEY){showToast('GG.deals API key not configured.');return;}
-  if(!SHEET_URL){showToast('GG.deals requires the sheet backend to be configured.');return;}
+  if(!GG_WORKER){showToast('GG.deals worker not configured.');return;}
   const today=todayISO();
   // Sort by hotness desc so highest-priority games are fetched first when >100 eligible
   const eligible=games.filter(g=>
@@ -4350,10 +4349,7 @@ async function runGGDealsFetch(){
   showToast(`Fetching prices for ${batchSize} game${batchSize!==1?'s':''}…`);
   try{
     const ids=batch.map(g=>g.steamAppId).join(',');
-    const res=await fetch(
-      `${SHEET_URL}?action=getGGPrices&ids=${encodeURIComponent(ids)}&key=${encodeURIComponent(GGDEALS_KEY)}&region=it`,
-      {mode:'cors'}
-    );
+    const res=await fetch(`${GG_WORKER}?ids=${encodeURIComponent(ids)}&region=it`);
     if(!res.ok)throw new Error(`HTTP ${res.status}`);
     const json=await res.json();
     if(json.error)throw new Error(json.error);
