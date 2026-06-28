@@ -4311,23 +4311,6 @@ document.addEventListener('keydown',function(e){
 // ══════════════════════════════════════════
 //  GG.DEALS LIVE PRICES
 // ══════════════════════════════════════════
-const GGDEALS_RL_KEY='btb_ggdeals_rl';
-function _ggRlUsed(windowMs){
-  const now=Date.now();
-  return(JSON.parse(localStorage.getItem(GGDEALS_RL_KEY)||'[]'))
-    .filter(e=>now-e.ts<windowMs).reduce((s,e)=>s+e.n,0);
-}
-function _ggRlCanFetch(n){
-  return _ggRlUsed(60_000)+n<=100&&_ggRlUsed(3_600_000)+n<=1000;
-}
-function _ggRlLog(n){
-  const now=Date.now();
-  const log=(JSON.parse(localStorage.getItem(GGDEALS_RL_KEY)||'[]'))
-    .filter(e=>now-e.ts<3_600_000);
-  log.push({ts:now,n});
-  localStorage.setItem(GGDEALS_RL_KEY,JSON.stringify(log));
-}
-
 async function runGGDealsFetch(){
   if(!GGDEALS_KEY){showToast('GG.deals API key not configured.');return;}
   const today=todayISO();
@@ -4342,10 +4325,27 @@ async function runGGDealsFetch(){
   );
   if(!eligible.length){showToast('No released wishlist Steam games found.');return;}
   const n=eligible.length;
-  if(!_ggRlCanFetch(n)){
-    showToast(`Rate limit reached — ${_ggRlUsed(3_600_000)}/1000 records used this hour.`);
-    return;
+
+  // Rate check via sheet (skip if no sheet configured — offline mode)
+  if(SHEET_URL){
+    showToast('Checking rate limit…');
+    let entries=[];
+    try{
+      const res=await fetch(`${SHEET_URL}?action=getRateLog&_=${Date.now()}`,{mode:'cors'});
+      const json=await res.json();
+      entries=Array.isArray(json.entries)?json.entries:[];
+    }catch(e){ /* network issue — proceed without rate check */ }
+    const now=Date.now();
+    const lastHour=entries.filter(e=>now-e.ts<3_600_000);
+    const lastMin=entries.filter(e=>now-e.ts<60_000);
+    const usedHour=lastHour.reduce((s,e)=>s+e.count,0);
+    const usedMin=lastMin.reduce((s,e)=>s+e.count,0);
+    if(usedHour+n>1000||usedMin+n>100){
+      _ggShowRateModal(entries,n,usedHour,usedMin);
+      return;
+    }
   }
+
   showToast(`Fetching prices for ${n} game${n!==1?'s':''}…`);
   try{
     const ids=eligible.map(g=>g.steamAppId).join(',');
@@ -4353,8 +4353,14 @@ async function runGGDealsFetch(){
     if(!res.ok)throw new Error(`HTTP ${res.status}`);
     const json=await res.json();
     if(!json.success)throw new Error('GG.deals API returned an error');
-    _ggRlLog(n);
-    const now=Date.now();
+    const fetchTs=Date.now();
+    if(SHEET_URL){
+      fetch(SHEET_URL+'?action=logFetch',{
+        method:'POST',mode:'cors',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({ts:fetchTs,count:n}),
+      }).catch(()=>{});
+    }
     let found=0;
     eligible.forEach(g=>{
       const d=json.data[g.steamAppId];
@@ -4365,19 +4371,51 @@ async function runGGDealsFetch(){
           histRetail:d.prices.historicalRetail,
           histKeyshop:d.prices.historicalKeyshops,
           currency:d.prices.currency,
-          fetchedAt:now,
+          fetchedAt:fetchTs,
         };
         found++;
       }
     });
     _logGGPricesToSheet(json.data,eligible);
     dispatchRender();
-    showToast(`Prices updated for ${found} game${found!==1?'s':''} — ${_ggRlUsed(3_600_000)}/1000 records used this hour.`);
+    showToast(`Prices updated for ${found} game${found!==1?'s':''}.`);
   }catch(err){
     showToast(`GG.deals fetch failed: ${err.message}`);
     console.error('BTB GG.deals error:',err);
   }
 }
+
+function _ggShowRateModal(entries,n,usedHour,usedMin){
+  const now=Date.now();
+  const hitHour=usedHour+n>1000;
+  const hitMin=usedMin+n>100;
+  const msg=document.getElementById('ggRateMsg');
+  const retryEl=document.getElementById('ggRateRetry');
+  msg.textContent=hitHour
+    ?`${usedHour}/1000 records used this hour.`
+    :`${usedMin}/100 records used this minute.`;
+  let retryTs=null;
+  if(hitHour){
+    const h=entries.filter(e=>now-e.ts<3_600_000);
+    if(h.length)retryTs=Math.min(...h.map(e=>e.ts))+3_600_000;
+  }
+  if(hitMin){
+    const m=entries.filter(e=>now-e.ts<60_000);
+    if(m.length){const r=Math.min(...m.map(e=>e.ts))+60_000;retryTs=retryTs?Math.max(retryTs,r):r;}
+  }
+  if(retryTs){
+    const d=new Date(retryTs);
+    const t=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const sameDay=d.toDateString()===new Date().toDateString();
+    retryEl.textContent=`Try again at ${sameDay?'':d.toLocaleDateString()+' '}${t}.`;
+  }else{
+    retryEl.textContent='';
+  }
+  document.getElementById('ggRateOv').classList.add('on');
+}
+
+document.getElementById('ggRateClose').onclick=()=>document.getElementById('ggRateOv').classList.remove('on');
+document.getElementById('ggRateOv').addEventListener('click',e=>{if(e.target===document.getElementById('ggRateOv'))document.getElementById('ggRateOv').classList.remove('on');});
 
 function _logGGPricesToSheet(data,eligible){
   if(!SHEET_URL)return;
