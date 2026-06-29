@@ -4364,7 +4364,6 @@ async function runGGDealsFetch(){
     g.releaseDate<=today&&
     !isCancelled(g)&&
     !g.delisted&&
-    !ggPriceCache[g.steamAppId]
   ).sort((a,b)=>(parseInt(b.hotness)||0)-(parseInt(a.hotness)||0));
   if(!eligible.length){showToast('All released wishlist games already have prices.');return;}
 
