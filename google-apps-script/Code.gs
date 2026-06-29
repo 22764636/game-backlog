@@ -264,7 +264,6 @@ function upsertGamePrices(entries) {
 
   const newLows = [];
   const now = Date.now();
-  const toAppend = [];
 
   entries.forEach(entry => {
     const retail  = parseFloat(entry.retail)  || 0;
@@ -283,25 +282,21 @@ function upsertGamePrices(entries) {
       if (keyshop > 0 && keyshop <= prevLowK)   data[i][c('personal_low_keyshop')] = keyshop;
     } else {
       const row = new Array(headers.length).fill('');
-      row[c('appid')]               = entry.appid;
-      row[c('title')]               = entry.title;
-      row[c('last_retail')]         = retail  || '';
-      row[c('last_keyshop')]        = keyshop || '';
-      row[c('personal_low_retail')] = retail  || '';
-      row[c('personal_low_keyshop')]= keyshop || '';
-      row[c('last_fetched')]        = now;
-      toAppend.push(row);
+      row[c('appid')]                = entry.appid;
+      row[c('title')]                = entry.title;
+      row[c('last_retail')]          = retail  || '';
+      row[c('last_keyshop')]         = keyshop || '';
+      row[c('personal_low_retail')]  = retail  || '';
+      row[c('personal_low_keyshop')] = keyshop || '';
+      row[c('last_fetched')]         = now;
       idx[key] = data.length;
       data.push(row);
       if (retail > 0) newLows.push(key);
     }
   });
 
-  // Write back entire range in one call, then append new rows
+  // Write back entire range in one call (new rows already appended to data)
   sheet.getRange(1, 1, data.length, headers.length).setValues(data);
-  if (toAppend.length) {
-    sheet.getRange(data.length + 1, 1, toAppend.length, headers.length).setValues(toAppend);
-  }
 
   return { ok: true, newLows };
 }
