@@ -4369,7 +4369,7 @@ async function runGGDealsFetch(){
     /^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate)&&
     g.releaseDate<=today&&
     !isCancelled(g)&&
-    !g.delisted&&
+    !g.delisted
   ).sort((a,b)=>(parseInt(b.hotness)||0)-(parseInt(a.hotness)||0));
   if(!eligible.length){showToast('All released wishlist games already have prices.');return;}
 
