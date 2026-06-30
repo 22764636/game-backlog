@@ -2206,8 +2206,8 @@ function _toggleInlineStorePicker(dd,stores,currentVal,onSelect,triggerEl){
   const lst=document.createElement('div');lst.className='store-picker-list';
   function buildList(q){
     const f=q?stores.filter(s=>s.toLowerCase().includes(q.toLowerCase())):stores;
-    lst.innerHTML=f.map(s=>`<div class="store-pick-opt${s===currentVal?' active':''}" data-s="${esc(s)}">${esc(s)}</div>`).join('');
-    lst.querySelectorAll('.store-pick-opt').forEach(opt=>{
+    lst.innerHTML=f.map(s=>`<div class="pick-opt${s===currentVal?' active':''}" data-s="${esc(s)}">${esc(s)}</div>`).join('');
+    lst.querySelectorAll('.pick-opt').forEach(opt=>{
       opt.onclick=e=>{e.stopPropagation();onSelect(opt.dataset.s);dd.classList.remove('on')};
     });
   }
@@ -3398,8 +3398,8 @@ document.getElementById('prioBtns').addEventListener('click',e=>{
       (g.title||'').toLowerCase().includes(ql)||String(g.steamAppId).includes(q)
     )).slice(0,12);
     if(!matches.length){dd.classList.remove('on');return}
-    dd.innerHTML=matches.map(g=>`<div class="ac-opt" data-appid="${esc(String(g.steamAppId))}" data-title="${esc(g.title||'')}">${esc(g.title||'')} <span style="color:var(--t3);font-size:.65rem">${g.steamAppId}</span></div>`).join('');
-    dd.querySelectorAll('.ac-opt').forEach(el=>{
+    dd.innerHTML=matches.map(g=>`<div class="genre-opt" data-appid="${esc(String(g.steamAppId))}" data-title="${esc(g.title||'')}">${esc(g.title||'')} <span style="color:var(--t3);font-size:.65rem">${g.steamAppId}</span></div>`).join('');
+    dd.querySelectorAll('.genre-opt').forEach(el=>{
       el.addEventListener('click',()=>{inp.value=el.dataset.title;hidden.value=el.dataset.appid;dd.classList.remove('on');});
     });
     dd.classList.add('on');
@@ -4006,8 +4006,8 @@ function _initFbarPicker(hidId,btnId,lblId,ddId,opts){
     const wasOpen=dd.classList.contains('on');
     document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on')});
     if(wasOpen)return;
-    dd.innerHTML=opts.map(o=>`<div class="store-pick-opt${o.v===hid.value?' active':''}" data-v="${esc(o.v)}">${esc(o.l)}</div>`).join('');
-    dd.querySelectorAll('.store-pick-opt').forEach(opt=>{
+    dd.innerHTML=opts.map(o=>`<div class="pick-opt${o.v===hid.value?' active':''}" data-v="${esc(o.v)}">${esc(o.l)}</div>`).join('');
+    dd.querySelectorAll('.pick-opt').forEach(opt=>{
       opt.addEventListener('click',ev=>{
         ev.stopPropagation();hid.value=opt.dataset.v;_sync();
         dd.classList.remove('on');renderAll();
