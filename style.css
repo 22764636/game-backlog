@@ -1255,12 +1255,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .modal{display:flex;flex-direction:column;overflow:hidden;padding:0}
 .modal-body{flex:1;min-height:0;overflow-y:auto;padding:1.3rem 1.3rem .5rem}
 .modal .ma{flex-shrink:0;display:flex;gap:0;padding:0;border-top:1px solid var(--bd);margin-top:0}
-.modal .mb2{flex:1;height:44px;border-radius:0;border:none;border-left:1px solid var(--bd);background:var(--base);color:var(--t3);font-size:.8rem;padding:0;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background .12s,color .12s;text-transform:uppercase;letter-spacing:.04em}
+.modal .mb2{flex:1;height:44px;border-radius:0;border:none;border-left:1px solid var(--bd);background:var(--base);color:var(--t2);font-size:.8rem;padding:0;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background .12s,color .12s;text-transform:uppercase;letter-spacing:.04em}
 .modal .mb2:first-child{border-left:none}
+.modal .mb2:hover{box-shadow:inset 0 2px 0 var(--t2)}
 .modal .mb2.p{background:var(--base);color:var(--blue)}
 .modal .mb2.p:hover{background:#02b3fc15;box-shadow:inset 0 2px 0 var(--blue)}
-.modal .mb2.c{color:var(--t2)}
-.modal .mb2.c:hover{box-shadow:inset 0 2px 0 var(--t2)}
 .modal .mb2.add{color:var(--green)}
 .modal .mb2.add:hover{background:#9cff0011;box-shadow:inset 0 2px 0 var(--green)}
 .modal .mb2.d{color:var(--pink)}
