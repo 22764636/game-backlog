@@ -549,19 +549,20 @@ button{text-transform:none;letter-spacing:0}
 /* Release date + Price + Hotness + Live prices 4-col row */
 .fg-dates{display:grid;grid-template-columns:2fr .85fr .85fr .85fr;gap:.6rem}
 @media(max-width:560px){.fg-dates{grid-template-columns:1fr 1fr 1fr}.fg-dates>:first-child{grid-column:1/-1}}
-.fetch-tog{display:flex;gap:.3rem}
-.fetch-btn{background:var(--base);border:1px solid var(--bd);border-radius:5px;color:var(--t3);font-size:.6rem;font-weight:700;letter-spacing:.04em;padding:.3rem .4rem;cursor:pointer;flex:1;text-align:center;font-family:'Rajdhani',sans-serif}
-.fetch-btn.inc.on{border-color:var(--green);color:var(--green);background:#9cff0018}
-.fetch-btn.skip.on{border-color:var(--pink);color:var(--pink);background:#ff00aa18}
+.fetch-tog{display:flex;gap:.35rem}
+.fetch-btn{padding:.25rem .65rem;border-radius:20px;border:1.5px solid var(--bd);background:transparent;color:var(--t2);cursor:pointer;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;transition:all .15s;font-family:'Rajdhani',sans-serif;white-space:nowrap;flex:1;text-align:center}
+.fetch-btn:hover{border-color:var(--blue);color:var(--text)}
+.fetch-btn.inc.on{background:var(--green);border-color:transparent;color:#031329}
+.fetch-btn.skip.on{background:var(--pink);border-color:transparent;color:#031329}
 /* Hamburger menu export/import two-column row */
 .hmi-row2{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--bd)}
 .hmi-row2 .hmi{border-top:none}
 .hmi-row2 .hmi:last-child{border-left:1px solid var(--bd)}
-.tba-btn{background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--t2);
-  padding:.3rem .7rem;font-size:.68rem;font-weight:700;letter-spacing:.06em;cursor:pointer;
-  white-space:nowrap;transition:all .15s;font-family:'Rajdhani',sans-serif}
-.tba-btn:hover{border-color:var(--blue);color:var(--blue)}
-.tba-btn.on{background:var(--blue);border-color:var(--blue);color:#031329}
+.tba-btn{background:transparent;border:1.5px solid var(--bd);border-radius:20px;color:var(--t2);
+  padding:.25rem .65rem;font-size:.7rem;font-weight:700;letter-spacing:.04em;cursor:pointer;
+  white-space:nowrap;transition:all .15s;font-family:'Rajdhani',sans-serif;text-transform:uppercase}
+.tba-btn:hover{border-color:var(--blue);color:var(--text)}
+.tba-btn.on{background:var(--blue);border-color:transparent;color:#031329}
 
 /* overlays */
 #riov,#rmov,#btcov,#rdcov,#plcov,#wlovConfirm,#preorderConfirm,#ggFetchOv{display:none;position:fixed;inset:0;background:rgba(3,19,41,.8);backdrop-filter:blur(4px);
