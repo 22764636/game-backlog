@@ -517,7 +517,10 @@
       </div>
     </div>
     <!-- Row 3: Cover preview + URL -->
-    <img id="cprev" class="cprev" alt="Cover preview">
+    <div id="cprevWrap" class="cprev-wrap">
+      <img id="cprev" class="cprev" alt="Cover preview">
+      <div id="cprevPlaceholder" class="cprev-placeholder">Cover art appears here</div>
+    </div>
     <div class="cover-hint" id="coverHint">⚠ CDN image not found — paste the correct URL below</div>
     <div class="fr" style="margin-top:.35rem">
       <label>Cover URL <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">(auto-filled from App ID · or paste your own)</span></label>
@@ -537,7 +540,7 @@
         </div>
         <input type="hidden" id="fType" value="game">
       </div>
-      <div class="fr" id="parentAppIdRow" style="display:none">
+      <div class="fr disabled" id="parentAppIdRow">
         <label>Base Game <sup class="req">mandatory</sup> <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— required for DLC</span></label>
         <div class="ac-wrap">
           <input type="text" id="fParentSearch" placeholder="Search by title or App ID…" autocomplete="off">

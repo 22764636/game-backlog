@@ -3107,10 +3107,11 @@ document.getElementById('fPub').addEventListener('focus',updatePubDd);
 function setCoverPreview(url){
   const prev=document.getElementById('cprev');
   const hint=document.getElementById('coverHint');
-  if(!url){prev.style.display='none';hint.style.display='none';return}
+  const ph=document.getElementById('cprevPlaceholder');
+  if(!url){prev.style.display='none';if(ph)ph.style.display='';hint.style.display='none';return}
   prev.src=url;
-  prev.onload=()=>{prev.style.display='block';hint.style.display='none'};
-  prev.onerror=()=>{prev.style.display='none';hint.style.display='block'};
+  prev.onload=()=>{prev.style.display='block';if(ph)ph.style.display='none';hint.style.display='none'};
+  prev.onerror=()=>{prev.style.display='none';if(ph)ph.style.display='';hint.style.display='block'};
 }
 function tryAutoFillCover(appId){
   const fc=document.getElementById('fCover');
@@ -3337,8 +3338,16 @@ function setGameType(v){
   document.getElementById('fTypeGame').classList.toggle('on',v!=='dlc');
   document.getElementById('fTypeDlc').classList.toggle('on',v==='dlc');
   const parRow=document.getElementById('parentAppIdRow');
-  if(parRow)parRow.style.display=v==='dlc'?'':'none';
-  if(v!=='dlc'){const ps=document.getElementById('fParentSearch');const ph=document.getElementById('fParentAppId');if(ps)ps.value='';if(ph)ph.value='';}
+  const parSearch=document.getElementById('fParentSearch');
+  const parHidden=document.getElementById('fParentAppId');
+  if(v==='dlc'){
+    if(parRow)parRow.classList.remove('disabled');
+    if(parSearch)parSearch.disabled=false;
+  } else {
+    if(parRow)parRow.classList.add('disabled');
+    if(parSearch){parSearch.disabled=true;parSearch.value='';}
+    if(parHidden)parHidden.value='';
+  }
 }
 document.getElementById('fTypeGame').onclick=()=>setGameType('game');
 document.getElementById('fTypeDlc').onclick=()=>setGameType('dlc');
@@ -3423,8 +3432,7 @@ function clearModal(){
   const _fsd3=document.getElementById('fShortDesc');if(_fsd3)_fsd3.value='';
   const _ps=document.getElementById('fParentSearch');if(_ps)_ps.value='';
   const _ph=document.getElementById('fParentAppId');if(_ph)_ph.value='';
-  document.getElementById('cprev').style.display='none';
-  document.getElementById('coverHint').style.display='none';
+  setCoverPreview('');
   document.getElementById('appIdErr').classList.remove('on');
   document.getElementById('fAppId').classList.remove('err');
   _originalAppId='';
