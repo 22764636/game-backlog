@@ -103,19 +103,6 @@ function setSyncStatus(state, msg){
       setSyncStatus._hideTimer = setTimeout(()=>{ pill.className='hidden'; },2500);
     }
   }
-  // ── Mobile hamburger Re-sync button ──
-  const hmResync = document.getElementById('hmResyncBtn');
-  if(hmResync){
-    if(state==='ok'||state==='err'||state==='offline'){
-      hmResync.style.display='';
-      hmResync.textContent = state==='err' ? 'Re-sync (failed)' : state==='offline' ? 'Offline mode' : 'Re-sync';
-      hmResync.style.color = state==='err' ? 'var(--pink)' : state==='offline' ? 'var(--t3)' : '';
-    } else if(state==='syncing'){
-      hmResync.textContent='Syncing…';
-      hmResync.style.display='';
-      hmResync.style.color='var(--amber)';
-    }
-  }
 }
 
 // Re-sync: fetch from Sheet, merge (Sheet wins), re-render
@@ -190,40 +177,6 @@ function fetchMeta(force){
 loadMetaCache();
 
 const PLATFORM_ORDER=['Steam','Epic Games','GOG','Other PC','Nintendo','PS','Xbox'];
-const PLATFORM_STORES={
-  'Steam':      ['Steam','Humble Bundle','Fanatical','Green Man Gaming','CDKeys','Instant Gaming','GameBillet','Gamesplanet','Gamivo','Indiegala','WinGameStore','G2A','Kinguin','Other'],
-  'Epic Games': ['Epic Games','Humble Bundle','CDKeys','Gamivo','G2A','Kinguin','Other'],
-  'GOG':        ['GOG','Humble Bundle','Fanatical','GameBillet','CDKeys','Other'],
-  'Other PC':   ['Origin / EA App','Battle.net','Ubisoft Connect','itch.io','Amazon','Other'],
-  'Nintendo':   ['Nintendo eShop','Amazon','Retail','CDKeys','Other'],
-  'PS':         ['PlayStation Store','Amazon','Retail','CDKeys','Eneba','Other'],
-  'Xbox':       ['Xbox Store','Amazon','Retail','CDKeys','Other'],
-};
-let _dynPlatStores=null;
-function getPlatformStores(plat){
-  if(_dynPlatStores&&_dynPlatStores[plat]&&_dynPlatStores[plat].length)return _dynPlatStores[plat];
-  return PLATFORM_STORES[plat]||['Steam','Other'];
-}
-function loadPlatformStores(){
-  if(!SHEET_URL)return;
-  if(USE_JSONP){
-    const cbName='_btbPS'+Date.now();
-    const script=document.createElement('script');
-    const timeout=setTimeout(()=>{delete window[cbName];try{document.head.removeChild(script)}catch(e){}},8000);
-    window[cbName]=data=>{
-      clearTimeout(timeout);delete window[cbName];try{document.head.removeChild(script)}catch(e){}
-      if(data&&typeof data==='object'&&!Array.isArray(data)&&!data.error)_dynPlatStores=data;
-    };
-    script.src=SHEET_URL+'?action=getPlatStores&callback='+cbName+'&_='+Date.now();
-    script.onerror=()=>{clearTimeout(timeout);delete window[cbName];};
-    document.head.appendChild(script);
-    return;
-  }
-  fetch(SHEET_URL+'?action=getPlatStores&_='+Date.now(),{mode:'cors'})
-    .then(r=>r.json())
-    .then(data=>{if(data&&typeof data==='object'&&!Array.isArray(data)&&!data.error)_dynPlatStores=data;})
-    .catch(()=>{});
-}
 function syncLegacyFromPurchases(g){
   const p0=g.purchases&&g.purchases[0];
   g.cost=p0?p0.cost||'':'';
@@ -311,12 +264,14 @@ function normalise(g){
   });
   syncLegacyFromPurchases(g);
   g.delisted=g.delisted===true||g.delisted==='true'||g.delisted==='TRUE';
+  g.skipGGFetch=g.skipGGFetch===true||g.skipGGFetch==='true'||g.skipGGFetch==='TRUE';
   return g;
 }
 function toSheetRecord(g){
   const r={...g};
   delete r.playStatus;delete r.cost;delete r.purchaseDate;delete r.store;
   delete r.steamCollection;delete r.platforms;delete r.platform;delete r.tbaText;
+  delete r.genre;
   return r;
 }
 let games=[];
@@ -396,8 +351,8 @@ function flushSave(){
         .then(()=>{_saveFlushing=false;setSyncStatus('ok','Saved');if(_saveQueue.length){_saveQueue=[];flushSave()}})
         .catch(()=>{
           // Apps Script doesn't support setRows — fall back to full save
-          _saveFlushing=false;
           _changedIds.clear();
+          if(!games.length){_saveFlushing=false;setSyncStatus('err','Save aborted — no data');return;}
           postToSheet({action:'setAll',data:JSON.stringify(games.map(toSheetRecord))})
             .then(()=>{_saveFlushing=false;setSyncStatus('ok','Saved');if(_saveQueue.length){_saveQueue=[];flushSave()}})
             .catch(err=>{_saveFlushing=false;setSyncStatus('err','Save failed — check console');console.error('BTB save error:',err)});
@@ -406,6 +361,7 @@ function flushSave(){
     }
   }
   _changedIds.clear();
+  if(!games.length){_saveFlushing=false;setSyncStatus('err','Save aborted — no data');return;}
   postToSheet({action:'setAll',data:JSON.stringify(games.map(toSheetRecord))})
     .then(()=>{
       _saveFlushing=false;
@@ -459,8 +415,6 @@ function openCalendar(){
   // Force list view on mobile
   if(window.innerWidth<=640){
     calView='list';
-    const _cg=document.getElementById('calGridBtn');if(_cg)_cg.classList.remove('on');
-    const _cl=document.getElementById('calListBtn');if(_cl)_cl.classList.add('on');
   }
   document.getElementById('calOv').classList.add('on');
   document.getElementById('calOv').style.display='flex';
@@ -826,7 +780,6 @@ async function initData(){
     setSyncStatus('ok','Loaded');
     dispatchRender();
     fetchMeta();
-    loadPlatformStores();
     loadSavedPrices();
     if(_migrationHappened){
       _migrationHappened=false;
@@ -1007,6 +960,13 @@ function allSteamCollections(){
   const set=new Set(STEAM_COLLECTIONS);
   games.forEach(g=>(g.steamCollection||[]).forEach(c=>{if(c)set.add(c)}));
   return[...set].sort();
+}
+function allStoresForPlatform(plat){
+  const freq={};
+  games.forEach(g=>(g.purchases||[]).forEach(p=>{
+    if(p.platform===plat&&p.store)freq[p.store]=(freq[p.store]||0)+1;
+  }));
+  return Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b));
 }
 
 // ══════════════════════════════════════════
@@ -2077,12 +2037,9 @@ function _btcSelectPlat(plat){
   });
   const colSec=document.getElementById('btcColSection');
   if(colSec)colSec.style.display=plat==='Steam'?'':'none';
-  const stores=getPlatformStores(plat);
-  const cur=document.getElementById('btcStore').value;
-  if(!stores.includes(cur)){
-    document.getElementById('btcStore').value=stores[0];
-    document.getElementById('btcStoreLabel').textContent=stores[0];
-  }
+  const bsi=document.getElementById('btcStoreInput');if(bsi)bsi.value='';
+  document.getElementById('btcStore').value='';
+  const bsd=document.getElementById('btcStoreDd');if(bsd)bsd.classList.remove('on');
 }
 function _openBtcModal(id,addPlatMode){
   btcId=id;cBtcCol=[];btcAddPlatMode=addPlatMode;
@@ -2103,6 +2060,7 @@ function _openBtcModal(id,addPlatMode){
   document.getElementById('btcPlayStatus').value='Unplayed';
   _syncBtcPsBtn('Unplayed');
   document.getElementById('btcStore').value='';
+  const _bsi=document.getElementById('btcStoreInput');if(_bsi)_bsi.value='';
   _btcSelectPlat(btcSelPlat);
   cBtcCol=[];renderBtcCol();
   _pushModalHistory();
@@ -2193,26 +2151,17 @@ document.addEventListener('click',e=>{
   _toggleInlinePsPicker(document.getElementById('fColPsDd'),document.getElementById('fColPlayStatus'),_syncModalPsBtn,btn);
 });
 
-// ── INLINE MODAL PICKERS (store + play status) ───────────────────────────────
-function _toggleInlineStorePicker(dd,stores,currentVal,onSelect,triggerEl){
-  const wasOpen=dd.classList.contains('on');
-  document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on')});
-  if(wasOpen)return;
-  const si=document.createElement('input');
-  si.type='text';si.className='store-picker-search';si.placeholder='Search stores…';
-  const lst=document.createElement('div');lst.className='store-picker-list';
-  function buildList(q){
-    const f=q?stores.filter(s=>s.toLowerCase().includes(q.toLowerCase())):stores;
-    lst.innerHTML=f.map(s=>`<div class="store-pick-opt${s===currentVal?' active':''}" data-s="${esc(s)}">${esc(s)}</div>`).join('');
-    lst.querySelectorAll('.store-pick-opt').forEach(opt=>{
-      opt.onclick=e=>{e.stopPropagation();onSelect(opt.dataset.s);dd.classList.remove('on')};
-    });
-  }
-  dd.innerHTML='';dd.appendChild(si);dd.appendChild(lst);
-  buildList('');si.oninput=()=>buildList(si.value);
+// ── INLINE MODAL PICKERS (play status) ───────────────────────────────
+function updateStoreDd(inp,dd,hidden,plat){
+  const q=(inp.value||'').toLowerCase().trim();
+  const freq={};games.forEach(g=>(g.purchases||[]).forEach(p=>{if(p.platform===plat&&p.store)freq[p.store]=(freq[p.store]||0)+1;}));
+  const opts=Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b)).filter(s=>!q||s.toLowerCase().includes(q));
+  if(!opts.length){dd.classList.remove('on');return;}
+  dd.innerHTML=opts.map(s=>`<div class="dd-opt${s===hidden.value?' active':''}" data-s="${esc(s)}">${esc(s)}<span class="dd-opt-count">${freq[s]}</span></div>`).join('');
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
+    el.onclick=()=>{inp.value=el.dataset.s;hidden.value=el.dataset.s;dd.classList.remove('on');};
+  });
   dd.classList.add('on');
-  _pickDdFlip(dd,triggerEl);
-  setTimeout(()=>si.focus(),50);
 }
 function _toggleInlinePsPicker(dd,hiddenInput,syncFn,triggerEl){
   const wasOpen=dd.classList.contains('on');
@@ -2259,22 +2208,24 @@ function _pickDdFlip(dd,triggerEl){
   }
 }
 
-// btcStorePick
-document.addEventListener('click',e=>{
-  const btn=e.target.closest('#btcStorePick');if(!btn)return;
-  e.stopPropagation();
-  _toggleInlineStorePicker(document.getElementById('btcStoreDd'),getPlatformStores(btcSelPlat),document.getElementById('btcStore').value,val=>{
-    document.getElementById('btcStore').value=val;document.getElementById('btcStoreLabel').textContent=val;
-  },btn);
-});
-// fColStorePick
-document.addEventListener('click',e=>{
-  const btn=e.target.closest('#fColStorePick');if(!btn)return;
-  e.stopPropagation();
-  _toggleInlineStorePicker(document.getElementById('fColStoreDd'),getPlatformStores(_modalColPlat||'Steam'),document.getElementById('fColStore').value,val=>{
-    document.getElementById('fColStore').value=val;document.getElementById('fColStoreLabel').textContent=val;
-  },btn);
-});
+// btcStoreInput autocomplete
+(function(){
+  const inp=document.getElementById('btcStoreInput');
+  const dd=document.getElementById('btcStoreDd');
+  const hid=document.getElementById('btcStore');
+  if(!inp)return;
+  inp.addEventListener('input',()=>{hid.value=inp.value;updateStoreDd(inp,dd,hid,btcSelPlat);});
+  inp.addEventListener('focus',()=>{updateStoreDd(inp,dd,hid,btcSelPlat);});
+})();
+// fColStoreInput autocomplete
+(function(){
+  const inp=document.getElementById('fColStoreInput');
+  const dd=document.getElementById('fColStoreDd');
+  const hid=document.getElementById('fColStore');
+  if(!inp)return;
+  inp.addEventListener('input',()=>{hid.value=inp.value;updateStoreDd(inp,dd,hid,_modalColPlat||'Steam');});
+  inp.addEventListener('focus',()=>{updateStoreDd(inp,dd,hid,_modalColPlat||'Steam');});
+})();
 // btcPlayStatusBtn
 document.addEventListener('click',e=>{
   const btn=e.target.closest('#btcPlayStatusBtn');if(!btn)return;
@@ -2306,6 +2257,7 @@ function bindPsPickerCards(container,start){
 function _rawCloseCollectionModal(){
   document.getElementById('btcov').classList.remove('on');
   const bdd=document.getElementById('btcColDd');if(bdd)bdd.classList.remove('on');
+  const bsd=document.getElementById('btcStoreDd');if(bsd)bsd.classList.remove('on');
   document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));
   btcId=null;cBtcCol=[];btcAddPlatMode=false;
 }
@@ -2316,6 +2268,10 @@ document.getElementById('btcov').onclick=e=>{if(e.target===e.currentTarget)histo
 
 document.getElementById('btcConfirm').onclick=()=>{
   const g=games.find(x=>x.id===btcId);if(!g)return;
+  if(!document.getElementById('btcStore').value){showToast('Please select a store.','err');return}
+  if(!document.getElementById('btcDate').value){showToast('Please enter a purchase date.','err');return}
+  const _btcStCol=document.getElementById('btcColSection');
+  if(_btcStCol&&_btcStCol.style.display!=='none'&&!cBtcCol.length){showToast('Please pick at least one Steam collection.','err');return}
   const costRaw=document.getElementById('btcCost').value.trim();
   const cost=costRaw!==''?parseFloat(costRaw).toFixed(2):'0.00';
   const dateRaw=document.getElementById('btcDate').value||'';
@@ -2378,7 +2334,7 @@ function openPanel(id){
   id=g.id; // normalise to stored type
   openId=id;
   if(!(history.state&&history.state.panelOpen)){history.pushState({panelOpen:true},'');}
-  const _ctb=document.getElementById("ctb");if(_ctb)_ctb.style.zIndex="80";cStars=g.myRating||0;
+  cStars=g.myRating||0;
   const cu=g.cover||(g.steamAppId?sc(g.steamAppId):'');
   const pi=document.getElementById('pimg'),pp=document.getElementById('pph');
   if(cu){pi.src=cu;pi.style.display='block';pp.style.display='none'}else{pi.style.display='none';pp.style.display='flex'}
@@ -2950,6 +2906,7 @@ document.getElementById('pov').onclick=closePanel;
 function startRemove(id){rmId=id;document.getElementById('rmNote').value='';_pushModalHistory();document.getElementById('rmov').classList.add('on')}
 document.getElementById('rmCancel').onclick=()=>history.back();
 document.getElementById('rmConfirm').onclick=()=>{
+  if(!document.getElementById('rmNote').value.trim()){showToast('Please enter a reason for removing.','err');return}
   const g=games.find(x=>x.id===rmId);
   if(g){g.status='removed';g.removeNote=document.getElementById('rmNote').value.trim();save()}
   document.getElementById('rmov').classList.remove('on');_popModalHistory();closePanel();renderAll();
@@ -2995,10 +2952,11 @@ const renderModalCol=makeChip('fColColWrap','fColColInput',()=>cModalCol,v=>{cMo
 function updateModalColDd(){
   const dd=document.getElementById('fColColDd');
   const q=(document.getElementById('fColColInput').value||'').toLowerCase().trim();
+  const freq={};games.forEach(g=>(g.steamCollection||[]).forEach(c=>{if(c)freq[c]=(freq[c]||0)+1;}));
   const opts=allSteamCollections().filter(s=>!cModalCol.includes(s)&&(!q||s.toLowerCase().includes(q)));
   if(!opts.length){dd.classList.remove('on');return}
-  dd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.innerHTML=opts.map(s=>`<div class="dd-opt" data-v="${esc(s)}">${esc(colLabel(s))}${freq[s]?`<span class="dd-opt-count">${freq[s]}</span>`:''}</div>`).join('');
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cModalCol.push(el.dataset.v);document.getElementById('fColColInput').value='';renderModalCol();dd.classList.remove('on')};
   });
   dd.classList.add('on');
@@ -3009,10 +2967,11 @@ document.getElementById('fColColInput').addEventListener('focus',updateModalColD
 function updateBtcColDd(){
   const dd=document.getElementById('btcColDd');
   const q=(document.getElementById('btcColInput').value||'').toLowerCase().trim();
+  const freq={};games.forEach(g=>(g.steamCollection||[]).forEach(c=>{if(c)freq[c]=(freq[c]||0)+1;}));
   const opts=allSteamCollections().filter(s=>!cBtcCol.includes(s)&&(!q||s.toLowerCase().includes(q)));
   if(!opts.length){dd.classList.remove('on');return}
-  dd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.innerHTML=opts.map(s=>`<div class="dd-opt" data-v="${esc(s)}">${esc(colLabel(s))}${freq[s]?`<span class="dd-opt-count">${freq[s]}</span>`:''}</div>`).join('');
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cBtcCol.push(el.dataset.v);document.getElementById('btcColInput').value='';renderBtcCol();dd.classList.remove('on')};
   });
   dd.classList.add('on');
@@ -3024,11 +2983,12 @@ document.getElementById('btcColInput').addEventListener('focus',updateBtcColDd);
 function updateGenreDd(){
   const dd=document.getElementById('genreDd');
   const q=document.getElementById('genreInput').value.toLowerCase();
-  const opts=allGenres().filter(g=>!cGenres.includes(g)&&(q===''||g.toLowerCase().includes(q)));
+  const freq={};games.forEach(g=>(g.genres||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1}));
+  const opts=Object.keys(freq).sort().filter(g=>!cGenres.includes(g)&&(q===''||g.toLowerCase().includes(q)));
   if(!opts.length){dd.classList.remove('on');return}
-  dd.innerHTML=opts.map(g=>`<div class="genre-opt" data-g="${esc(g)}">${esc(g)}</div>`).join('');
+  dd.innerHTML=opts.map(g=>`<div class="dd-opt" data-g="${esc(g)}">${esc(g)}<span class="dd-opt-count">${freq[g]}</span></div>`).join('');
   dd.classList.add('on');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cGenres.push(el.dataset.g);document.getElementById('genreInput').value='';renderGenres();dd.classList.remove('on')};
   });
 }
@@ -3039,11 +2999,13 @@ document.getElementById('genreInput').addEventListener('focus',updateGenreDd);
 function updateTagsDd(){
   const dd=document.getElementById('tagsDd');
   const q=(document.getElementById('tagsInput').value||'').toLowerCase().trim();
-  const all=allTagsSorted().filter(t=>!cTags.includes(t)&&(!q||t.toLowerCase().includes(q)));
+  const freq={};games.forEach(g=>(g.tags||[]).forEach(t=>{if(t)freq[t]=(freq[t]||0)+1}));
+  const all=Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b))
+    .filter(t=>!cTags.includes(t)&&(!q||t.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
-  dd.innerHTML=all.map(t=>`<div class="genre-opt" data-t="${esc(t)}">${esc(t)}</div>`).join('');
+  dd.innerHTML=all.map(t=>`<div class="dd-opt" data-t="${esc(t)}">${esc(t)}<span class="dd-opt-count">${freq[t]}</span></div>`).join('');
   dd.classList.add('on');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{
       cTags.push(el.dataset.t);
       document.getElementById('tagsInput').value='';
@@ -3055,7 +3017,7 @@ function updateTagsDd(){
 document.getElementById('tagsInput').addEventListener('input',updateTagsDd);
 document.getElementById('tagsInput').addEventListener('focus',updateTagsDd);
 document.addEventListener('click',e=>{
-  if(!e.target.closest('.genre-wrap')){document.getElementById('genreDd').classList.remove('on');document.getElementById('tagsDd').classList.remove('on');const bdd=document.getElementById('btcColDd');if(bdd)bdd.classList.remove('on');const mdd=document.getElementById('fColColDd');if(mdd)mdd.classList.remove('on');const idd=document.getElementById('colInlineDd');if(idd)idd.classList.remove('on');}
+  if(!e.target.closest('.genre-wrap')){document.getElementById('genreDd').classList.remove('on');document.getElementById('tagsDd').classList.remove('on');const bdd=document.getElementById('btcColDd');if(bdd)bdd.classList.remove('on');const mdd=document.getElementById('fColColDd');if(mdd)mdd.classList.remove('on');const idd=document.getElementById('colInlineDd');if(idd)idd.classList.remove('on');const bsd=document.getElementById('btcStoreDd');if(bsd)bsd.classList.remove('on');const fsd=document.getElementById('fColStoreDd');if(fsd)fsd.classList.remove('on');}
   if(!e.target.closest('#devGWrap'))document.getElementById('devDd').classList.remove('on');
   if(!e.target.closest('#pubGWrap'))document.getElementById('pubDd').classList.remove('on');
 });
@@ -3067,22 +3029,24 @@ let cDev=[],cPub=[];
 function updateDevDd(){
   const dd=document.getElementById('devDd');
   const q=(document.getElementById('fDev').value||'').toLowerCase().trim();
-  const all=allDevPub('developer').filter(v=>!cDev.includes(v)&&(!q||v.toLowerCase().includes(q)));
+  const freq={};games.forEach(g=>{const v=g.developer;if(Array.isArray(v))v.forEach(s=>{if(s)freq[s]=(freq[s]||0)+1});else if(v&&typeof v==='string')freq[v]=(freq[v]||0)+1;});
+  const all=Object.keys(freq).sort().filter(v=>!cDev.includes(v)&&(!q||v.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
-  dd.innerHTML=all.map(v=>`<div class="genre-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
+  dd.innerHTML=all.map(v=>`<div class="dd-opt" data-v="${esc(v)}">${esc(v)}<span class="dd-opt-count">${freq[v]}</span></div>`).join('');
   dd.classList.add('on');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cDev.push(el.dataset.v);document.getElementById('fDev').value='';renderDev();updateDevDd();};
   });
 }
 function updatePubDd(){
   const dd=document.getElementById('pubDd');
   const q=(document.getElementById('fPub').value||'').toLowerCase().trim();
-  const all=allDevPub('publisher').filter(v=>!cPub.includes(v)&&(!q||v.toLowerCase().includes(q)));
+  const freq={};games.forEach(g=>{const v=g.publisher;if(Array.isArray(v))v.forEach(s=>{if(s)freq[s]=(freq[s]||0)+1});else if(v&&typeof v==='string')freq[v]=(freq[v]||0)+1;});
+  const all=Object.keys(freq).sort().filter(v=>!cPub.includes(v)&&(!q||v.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
-  dd.innerHTML=all.map(v=>`<div class="genre-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
+  dd.innerHTML=all.map(v=>`<div class="dd-opt" data-v="${esc(v)}">${esc(v)}<span class="dd-opt-count">${freq[v]}</span></div>`).join('');
   dd.classList.add('on');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cPub.push(el.dataset.v);document.getElementById('fPub').value='';renderPub();updatePubDd();};
   });
 }
@@ -3099,10 +3063,11 @@ document.getElementById('fPub').addEventListener('focus',updatePubDd);
 function setCoverPreview(url){
   const prev=document.getElementById('cprev');
   const hint=document.getElementById('coverHint');
-  if(!url){prev.style.display='none';hint.style.display='none';return}
+  const ph=document.getElementById('cprevPlaceholder');
+  if(!url){prev.style.display='none';if(ph)ph.style.display='';hint.style.display='none';return}
   prev.src=url;
-  prev.onload=()=>{prev.style.display='block';hint.style.display='none'};
-  prev.onerror=()=>{prev.style.display='none';hint.style.display='block'};
+  prev.onload=()=>{prev.style.display='block';if(ph)ph.style.display='none';hint.style.display='none'};
+  prev.onerror=()=>{prev.style.display='none';if(ph)ph.style.display='';hint.style.display='block'};
 }
 function tryAutoFillCover(appId){
   const fc=document.getElementById('fCover');
@@ -3299,6 +3264,23 @@ document.getElementById('fCover').addEventListener('blur',()=>{
 // ══════════════════════════════════════════
 //  TBA TOGGLE — button stays put, just swaps input
 // ══════════════════════════════════════════
+function setFetchState(skip){
+  document.getElementById('fFetchInc').classList.toggle('on',!skip);
+  document.getElementById('fFetchSkip').classList.toggle('on',skip);
+}
+document.getElementById('fFetchInc').addEventListener('click',()=>setFetchState(false));
+document.getElementById('fFetchSkip').addEventListener('click',()=>setFetchState(true));
+
+document.getElementById('fHotness').addEventListener('input',function(){
+  this.value=this.value.replace(/[^0-9]/g,'');
+  if(this.value!==''){
+    let n=parseInt(this.value,10);
+    if(n<1)n=1;
+    if(n>100)n=100;
+    this.value=n;
+  }
+});
+
 function setTbaState(on){
   document.getElementById('tbaBtn').classList.toggle('on',on);
   document.getElementById('dateRow').style.display=on?'none':'grid';
@@ -3312,8 +3294,16 @@ function setGameType(v){
   document.getElementById('fTypeGame').classList.toggle('on',v!=='dlc');
   document.getElementById('fTypeDlc').classList.toggle('on',v==='dlc');
   const parRow=document.getElementById('parentAppIdRow');
-  if(parRow)parRow.style.display=v==='dlc'?'':'none';
-  if(v!=='dlc'){const ps=document.getElementById('fParentSearch');const ph=document.getElementById('fParentAppId');if(ps)ps.value='';if(ph)ph.value='';}
+  const parSearch=document.getElementById('fParentSearch');
+  const parHidden=document.getElementById('fParentAppId');
+  if(v==='dlc'){
+    if(parRow)parRow.classList.remove('disabled');
+    if(parSearch)parSearch.disabled=false;
+  } else {
+    if(parRow)parRow.classList.add('disabled');
+    if(parSearch){parSearch.disabled=true;parSearch.value='';}
+    if(parHidden)parHidden.value='';
+  }
 }
 document.getElementById('fTypeGame').onclick=()=>setGameType('game');
 document.getElementById('fTypeDlc').onclick=()=>setGameType('dlc');
@@ -3364,8 +3354,8 @@ document.getElementById('prioBtns').addEventListener('click',e=>{
       (g.title||'').toLowerCase().includes(ql)||String(g.steamAppId).includes(q)
     )).slice(0,12);
     if(!matches.length){dd.classList.remove('on');return}
-    dd.innerHTML=matches.map(g=>`<div class="ac-opt" data-appid="${esc(String(g.steamAppId))}" data-title="${esc(g.title||'')}">${esc(g.title||'')} <span style="color:var(--t3);font-size:.65rem">${g.steamAppId}</span></div>`).join('');
-    dd.querySelectorAll('.ac-opt').forEach(el=>{
+    dd.innerHTML=matches.map(g=>`<div class="dd-opt" data-appid="${esc(String(g.steamAppId))}" data-title="${esc(g.title||'')}">${esc(g.title||'')} <span style="color:var(--t3);font-size:.65rem">${g.steamAppId}</span></div>`).join('');
+    dd.querySelectorAll('.dd-opt').forEach(el=>{
       el.addEventListener('click',()=>{inp.value=el.dataset.title;hidden.value=el.dataset.appid;dd.classList.remove('on');});
     });
     dd.classList.add('on');
@@ -3398,17 +3388,17 @@ function clearModal(){
   const _fsd3=document.getElementById('fShortDesc');if(_fsd3)_fsd3.value='';
   const _ps=document.getElementById('fParentSearch');if(_ps)_ps.value='';
   const _ph=document.getElementById('fParentAppId');if(_ph)_ph.value='';
-  document.getElementById('cprev').style.display='none';
-  document.getElementById('coverHint').style.display='none';
+  setCoverPreview('');
   document.getElementById('appIdErr').classList.remove('on');
   document.getElementById('fAppId').classList.remove('err');
   _originalAppId='';
   setTbaState(false);
+  setFetchState(false);
   cGenres=[];cTags=[];cDev=[];cPub=[];cModalCol=[];renderGenres();renderTags();renderDev();renderPub();renderModalCol();
   _modalNotes=[];renderModalNoteList();
   // Reset collection fields
   const fcs=document.getElementById('fColStore');if(fcs)fcs.value='';
-  const fcsl=document.getElementById('fColStoreLabel');if(fcsl)fcsl.textContent='— select store —';
+  const fcsl=document.getElementById('fColStoreInput');if(fcsl)fcsl.value='';
   const fcc=document.getElementById('fColCost');if(fcc)fcc.value='';
   const fcd=document.getElementById('fColDate');
   if(fcd){const n=new Date();fcd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
@@ -3481,14 +3471,14 @@ function _renderModalColPlatPills(){
 function _setModalColPlat(plat){
   _modalColPlat=plat;_renderModalColPlatPills();
   const stCol=document.getElementById('fColSteamSection');if(stCol)stCol.style.display=plat==='Steam'?'':'none';
-  const lbl=document.getElementById('fColStoreLabel');
+  const lbl=document.getElementById('fColStoreInput');
   const inp=document.getElementById('fColStore');
   if(editId){
     // Load existing purchase data for this platform when editing
     const g=games.find(x=>x.id===editId);
     const p=g?gamePurchases(g).find(x=>x.platform===plat):null;
     if(p){
-      if(lbl)lbl.textContent=p.store||'— select store —';
+      if(lbl)lbl.value=p.store||'';
       if(inp)inp.value=p.store||'';
       const fcc=document.getElementById('fColCost');if(fcc)fcc.value=p.cost!==undefined&&p.cost!==''?parseFloat(p.cost).toFixed(2):'';
       const fcd=document.getElementById('fColDate');
@@ -3497,7 +3487,7 @@ function _setModalColPlat(plat){
       const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value=psVal;_syncModalPsBtn(psVal);}
       cModalCol=[...(p.steamCollection||[])];renderModalCol();
     } else {
-      if(lbl)lbl.textContent='— select store —';
+      if(lbl)lbl.value='';
       if(inp)inp.value='';
       const fcc=document.getElementById('fColCost');if(fcc)fcc.value='';
       const fcd=document.getElementById('fColDate');if(fcd){const n=new Date();fcd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;}
@@ -3505,7 +3495,7 @@ function _setModalColPlat(plat){
       cModalCol=[];renderModalCol();
     }
   } else {
-    if(lbl)lbl.textContent='— select store —';
+    if(lbl)lbl.value='';
     if(inp)inp.value='';
   }
 }
@@ -3526,6 +3516,7 @@ function openEdit(id){
   const g=games.find(x=>x.id===id);if(!g)return;
   editId=id;clearModal();
   document.getElementById('modalTitle').textContent=`Edit: ${esc(g.title)}`;
+  document.getElementById('msave').textContent='Save changes';
   document.getElementById('fTitle').value=g.title||'';
   document.getElementById('fAppId').value=g.steamAppId||'';
   _originalAppId=g.steamAppId||'';
@@ -3553,6 +3544,7 @@ function openEdit(id){
   } else {
     setTbaState(false);document.getElementById('fDate').value='';
   }
+  setFetchState(!!g.skipGGFetch);
   const savedCover=g.cover||'';
   document.getElementById('fCover').value=savedCover;
   if(savedCover)setCoverPreview(savedCover);
@@ -3582,7 +3574,7 @@ function openEdit(id){
     const p0=gamePurchases(g)[0]||{};
     const storeVal=p0.store||g.store||'';
     const fcs=document.getElementById('fColStore');if(fcs)fcs.value=storeVal;
-    const fsLabel=document.getElementById('fColStoreLabel');if(fsLabel)fsLabel.textContent=storeVal||'— select store —';
+    const fsInp=document.getElementById('fColStoreInput');if(fsInp)fsInp.value=storeVal;
     const fcc=document.getElementById('fColCost');if(fcc)fcc.value=p0.cost!==undefined?parseFloat(p0.cost).toFixed(2):(g.cost?parseFloat(g.cost).toFixed(2):'');
     const fcd=document.getElementById('fColDate');
     if(fcd){
@@ -3652,7 +3644,7 @@ function renderModalNotes(g){
     };
   });
 }
-function _rawCloseModal(){document.getElementById('mov').classList.remove('on');steamStatus('');['genreDd','tagsDd','devDd','pubDd'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on')});document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));window._pendingShortDesc=null;}
+function _rawCloseModal(){document.getElementById('mov').classList.remove('on');steamStatus('');['genreDd','tagsDd','devDd','pubDd','fColStoreDd'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on')});document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));window._pendingShortDesc=null;}
 function closeModal(){_rawCloseModal();_popModalHistory();}
 // Modal notes: full note list with add/edit/delete (works in both add and edit mode)
 let _modalNotes=[]; // in-memory note list for the open modal
@@ -3728,6 +3720,15 @@ document.getElementById('mov').onclick=e=>{if(e.target===e.currentTarget)history
 document.getElementById('msave').onclick=()=>{
   const title=document.getElementById('fTitle').value.trim();
   if(!title){alert('Please enter a title.');return}
+  if(document.getElementById('fType').value==='dlc'&&!document.getElementById('fParentAppId').value.trim()){showToast('Please select a base game for this DLC.','err');return}
+  const _colSec=document.getElementById('modalColSection');
+  if(_colSec&&_colSec.style.display!=='none'){
+    if(!document.getElementById('fColStore').value){showToast('Please select a store.','err');return}
+    if(!document.getElementById('fColCost').value.trim()){showToast('Please enter a cost.','err');return}
+    if(!document.getElementById('fColDate').value){showToast('Please enter a purchase date.','err');return}
+    const _stCol=document.getElementById('fColSteamSection');
+    if(_stCol&&_stCol.style.display!=='none'&&!cModalCol.length){showToast('Please pick at least one Steam collection.','err');return}
+  }
   const _appIdChanged=document.getElementById('fAppId').value.trim()!==_originalAppId;
   if(_appIdChanged&&checkAppIdDup()){showToast('Fix the duplicate App ID before saving.','err');return}
   const hotRaw=document.getElementById('fHotness').value.trim();
@@ -3738,7 +3739,7 @@ document.getElementById('msave').onclick=()=>{
   const coverVal=document.getElementById('fCover').value.trim();
   const data={
     title,steamAppId:appId,
-    genres:[...cGenres],genre:cGenres.join(', '),
+    genres:[...cGenres],
     developer:[...cDev],
     publisher:[...cPub],
     releaseDate,
@@ -3750,6 +3751,7 @@ document.getElementById('msave').onclick=()=>{
     storeLink:document.getElementById('fStore').value.trim(),
     type:document.getElementById('fType').value||'game',
     parentAppId:(()=>{const v=document.getElementById('fParentAppId').value.trim();return v||null})(),
+    skipGGFetch:document.getElementById('fFetchSkip').classList.contains('on'),
   };
   // Attach shortDescription fetched from Steam API if available
   const _fsd=document.getElementById('fShortDesc');const _sdVal=_fsd?_fsd.value.trim():'';if(_sdVal){data.shortDescription=_sdVal;}else if(window._pendingShortDesc){data.shortDescription=window._pendingShortDesc;window._pendingShortDesc=null;}
@@ -3960,8 +3962,8 @@ function _initFbarPicker(hidId,btnId,lblId,ddId,opts){
     const wasOpen=dd.classList.contains('on');
     document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on')});
     if(wasOpen)return;
-    dd.innerHTML=opts.map(o=>`<div class="store-pick-opt${o.v===hid.value?' active':''}" data-v="${esc(o.v)}">${esc(o.l)}</div>`).join('');
-    dd.querySelectorAll('.store-pick-opt').forEach(opt=>{
+    dd.innerHTML=opts.map(o=>`<div class="dd-opt${o.v===hid.value?' active':''}" data-v="${esc(o.v)}">${esc(o.l)}</div>`).join('');
+    dd.querySelectorAll('.dd-opt').forEach(opt=>{
       opt.addEventListener('click',ev=>{
         ev.stopPropagation();hid.value=opt.dataset.v;_sync();
         dd.classList.remove('on');renderAll();
@@ -4369,7 +4371,8 @@ async function runGGDealsFetch(){
     /^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate)&&
     g.releaseDate<=today&&
     !isCancelled(g)&&
-    !g.delisted
+    !g.delisted&&
+    !g.skipGGFetch
   ).sort((a,b)=>(parseInt(b.hotness)||0)-(parseInt(a.hotness)||0));
   if(!eligible.length){showToast('All released wishlist games already have prices.');return;}
 
@@ -4819,11 +4822,11 @@ function _closeAllFloating(){
     const PRIOS=[{value:'high',label:'High'},{value:'medium',label:'Medium'},{value:'low',label:'Low'}];
     const freq={high:0,medium:0,low:0};
     games.filter(g=>g.status!=='bought').forEach(g=>{const p=g.priority||'medium';freq[p]=(freq[p]||0)+1;});
-    list.innerHTML=`<div class="fbar-plat-pills">${PRIOS.map(({value,label})=>{
+    list.innerHTML=`<div class="fbar-pills">${PRIOS.map(({value,label})=>{
       const sel=fPrios.has(value);
-      return`<button class="b-plat fbar-plat-pill${sel?' selected':''}" data-val="${value}" style="background:${prioColor(value)};color:#031329">${label}<span style="margin-left:.25rem;opacity:.75">${freq[value]||0}</span></button>`;
+      return`<button class="b-plat fbar-pill${sel?' selected':''}" data-val="${value}" style="background:${prioColor(value)};color:#031329">${label}<span style="margin-left:.25rem;opacity:.75">${freq[value]||0}</span></button>`;
     }).join('')}</div>`;
-    list.querySelectorAll('.fbar-plat-pill').forEach(el=>{
+    list.querySelectorAll('.fbar-pill').forEach(el=>{
       el.addEventListener('click',()=>{
         const v=el.dataset.val;
         fPrios.has(v)?fPrios.delete(v):fPrios.add(v);
@@ -4856,12 +4859,12 @@ function _closeAllFloating(){
     games.filter(g=>g.status==='bought').forEach(g=>{const s=g.playStatus||'Unplayed';freq[s]=(freq[s]||0)+1;});
     const opts=order.filter(s=>freq[s]>0);
     if(!opts.length){list.innerHTML=`<div class="fbar-opt" style="color:var(--t3);cursor:default">No options</div>`;return;}
-    list.innerHTML=`<div class="fbar-plat-pills">${opts.map(v=>{
+    list.innerHTML=`<div class="fbar-pills">${opts.map(v=>{
       const m=PS_META[v]||{code:'UP',cls:'ps-UP'};
       const sel=cfPlayStatus.has(v);
-      return`<button class="col-ps-badge ${m.cls} fbar-plat-pill${sel?' selected':''}" data-val="${esc(v)}" style="cursor:pointer">${m.code}<span style="margin-left:.3rem;opacity:.7">${freq[v]||0}</span></button>`;
+      return`<button class="col-ps-badge ${m.cls} fbar-pill${sel?' selected':''}" data-val="${esc(v)}" style="cursor:pointer">${m.code}<span style="margin-left:.3rem;opacity:.7">${freq[v]||0}</span></button>`;
     }).join('')}</div>`;
-    list.querySelectorAll('.fbar-plat-pill').forEach(el=>{
+    list.querySelectorAll('.fbar-pill').forEach(el=>{
       el.addEventListener('click',()=>{
         const v=el.dataset.val;
         cfPlayStatus.has(v)?cfPlayStatus.delete(v):cfPlayStatus.add(v);
@@ -4877,11 +4880,11 @@ function _closeAllFloating(){
     const freq={};games.filter(g=>g.status==='bought').forEach(g=>{ownedPlatforms(g).forEach(p=>{if(p)freq[p]=(freq[p]||0)+1});});
     const platforms=Object.keys(freq);
     if(!platforms.length){list.innerHTML=`<div class="fbar-opt" style="color:var(--t3);cursor:default">No options</div>`;return;}
-    list.innerHTML=`<div class="fbar-plat-pills">${platforms.map(p=>{
+    list.innerHTML=`<div class="fbar-pills">${platforms.map(p=>{
       const sel=cfPlats.has(p);
-      return`<button class="b-plat fbar-plat-pill${sel?' selected':''}" data-val="${esc(p)}" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}<span style="margin-left:.25rem;opacity:.75">${freq[p]}</span></button>`;
+      return`<button class="b-plat fbar-pill${sel?' selected':''}" data-val="${esc(p)}" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}<span style="margin-left:.25rem;opacity:.75">${freq[p]}</span></button>`;
     }).join('')}</div>`;
-    list.querySelectorAll('.fbar-plat-pill').forEach(el=>{
+    list.querySelectorAll('.fbar-pill').forEach(el=>{
       el.addEventListener('click',()=>{
         const v=el.dataset.val;
         if(cfPlatExclusive){

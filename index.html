@@ -153,7 +153,7 @@
           <label class="fbar-sort-label">Sort</label>
           <input type="hidden" id="sortSel" value="hotness">
           <div class="pick-wrap">
-            <button type="button" class="store-pick-btn" id="sortSelBtn"><span id="sortSelLabel">Hotness</span><span class="spb-arrow">▾</span></button>
+            <button type="button" class="pick-btn" id="sortSelBtn"><span id="sortSelLabel">Hotness</span><span class="spb-arrow">▾</span></button>
             <div class="pick-dd" id="sortSelDd"></div>
           </div>
         </div>
@@ -161,7 +161,7 @@
           <label class="fbar-sort-label">Group</label>
           <input type="hidden" id="groupSel" value="none">
           <div class="pick-wrap">
-            <button type="button" class="store-pick-btn" id="groupSelBtn"><span id="groupSelLabel">None</span><span class="spb-arrow">▾</span></button>
+            <button type="button" class="pick-btn" id="groupSelBtn"><span id="groupSelLabel">None</span><span class="spb-arrow">▾</span></button>
             <div class="pick-dd" id="groupSelDd"></div>
           </div>
         </div>
@@ -239,7 +239,7 @@
           <label class="fbar-sort-label">Sort</label>
           <input type="hidden" id="cSortSel" value="steamcol">
           <div class="pick-wrap">
-            <button type="button" class="store-pick-btn" id="cSortSelBtn"><span id="cSortSelLabel">Steam Collection</span><span class="spb-arrow">▾</span></button>
+            <button type="button" class="pick-btn" id="cSortSelBtn"><span id="cSortSelLabel">Steam Collection</span><span class="spb-arrow">▾</span></button>
             <div class="pick-dd" id="cSortSelDd"></div>
           </div>
         </div>
@@ -343,7 +343,7 @@
     <div id="plcLog"></div>
     </div>
     <div class="ma">
-      <button class="mb2 c" id="plcClose">Close</button>
+      <button class="mb2" id="plcClose">Close</button>
     </div>
   </div>
 </div>
@@ -363,7 +363,7 @@
       <div id="ggFetchList" style="margin-top:.55rem;max-height:110px;overflow-y:auto;font-size:.74rem;color:var(--t3);line-height:1.7"></div>
     </div>
     <div class="ma">
-      <button class="mb2 c" id="ggFetchClose" style="display:none">Close</button>
+      <button class="mb2" id="ggFetchClose" style="display:none">Close</button>
       <button class="mb2" id="ggFetchHide">Hide</button>
       <button class="mb2" id="ggFetchCancel">Cancel</button>
     </div>
@@ -381,7 +381,7 @@
     <div id="rdcLog"></div>
     </div><!-- /.modal-body -->
     <div class="ma">
-      <button class="mb2 c" id="rdcClose">Close</button>
+      <button class="mb2" id="rdcClose">Close</button>
     </div>
   </div>
 </div>
@@ -396,24 +396,27 @@
     <div class="mt" id="btcModalTitle" style="color:var(--green)">Move to Collection</div>
     <div id="btcTitle" style="font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;color:var(--t2);margin-bottom:.8rem;letter-spacing:.02em"></div>
     <!-- Platform pills (populated by JS) -->
-    <div class="btc-plat-pills" id="btcPlatPills"></div>
+    <div class="fr">
+      <label>Platform <sup class="req">mandatory</sup></label>
+      <div class="btc-plat-pills" id="btcPlatPills"></div>
+    </div>
     <!-- Store (styled picker) -->
     <div class="fr">
-      <label>Store</label>
+      <label>Store <sup class="req">mandatory</sup></label>
       <input type="hidden" id="btcStore" value="">
-      <div class="pick-wrap">
-        <button type="button" class="store-pick-btn" id="btcStorePick"><span id="btcStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
-        <div class="pick-dd" id="btcStoreDd"></div>
+      <div class="genre-wrap" id="btcStoreWrap">
+        <input type="text" class="cir" id="btcStoreInput" placeholder="Type or pick a store…" autocomplete="off">
+        <div class="genre-dd" id="btcStoreDd"></div>
       </div>
     </div>
     <!-- Cost + Purchase date -->
-    <div class="fg">
+    <div class="fg2">
       <div class="fr"><label>Cost (€)</label><input type="number" id="btcCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
-      <div class="fr"><label>Purchase date</label><input type="date" id="btcDate" autocomplete="off"></div>
+      <div class="fr"><label>Purchase date <sup class="req">mandatory</sup></label><input type="date" id="btcDate" autocomplete="off"></div>
     </div>
     <!-- Play status (styled button) -->
     <div class="fr">
-      <label>Play status</label>
+      <label>Play status <sup class="req">mandatory</sup></label>
       <input type="hidden" id="btcPlayStatus" value="Unplayed">
       <div class="pick-wrap">
         <button type="button" id="btcPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
@@ -422,7 +425,7 @@
     </div>
     <!-- Steam Collection (hidden when non-Steam platform selected) -->
     <div class="fr" id="btcColSection">
-      <label>Steam Collection <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
+      <label>Steam Collection <sup class="req">mandatory</sup> <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
       <div class="genre-wrap">
         <div class="ciw" id="btcColWrap"><input type="text" class="cir" id="btcColInput" placeholder="Type to filter…" autocomplete="off"></div>
         <div class="genre-dd" id="btcColDd"></div>
@@ -430,7 +433,7 @@
     </div>
     </div><!-- /.modal-body -->
     <div class="ma">
-      <button class="mb2 c" id="btcCancel">Cancel</button>
+      <button class="mb2" id="btcCancel">Cancel</button>
       <button class="mb2 add" id="btcConfirm">Add to Collection</button>
     </div>
   </div>
@@ -504,8 +507,8 @@
       <input type="url" id="fStore" placeholder="https://store.steampowered.com/app/…">
     </div>
     <!-- Row 2: Title + App ID -->
-    <div class="fg">
-      <div class="fr"><label>Title *</label><input type="text" id="fTitle" placeholder="Game title"></div>
+    <div class="fg2">
+      <div class="fr"><label>Title <sup class="req">mandatory</sup></label><input type="text" id="fTitle" placeholder="Game title"></div>
       <div class="fr">
         <label>Steam App ID</label>
         <input type="text" id="fAppId" placeholder="e.g. 2239770" inputmode="numeric">
@@ -514,7 +517,10 @@
       </div>
     </div>
     <!-- Row 3: Cover preview + URL -->
-    <img id="cprev" class="cprev" alt="Cover preview">
+    <div id="cprevWrap" class="cprev-wrap">
+      <img id="cprev" class="cprev" alt="Cover preview">
+      <div id="cprevPlaceholder" class="cprev-placeholder">Cover art appears here</div>
+    </div>
     <div class="cover-hint" id="coverHint">⚠ CDN image not found — paste the correct URL below</div>
     <div class="fr" style="margin-top:.35rem">
       <label>Cover URL <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">(auto-filled from App ID · or paste your own)</span></label>
@@ -522,10 +528,10 @@
     </div>
     <div class="fr">
       <label>Short Description <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— auto-filled from Steam, editable</span></label>
-      <textarea id="fShortDesc" style="min-height:54px;resize:vertical" placeholder="Brief description of the game…"></textarea>
+      <textarea id="fShortDesc" placeholder="Brief description of the game…"></textarea>
     </div>
     <!-- Row: Type + [Base Game when DLC] + Priority -->
-    <div class="type-row">
+    <div class="fg3-mid-stretch">
       <div class="fr">
         <label>Type</label>
         <div class="type-tog">
@@ -534,12 +540,12 @@
         </div>
         <input type="hidden" id="fType" value="game">
       </div>
-      <div class="fr" id="parentAppIdRow" style="display:none">
-        <label>Base Game <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— required for DLC</span></label>
-        <div class="ac-wrap">
+      <div class="fr disabled" id="parentAppIdRow">
+        <label>Base Game <sup class="req">mandatory</sup> <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— required for DLC</span></label>
+        <div class="genre-wrap">
           <input type="text" id="fParentSearch" placeholder="Search by title or App ID…" autocomplete="off">
           <input type="hidden" id="fParentAppId">
-          <div class="ac-dd" id="parentDd"></div>
+          <div class="genre-dd" id="parentDd"></div>
         </div>
       </div>
       <div class="fr">
@@ -561,7 +567,7 @@
       </div>
     </div>
     <!-- Row 5: Dev + Publisher -->
-    <div class="fg">
+    <div class="fg2">
       <div class="fr">
         <label>Developer</label>
         <div class="genre-wrap" id="devGWrap">
@@ -578,7 +584,7 @@
       </div>
     </div>
     <!-- Row 6: Release date + Price + Hotness -->
-    <div class="fg-dates">
+    <div class="fg4">
       <div class="fr">
         <label>Release date</label>
         <!-- Overlay container: date and tba text occupy same space -->
@@ -594,7 +600,8 @@
         </div>
       </div>
       <div class="fr"><label>Price (€)</label><input type="number" id="fPrice" placeholder="29.99" step="0.01" min="0" autocomplete="off"></div>
-      <div class="fr"><label>Hotness <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">1–100</span></label><input type="number" id="fHotness" placeholder="—" min="1" max="100" autocomplete="off"></div>
+      <div class="fr"><label>Hotness</label><input type="number" id="fHotness" placeholder="1 to 100" min="1" max="100" autocomplete="off"></div>
+      <div class="fr"><label>Live prices</label><div class="fetch-tog"><button type="button" class="fetch-btn inc on" id="fFetchInc">INCLUDE</button><button type="button" class="fetch-btn skip" id="fFetchSkip">SKIP</button></div></div>
     </div>
     <!-- Row 8: Tags -->
     <div class="fr">
@@ -607,25 +614,25 @@
     <!-- Collection fields (shown only when adding directly to collection) -->
     <div id="modalColSection" style="display:none;border-top:1px solid var(--bd);margin-top:.6rem;padding-top:.6rem">
       <div style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:.6rem">Collection Details</div>
-      <div class="fr" style="margin-bottom:.5rem">
-        <label>Platform</label>
+      <div class="fr">
+        <label>Platform <sup class="req">mandatory</sup></label>
         <div class="btc-plat-pills" id="modalColPlatPills"></div>
       </div>
       <!-- Store + Cost + Purchase date -->
-      <div class="fr" style="margin-bottom:.5rem">
-        <label>Store</label>
+      <div class="fr">
+        <label>Store <sup class="req">mandatory</sup></label>
         <input type="hidden" id="fColStore" value="">
-        <div class="pick-wrap">
-          <button type="button" class="store-pick-btn" id="fColStorePick"><span id="fColStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
-          <div class="pick-dd" id="fColStoreDd"></div>
+        <div class="genre-wrap" id="fColStoreWrap">
+          <input type="text" class="cir" id="fColStoreInput" placeholder="Type or pick a store…" autocomplete="off">
+          <div class="genre-dd" id="fColStoreDd"></div>
         </div>
       </div>
-      <div class="fg" style="margin-bottom:.5rem">
-        <div class="fr"><label>Cost (€)</label><input type="number" id="fColCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
-        <div class="fr"><label>Purchase date</label><input type="date" id="fColDate" autocomplete="off"></div>
+      <div class="fg2">
+        <div class="fr"><label>Cost (€) <sup class="req">mandatory</sup></label><input type="number" id="fColCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
+        <div class="fr"><label>Purchase date <sup class="req">mandatory</sup></label><input type="date" id="fColDate" autocomplete="off"></div>
       </div>
-      <div class="fr" style="margin-bottom:.5rem">
-        <label>Play status</label>
+      <div class="fr">
+        <label>Play status <sup class="req">mandatory</sup></label>
         <input type="hidden" id="fColPlayStatus" value="Unplayed">
         <div class="pick-wrap">
           <button type="button" id="fColPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
@@ -633,7 +640,7 @@
         </div>
       </div>
       <div class="fr" id="fColSteamSection">
-        <label>Steam Collection <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
+        <label>Steam Collection <sup class="req">mandatory</sup> <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
         <div class="genre-wrap">
           <div class="ciw" id="fColColWrap"><input type="text" class="cir" id="fColColInput" placeholder="Type to filter…" autocomplete="off"></div>
           <div class="genre-dd" id="fColColDd"></div>
@@ -659,7 +666,7 @@
     </div>
     </div><!-- /.modal-body -->
     <div class="ma">
-      <button class="mb2 c" id="mcancel">Cancel</button>
+      <button class="mb2" id="mcancel">Cancel</button>
       <button class="mb2 p" id="msave">Save game</button>
     </div>
   </div>
@@ -670,12 +677,12 @@
   <div class="modal" style="max-width:400px">
     <div class="modal-body">
     <div class="mt" style="color:var(--pink)">Remove from list</div>
-    <div class="fr"><label>Why are you removing this game?</label>
-      <textarea class="rta" id="rmNote" style="min-height:70px" placeholder="Not interested anymore, already bought elsewhere…"></textarea>
+    <div class="fr"><label>Why are you removing this game? <sup class="req">mandatory</sup></label>
+      <textarea class="rta" id="rmNote" placeholder="Not interested anymore, already bought elsewhere…"></textarea>
     </div>
     </div><!-- /.modal-body -->
     <div class="ma">
-      <button class="mb2 c" id="rmCancel">Cancel</button>
+      <button class="mb2" id="rmCancel">Cancel</button>
       <button class="mb2 d" id="rmConfirm">Remove</button>
     </div>
   </div>
@@ -689,7 +696,7 @@
     <div class="fr"><label>Restore to which list?</label></div>
     </div><!-- /.modal-body -->
     <div class="ma">
-      <button class="mb2 c" id="riCancel">Cancel</button>
+      <button class="mb2" id="riCancel">Cancel</button>
       <button class="mb2 add" id="riWl">Wishlist</button>
       <button class="mb2 p" id="riBt">Bought</button>
     </div>
@@ -705,7 +712,7 @@
     <p style="margin:.5rem 0 1rem;color:var(--t2);font-size:.82rem">This game hasn't been released yet. It will show as <b style="color:var(--amber)">PRE-ORDER</b> until the release date.</p>
     </div><!-- /.modal-body -->
     <div class="ma">
-      <button class="mb2 c" id="preorderCancel">Cancel</button>
+      <button class="mb2" id="preorderCancel">Cancel</button>
       <button class="mb2 warn" id="preorderConfirmBtn">Add to Collection</button>
     </div>
   </div>
@@ -720,7 +727,7 @@
     <p style="margin:.5rem 0 1rem;color:var(--t2);font-size:.82rem">All purchase data (platform, store, cost, date) will be removed.</p>
     </div><!-- /.modal-body -->
     <div class="ma">
-      <button class="mb2 c" id="wlovCancel">Cancel</button>
+      <button class="mb2" id="wlovCancel">Cancel</button>
       <button class="mb2 d" id="wlovConfirmBtn">Move to Wishlist</button>
     </div>
   </div>

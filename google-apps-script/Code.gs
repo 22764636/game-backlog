@@ -330,7 +330,7 @@ function getSheet(name) {
       'priority','hotness','releaseDate','price',
       'developer','publisher','cover','storeLink','type','parentAppId',
       'myRating','myReview','steamWishlist','added','removeNote','notes',
-      'purchases','tags','shortDescription','delisted'
+      'purchases','tags','shortDescription','delisted','skipGGFetch'
     ]);
   }
   return sheet;
