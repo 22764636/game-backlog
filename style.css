@@ -384,8 +384,9 @@ button{text-transform:none;letter-spacing:0}
 .hn{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;color:var(--pink);min-width:2rem;text-align:right}
 /* .stars / .star moved to panel nav section above */
 .rta{width:100%;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);
-  padding:.45rem .6rem;color:var(--text);font-size:.78rem;resize:vertical;min-height:60px;outline:none;transition:border-color .15s}
+  padding:.42rem .65rem;color:var(--text);font-size:.78rem;resize:vertical;min-height:60px;outline:none;transition:border-color .15s}
 .rta:focus{border-color:var(--blue)}
+#rmNote{min-height:70px}
 
 /* Panel nav arrows */
 .pcnav{position:absolute;bottom:.55rem;left:.55rem;display:flex;gap:.3rem;z-index:2}
@@ -510,7 +511,7 @@ button{text-transform:none;letter-spacing:0}
   padding:2px 6px;font-size:.66rem;font-weight:500;display:inline-flex;align-items:center;gap:.18rem}
 .cich-tag{background:#0a1824;border:1px solid #1a4060;color:#5db8e8;border-radius:4px;user-select:none;
   padding:2px 6px;font-size:.66rem;font-weight:500;display:inline-flex;align-items:center;gap:.18rem}
-.cir{background:transparent;border:none;outline:none;color:var(--text);font-size:.76rem;flex:1;min-width:60px;padding:0}
+.cir{background:transparent;border:none;outline:none;color:var(--text);font-size:.78rem;flex:1;min-width:60px;padding:0}
 
 /* genre suggestions dropdown */
 .genre-wrap{position:relative}
@@ -602,7 +603,7 @@ button{text-transform:none;letter-spacing:0}
 .note-btn.save{border-color:var(--blue);color:var(--blue)}
 .note-btn.save:hover{background:var(--blue);color:#031329}
 .note-btn.del:hover{border-color:var(--pink);color:var(--pink)}
-.note-add{width:100%;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);padding:.5rem .6rem;color:var(--text);font-size:.78rem;resize:vertical;min-height:80px;outline:none;font-family:inherit;transition:border-color .15s;margin-bottom:.35rem}
+.note-add{width:100%;background:var(--base);border:1px solid var(--bd);border-radius:var(--r);padding:.42rem .65rem;color:var(--text);font-size:.78rem;resize:vertical;min-height:80px;outline:none;font-family:inherit;transition:border-color .15s;margin-bottom:.35rem}
 .note-add:focus{border-color:var(--blue)}
 .note-save-btn{width:100%;background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--t2);padding:.35rem;font-size:.72rem;font-weight:500;cursor:pointer;transition:all .15s}
 .note-save-btn:hover{border-color:var(--blue);color:var(--blue)}
@@ -1011,7 +1012,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .store-pick-opt:hover{background:#02b3fc15;color:var(--text)}
 .store-pick-opt.active{background:#02b3fc18;color:var(--blue)}
 
-.btc-plat-pills{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem}
+.btc-plat-pills{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:0}
 .btc-plat-pill{padding:.25rem .65rem;border-radius:20px;border:1.5px solid var(--bd);
   background:transparent;color:var(--t2);font-size:.7rem;font-weight:700;cursor:pointer;
   transition:all .15s;font-family:'Rajdhani',sans-serif;letter-spacing:.04em;text-transform:uppercase}
