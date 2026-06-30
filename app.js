@@ -2981,9 +2981,10 @@ document.getElementById('btcColInput').addEventListener('focus',updateBtcColDd);
 function updateGenreDd(){
   const dd=document.getElementById('genreDd');
   const q=document.getElementById('genreInput').value.toLowerCase();
-  const opts=allGenres().filter(g=>!cGenres.includes(g)&&(q===''||g.toLowerCase().includes(q)));
+  const freq={};games.forEach(g=>(g.genres||[]).forEach(x=>{if(x)freq[x]=(freq[x]||0)+1}));
+  const opts=Object.keys(freq).sort().filter(g=>!cGenres.includes(g)&&(q===''||g.toLowerCase().includes(q)));
   if(!opts.length){dd.classList.remove('on');return}
-  dd.innerHTML=opts.map(g=>`<div class="dd-opt" data-g="${esc(g)}">${esc(g)}</div>`).join('');
+  dd.innerHTML=opts.map(g=>`<div class="dd-opt" data-g="${esc(g)}">${esc(g)}<span class="dd-opt-count">${freq[g]}</span></div>`).join('');
   dd.classList.add('on');
   dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cGenres.push(el.dataset.g);document.getElementById('genreInput').value='';renderGenres();dd.classList.remove('on')};
@@ -2996,9 +2997,11 @@ document.getElementById('genreInput').addEventListener('focus',updateGenreDd);
 function updateTagsDd(){
   const dd=document.getElementById('tagsDd');
   const q=(document.getElementById('tagsInput').value||'').toLowerCase().trim();
-  const all=allTagsSorted().filter(t=>!cTags.includes(t)&&(!q||t.toLowerCase().includes(q)));
+  const freq={};games.forEach(g=>(g.tags||[]).forEach(t=>{if(t)freq[t]=(freq[t]||0)+1}));
+  const all=Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b))
+    .filter(t=>!cTags.includes(t)&&(!q||t.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
-  dd.innerHTML=all.map(t=>`<div class="dd-opt" data-t="${esc(t)}">${esc(t)}</div>`).join('');
+  dd.innerHTML=all.map(t=>`<div class="dd-opt" data-t="${esc(t)}">${esc(t)}<span class="dd-opt-count">${freq[t]}</span></div>`).join('');
   dd.classList.add('on');
   dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{
@@ -3024,9 +3027,10 @@ let cDev=[],cPub=[];
 function updateDevDd(){
   const dd=document.getElementById('devDd');
   const q=(document.getElementById('fDev').value||'').toLowerCase().trim();
-  const all=allDevPub('developer').filter(v=>!cDev.includes(v)&&(!q||v.toLowerCase().includes(q)));
+  const freq={};games.forEach(g=>{const v=g.developer;if(Array.isArray(v))v.forEach(s=>{if(s)freq[s]=(freq[s]||0)+1});else if(v&&typeof v==='string')freq[v]=(freq[v]||0)+1;});
+  const all=Object.keys(freq).sort().filter(v=>!cDev.includes(v)&&(!q||v.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
-  dd.innerHTML=all.map(v=>`<div class="dd-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
+  dd.innerHTML=all.map(v=>`<div class="dd-opt" data-v="${esc(v)}">${esc(v)}<span class="dd-opt-count">${freq[v]}</span></div>`).join('');
   dd.classList.add('on');
   dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cDev.push(el.dataset.v);document.getElementById('fDev').value='';renderDev();updateDevDd();};
@@ -3035,9 +3039,10 @@ function updateDevDd(){
 function updatePubDd(){
   const dd=document.getElementById('pubDd');
   const q=(document.getElementById('fPub').value||'').toLowerCase().trim();
-  const all=allDevPub('publisher').filter(v=>!cPub.includes(v)&&(!q||v.toLowerCase().includes(q)));
+  const freq={};games.forEach(g=>{const v=g.publisher;if(Array.isArray(v))v.forEach(s=>{if(s)freq[s]=(freq[s]||0)+1});else if(v&&typeof v==='string')freq[v]=(freq[v]||0)+1;});
+  const all=Object.keys(freq).sort().filter(v=>!cPub.includes(v)&&(!q||v.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
-  dd.innerHTML=all.map(v=>`<div class="dd-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
+  dd.innerHTML=all.map(v=>`<div class="dd-opt" data-v="${esc(v)}">${esc(v)}<span class="dd-opt-count">${freq[v]}</span></div>`).join('');
   dd.classList.add('on');
   dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cPub.push(el.dataset.v);document.getElementById('fPub').value='';renderPub();updatePubDd();};
