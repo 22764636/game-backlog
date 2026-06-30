@@ -136,6 +136,11 @@ button{text-transform:none;letter-spacing:0}
   border-radius:var(--r);padding:3px 8px;font-size:.65rem;font-weight:400;
   white-space:nowrap;pointer-events:none;z-index:200;color:var(--text);letter-spacing:0;text-transform:none}
 .col-ps-badge:hover .ps-tip{display:block}
+/* play status modal selector button — same pill shape as type-btn/prio-btn */
+.ps-modal-btn{padding:.25rem .65rem;border-radius:20px;border:1.5px solid transparent;cursor:pointer;
+  font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  font-family:'Rajdhani',sans-serif;transition:all .15s;align-self:flex-start}
+.ps-modal-btn:hover{filter:brightness(1.15)}
 /* play status colours */
 .ps-UP{background:#2a2a2a;color:#888}
 .ps-IP{background:#0a2a4a;color:#4ab0f5}
@@ -525,6 +530,7 @@ button{text-transform:none;letter-spacing:0}
 .fg3-mid-stretch{display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.6rem}
 .fg3-mid-stretch > .fr{flex-shrink:0;margin-bottom:0}
 .fg3-mid-stretch > #parentAppIdRow{flex:1;min-width:0;margin-bottom:0}
+.fg2 > .fr,.fg3 > .fr,.fg4 > .fr{margin-bottom:0}
 @media(max-width:560px){
   .fg3-mid-stretch{flex-wrap:wrap}
   .fg3-mid-stretch > #parentAppIdRow{flex-basis:100%;order:10}
@@ -981,7 +987,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   background:transparent;color:var(--t2);font-size:.7rem;font-weight:700;cursor:pointer;
   transition:all .15s;font-family:'Rajdhani',sans-serif;letter-spacing:.04em;text-transform:uppercase}
 .btc-plat-pill:hover{border-color:var(--blue);color:var(--text)}
-.btc-plat-pill.selected{box-shadow:0 0 0 2px #fff3,inset 0 0 0 1px #fff2}
+.btc-plat-pill.selected{border-color:transparent}
 
 /* Add type picker */
 .add-pick-btn{display:block;width:100%;padding:.55rem .75rem;text-align:left;background:transparent;border:none;cursor:pointer;border-radius:var(--r);color:var(--text);}

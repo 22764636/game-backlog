@@ -2022,15 +2022,15 @@ const STEAM_COLLECTIONS=[
 function _syncBtcPsBtn(val){
   const btn=document.getElementById('btcPlayStatusBtn');if(!btn)return;
   const m=PS_META[val]||{code:'UP',cls:'ps-UP'};
-  btn.className='col-ps-badge '+m.cls;
-  btn.style.cssText='font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start';
-  btn.innerHTML=m.code+'<span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">'+esc(val)+'</span>';
+  btn.className='ps-modal-btn '+m.cls;
+  btn.style.cssText='';
+  btn.textContent=val||'Unplayed';
 }
 function _btcSelectPlat(plat){
   btcSelPlat=plat;
   document.querySelectorAll('#btcPlatPills .btc-plat-pill').forEach(pill=>{
     const active=pill.dataset.p===plat;
-    pill.classList.toggle('active',active);
+    pill.classList.toggle('selected',active);
     pill.style.background=active?platColor(plat):'';
     pill.style.color=active?platTextColor(plat):'';
     pill.style.borderColor=active?'transparent':'';
@@ -2140,9 +2140,9 @@ function openPsPicker(badge,gameId){
 function _syncModalPsBtn(val){
   const btn=document.getElementById('fColPlayStatusBtn');if(!btn)return;
   const m=PS_META[val]||{code:'UP',cls:'ps-UP'};
-  btn.className='col-ps-badge '+m.cls;
-  btn.style.cssText='font-size:.72rem;padding:4px 10px;cursor:pointer;align-self:flex-start';
-  btn.innerHTML=m.code+'<span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">'+esc(val)+'</span>';
+  btn.className='ps-modal-btn '+m.cls;
+  btn.style.cssText='';
+  btn.textContent=val||'Unplayed';
 }
 // fColPlayStatusBtn — inline picker
 document.addEventListener('click',e=>{
