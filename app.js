@@ -103,19 +103,6 @@ function setSyncStatus(state, msg){
       setSyncStatus._hideTimer = setTimeout(()=>{ pill.className='hidden'; },2500);
     }
   }
-  // ── Mobile hamburger Re-sync button ──
-  const hmResync = document.getElementById('hmResyncBtn');
-  if(hmResync){
-    if(state==='ok'||state==='err'||state==='offline'){
-      hmResync.style.display='';
-      hmResync.textContent = state==='err' ? 'Re-sync (failed)' : state==='offline' ? 'Offline mode' : 'Re-sync';
-      hmResync.style.color = state==='err' ? 'var(--pink)' : state==='offline' ? 'var(--t3)' : '';
-    } else if(state==='syncing'){
-      hmResync.textContent='Syncing…';
-      hmResync.style.display='';
-      hmResync.style.color='var(--amber)';
-    }
-  }
 }
 
 // Re-sync: fetch from Sheet, merge (Sheet wins), re-render
@@ -462,8 +449,6 @@ function openCalendar(){
   // Force list view on mobile
   if(window.innerWidth<=640){
     calView='list';
-    const _cg=document.getElementById('calGridBtn');if(_cg)_cg.classList.remove('on');
-    const _cl=document.getElementById('calListBtn');if(_cl)_cl.classList.add('on');
   }
   document.getElementById('calOv').classList.add('on');
   document.getElementById('calOv').style.display='flex';
@@ -2206,8 +2191,8 @@ function _toggleInlineStorePicker(dd,stores,currentVal,onSelect,triggerEl){
   const lst=document.createElement('div');lst.className='store-picker-list';
   function buildList(q){
     const f=q?stores.filter(s=>s.toLowerCase().includes(q.toLowerCase())):stores;
-    lst.innerHTML=f.map(s=>`<div class="pick-opt${s===currentVal?' active':''}" data-s="${esc(s)}">${esc(s)}</div>`).join('');
-    lst.querySelectorAll('.pick-opt').forEach(opt=>{
+    lst.innerHTML=f.map(s=>`<div class="dd-opt${s===currentVal?' active':''}" data-s="${esc(s)}">${esc(s)}</div>`).join('');
+    lst.querySelectorAll('.dd-opt').forEach(opt=>{
       opt.onclick=e=>{e.stopPropagation();onSelect(opt.dataset.s);dd.classList.remove('on')};
     });
   }
@@ -2385,7 +2370,7 @@ function openPanel(id){
   id=g.id; // normalise to stored type
   openId=id;
   if(!(history.state&&history.state.panelOpen)){history.pushState({panelOpen:true},'');}
-  const _ctb=document.getElementById("ctb");if(_ctb)_ctb.style.zIndex="80";cStars=g.myRating||0;
+  cStars=g.myRating||0;
   const cu=g.cover||(g.steamAppId?sc(g.steamAppId):'');
   const pi=document.getElementById('pimg'),pp=document.getElementById('pph');
   if(cu){pi.src=cu;pi.style.display='block';pp.style.display='none'}else{pi.style.display='none';pp.style.display='flex'}
@@ -3005,8 +2990,8 @@ function updateModalColDd(){
   const q=(document.getElementById('fColColInput').value||'').toLowerCase().trim();
   const opts=allSteamCollections().filter(s=>!cModalCol.includes(s)&&(!q||s.toLowerCase().includes(q)));
   if(!opts.length){dd.classList.remove('on');return}
-  dd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.innerHTML=opts.map(s=>`<div class="dd-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cModalCol.push(el.dataset.v);document.getElementById('fColColInput').value='';renderModalCol();dd.classList.remove('on')};
   });
   dd.classList.add('on');
@@ -3019,8 +3004,8 @@ function updateBtcColDd(){
   const q=(document.getElementById('btcColInput').value||'').toLowerCase().trim();
   const opts=allSteamCollections().filter(s=>!cBtcCol.includes(s)&&(!q||s.toLowerCase().includes(q)));
   if(!opts.length){dd.classList.remove('on');return}
-  dd.innerHTML=opts.map(s=>`<div class="genre-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.innerHTML=opts.map(s=>`<div class="dd-opt" data-v="${esc(s)}">${esc(colLabel(s))}</div>`).join('');
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cBtcCol.push(el.dataset.v);document.getElementById('btcColInput').value='';renderBtcCol();dd.classList.remove('on')};
   });
   dd.classList.add('on');
@@ -3034,9 +3019,9 @@ function updateGenreDd(){
   const q=document.getElementById('genreInput').value.toLowerCase();
   const opts=allGenres().filter(g=>!cGenres.includes(g)&&(q===''||g.toLowerCase().includes(q)));
   if(!opts.length){dd.classList.remove('on');return}
-  dd.innerHTML=opts.map(g=>`<div class="genre-opt" data-g="${esc(g)}">${esc(g)}</div>`).join('');
+  dd.innerHTML=opts.map(g=>`<div class="dd-opt" data-g="${esc(g)}">${esc(g)}</div>`).join('');
   dd.classList.add('on');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cGenres.push(el.dataset.g);document.getElementById('genreInput').value='';renderGenres();dd.classList.remove('on')};
   });
 }
@@ -3049,9 +3034,9 @@ function updateTagsDd(){
   const q=(document.getElementById('tagsInput').value||'').toLowerCase().trim();
   const all=allTagsSorted().filter(t=>!cTags.includes(t)&&(!q||t.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
-  dd.innerHTML=all.map(t=>`<div class="genre-opt" data-t="${esc(t)}">${esc(t)}</div>`).join('');
+  dd.innerHTML=all.map(t=>`<div class="dd-opt" data-t="${esc(t)}">${esc(t)}</div>`).join('');
   dd.classList.add('on');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{
       cTags.push(el.dataset.t);
       document.getElementById('tagsInput').value='';
@@ -3077,9 +3062,9 @@ function updateDevDd(){
   const q=(document.getElementById('fDev').value||'').toLowerCase().trim();
   const all=allDevPub('developer').filter(v=>!cDev.includes(v)&&(!q||v.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
-  dd.innerHTML=all.map(v=>`<div class="genre-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
+  dd.innerHTML=all.map(v=>`<div class="dd-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
   dd.classList.add('on');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cDev.push(el.dataset.v);document.getElementById('fDev').value='';renderDev();updateDevDd();};
   });
 }
@@ -3088,9 +3073,9 @@ function updatePubDd(){
   const q=(document.getElementById('fPub').value||'').toLowerCase().trim();
   const all=allDevPub('publisher').filter(v=>!cPub.includes(v)&&(!q||v.toLowerCase().includes(q)));
   if(!all.length){dd.classList.remove('on');return}
-  dd.innerHTML=all.map(v=>`<div class="genre-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
+  dd.innerHTML=all.map(v=>`<div class="dd-opt" data-v="${esc(v)}">${esc(v)}</div>`).join('');
   dd.classList.add('on');
-  dd.querySelectorAll('.genre-opt').forEach(el=>{
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
     el.onclick=()=>{cPub.push(el.dataset.v);document.getElementById('fPub').value='';renderPub();updatePubDd();};
   });
 }
@@ -3398,8 +3383,8 @@ document.getElementById('prioBtns').addEventListener('click',e=>{
       (g.title||'').toLowerCase().includes(ql)||String(g.steamAppId).includes(q)
     )).slice(0,12);
     if(!matches.length){dd.classList.remove('on');return}
-    dd.innerHTML=matches.map(g=>`<div class="genre-opt" data-appid="${esc(String(g.steamAppId))}" data-title="${esc(g.title||'')}">${esc(g.title||'')} <span style="color:var(--t3);font-size:.65rem">${g.steamAppId}</span></div>`).join('');
-    dd.querySelectorAll('.genre-opt').forEach(el=>{
+    dd.innerHTML=matches.map(g=>`<div class="dd-opt" data-appid="${esc(String(g.steamAppId))}" data-title="${esc(g.title||'')}">${esc(g.title||'')} <span style="color:var(--t3);font-size:.65rem">${g.steamAppId}</span></div>`).join('');
+    dd.querySelectorAll('.dd-opt').forEach(el=>{
       el.addEventListener('click',()=>{inp.value=el.dataset.title;hidden.value=el.dataset.appid;dd.classList.remove('on');});
     });
     dd.classList.add('on');
@@ -4006,8 +3991,8 @@ function _initFbarPicker(hidId,btnId,lblId,ddId,opts){
     const wasOpen=dd.classList.contains('on');
     document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on')});
     if(wasOpen)return;
-    dd.innerHTML=opts.map(o=>`<div class="pick-opt${o.v===hid.value?' active':''}" data-v="${esc(o.v)}">${esc(o.l)}</div>`).join('');
-    dd.querySelectorAll('.pick-opt').forEach(opt=>{
+    dd.innerHTML=opts.map(o=>`<div class="dd-opt${o.v===hid.value?' active':''}" data-v="${esc(o.v)}">${esc(o.l)}</div>`).join('');
+    dd.querySelectorAll('.dd-opt').forEach(opt=>{
       opt.addEventListener('click',ev=>{
         ev.stopPropagation();hid.value=opt.dataset.v;_sync();
         dd.classList.remove('on');renderAll();
@@ -4866,11 +4851,11 @@ function _closeAllFloating(){
     const PRIOS=[{value:'high',label:'High'},{value:'medium',label:'Medium'},{value:'low',label:'Low'}];
     const freq={high:0,medium:0,low:0};
     games.filter(g=>g.status!=='bought').forEach(g=>{const p=g.priority||'medium';freq[p]=(freq[p]||0)+1;});
-    list.innerHTML=`<div class="fbar-plat-pills">${PRIOS.map(({value,label})=>{
+    list.innerHTML=`<div class="fbar-pills">${PRIOS.map(({value,label})=>{
       const sel=fPrios.has(value);
-      return`<button class="b-plat fbar-plat-pill${sel?' selected':''}" data-val="${value}" style="background:${prioColor(value)};color:#031329">${label}<span style="margin-left:.25rem;opacity:.75">${freq[value]||0}</span></button>`;
+      return`<button class="b-plat fbar-pill${sel?' selected':''}" data-val="${value}" style="background:${prioColor(value)};color:#031329">${label}<span style="margin-left:.25rem;opacity:.75">${freq[value]||0}</span></button>`;
     }).join('')}</div>`;
-    list.querySelectorAll('.fbar-plat-pill').forEach(el=>{
+    list.querySelectorAll('.fbar-pill').forEach(el=>{
       el.addEventListener('click',()=>{
         const v=el.dataset.val;
         fPrios.has(v)?fPrios.delete(v):fPrios.add(v);
@@ -4903,12 +4888,12 @@ function _closeAllFloating(){
     games.filter(g=>g.status==='bought').forEach(g=>{const s=g.playStatus||'Unplayed';freq[s]=(freq[s]||0)+1;});
     const opts=order.filter(s=>freq[s]>0);
     if(!opts.length){list.innerHTML=`<div class="fbar-opt" style="color:var(--t3);cursor:default">No options</div>`;return;}
-    list.innerHTML=`<div class="fbar-plat-pills">${opts.map(v=>{
+    list.innerHTML=`<div class="fbar-pills">${opts.map(v=>{
       const m=PS_META[v]||{code:'UP',cls:'ps-UP'};
       const sel=cfPlayStatus.has(v);
-      return`<button class="col-ps-badge ${m.cls} fbar-plat-pill${sel?' selected':''}" data-val="${esc(v)}" style="cursor:pointer">${m.code}<span style="margin-left:.3rem;opacity:.7">${freq[v]||0}</span></button>`;
+      return`<button class="col-ps-badge ${m.cls} fbar-pill${sel?' selected':''}" data-val="${esc(v)}" style="cursor:pointer">${m.code}<span style="margin-left:.3rem;opacity:.7">${freq[v]||0}</span></button>`;
     }).join('')}</div>`;
-    list.querySelectorAll('.fbar-plat-pill').forEach(el=>{
+    list.querySelectorAll('.fbar-pill').forEach(el=>{
       el.addEventListener('click',()=>{
         const v=el.dataset.val;
         cfPlayStatus.has(v)?cfPlayStatus.delete(v):cfPlayStatus.add(v);
@@ -4924,11 +4909,11 @@ function _closeAllFloating(){
     const freq={};games.filter(g=>g.status==='bought').forEach(g=>{ownedPlatforms(g).forEach(p=>{if(p)freq[p]=(freq[p]||0)+1});});
     const platforms=Object.keys(freq);
     if(!platforms.length){list.innerHTML=`<div class="fbar-opt" style="color:var(--t3);cursor:default">No options</div>`;return;}
-    list.innerHTML=`<div class="fbar-plat-pills">${platforms.map(p=>{
+    list.innerHTML=`<div class="fbar-pills">${platforms.map(p=>{
       const sel=cfPlats.has(p);
-      return`<button class="b-plat fbar-plat-pill${sel?' selected':''}" data-val="${esc(p)}" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}<span style="margin-left:.25rem;opacity:.75">${freq[p]}</span></button>`;
+      return`<button class="b-plat fbar-pill${sel?' selected':''}" data-val="${esc(p)}" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}<span style="margin-left:.25rem;opacity:.75">${freq[p]}</span></button>`;
     }).join('')}</div>`;
-    list.querySelectorAll('.fbar-plat-pill').forEach(el=>{
+    list.querySelectorAll('.fbar-pill').forEach(el=>{
       el.addEventListener('click',()=>{
         const v=el.dataset.val;
         if(cfPlatExclusive){
