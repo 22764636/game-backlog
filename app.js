@@ -3309,6 +3309,16 @@ function setFetchState(skip){
 document.getElementById('fFetchInc').addEventListener('click',()=>setFetchState(false));
 document.getElementById('fFetchSkip').addEventListener('click',()=>setFetchState(true));
 
+document.getElementById('fHotness').addEventListener('input',function(){
+  this.value=this.value.replace(/[^0-9]/g,'');
+  if(this.value!==''){
+    let n=parseInt(this.value,10);
+    if(n<1)n=1;
+    if(n>100)n=100;
+    this.value=n;
+  }
+});
+
 function setTbaState(on){
   document.getElementById('tbaBtn').classList.toggle('on',on);
   document.getElementById('dateRow').style.display=on?'none':'grid';
