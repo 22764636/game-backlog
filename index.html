@@ -396,10 +396,13 @@
     <div class="mt" id="btcModalTitle" style="color:var(--green)">Move to Collection</div>
     <div id="btcTitle" style="font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;color:var(--t2);margin-bottom:.8rem;letter-spacing:.02em"></div>
     <!-- Platform pills (populated by JS) -->
-    <div class="btc-plat-pills" id="btcPlatPills"></div>
+    <div class="fr">
+      <label>Platform <sup class="req">mandatory</sup></label>
+      <div class="btc-plat-pills" id="btcPlatPills"></div>
+    </div>
     <!-- Store (styled picker) -->
     <div class="fr">
-      <label>Store</label>
+      <label>Store <sup class="req">mandatory</sup></label>
       <input type="hidden" id="btcStore" value="">
       <div class="pick-wrap">
         <button type="button" class="store-pick-btn" id="btcStorePick"><span id="btcStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
@@ -409,11 +412,11 @@
     <!-- Cost + Purchase date -->
     <div class="fg">
       <div class="fr"><label>Cost (€)</label><input type="number" id="btcCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
-      <div class="fr"><label>Purchase date</label><input type="date" id="btcDate" autocomplete="off"></div>
+      <div class="fr"><label>Purchase date <sup class="req">mandatory</sup></label><input type="date" id="btcDate" autocomplete="off"></div>
     </div>
     <!-- Play status (styled button) -->
     <div class="fr">
-      <label>Play status</label>
+      <label>Play status <sup class="req">mandatory</sup></label>
       <input type="hidden" id="btcPlayStatus" value="Unplayed">
       <div class="pick-wrap">
         <button type="button" id="btcPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
@@ -422,7 +425,7 @@
     </div>
     <!-- Steam Collection (hidden when non-Steam platform selected) -->
     <div class="fr" id="btcColSection">
-      <label>Steam Collection <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
+      <label>Steam Collection <sup class="req">mandatory</sup> <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
       <div class="genre-wrap">
         <div class="ciw" id="btcColWrap"><input type="text" class="cir" id="btcColInput" placeholder="Type to filter…" autocomplete="off"></div>
         <div class="genre-dd" id="btcColDd"></div>
@@ -535,7 +538,7 @@
         <input type="hidden" id="fType" value="game">
       </div>
       <div class="fr" id="parentAppIdRow" style="display:none">
-        <label>Base Game <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— required for DLC</span></label>
+        <label>Base Game <sup class="req">mandatory</sup> <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— required for DLC</span></label>
         <div class="ac-wrap">
           <input type="text" id="fParentSearch" placeholder="Search by title or App ID…" autocomplete="off">
           <input type="hidden" id="fParentAppId">
@@ -609,12 +612,12 @@
     <div id="modalColSection" style="display:none;border-top:1px solid var(--bd);margin-top:.6rem;padding-top:.6rem">
       <div style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:.6rem">Collection Details</div>
       <div class="fr" style="margin-bottom:.5rem">
-        <label>Platform</label>
+        <label>Platform <sup class="req">mandatory</sup></label>
         <div class="btc-plat-pills" id="modalColPlatPills"></div>
       </div>
       <!-- Store + Cost + Purchase date -->
       <div class="fr" style="margin-bottom:.5rem">
-        <label>Store</label>
+        <label>Store <sup class="req">mandatory</sup></label>
         <input type="hidden" id="fColStore" value="">
         <div class="pick-wrap">
           <button type="button" class="store-pick-btn" id="fColStorePick"><span id="fColStoreLabel">— select store —</span><span class="spb-arrow">▾</span></button>
@@ -622,11 +625,11 @@
         </div>
       </div>
       <div class="fg" style="margin-bottom:.5rem">
-        <div class="fr"><label>Cost (€)</label><input type="number" id="fColCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
-        <div class="fr"><label>Purchase date</label><input type="date" id="fColDate" autocomplete="off"></div>
+        <div class="fr"><label>Cost (€) <sup class="req">mandatory</sup></label><input type="number" id="fColCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
+        <div class="fr"><label>Purchase date <sup class="req">mandatory</sup></label><input type="date" id="fColDate" autocomplete="off"></div>
       </div>
       <div class="fr" style="margin-bottom:.5rem">
-        <label>Play status</label>
+        <label>Play status <sup class="req">mandatory</sup></label>
         <input type="hidden" id="fColPlayStatus" value="Unplayed">
         <div class="pick-wrap">
           <button type="button" id="fColPlayStatusBtn" class="col-ps-badge ps-UP" style="font-size:.72rem;padding:4px 10px;cursor:pointer">UP <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px">Unplayed</span></button>
@@ -634,7 +637,7 @@
         </div>
       </div>
       <div class="fr" id="fColSteamSection">
-        <label>Steam Collection <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
+        <label>Steam Collection <sup class="req">mandatory</sup> <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
         <div class="genre-wrap">
           <div class="ciw" id="fColColWrap"><input type="text" class="cir" id="fColColInput" placeholder="Type to filter…" autocomplete="off"></div>
           <div class="genre-dd" id="fColColDd"></div>
@@ -671,7 +674,7 @@
   <div class="modal" style="max-width:400px">
     <div class="modal-body">
     <div class="mt" style="color:var(--pink)">Remove from list</div>
-    <div class="fr"><label>Why are you removing this game?</label>
+    <div class="fr"><label>Why are you removing this game? <sup class="req">mandatory</sup></label>
       <textarea class="rta" id="rmNote" style="min-height:70px" placeholder="Not interested anymore, already bought elsewhere…"></textarea>
     </div>
     </div><!-- /.modal-body -->

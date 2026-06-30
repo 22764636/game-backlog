@@ -2319,6 +2319,10 @@ document.getElementById('btcov').onclick=e=>{if(e.target===e.currentTarget)histo
 
 document.getElementById('btcConfirm').onclick=()=>{
   const g=games.find(x=>x.id===btcId);if(!g)return;
+  if(!document.getElementById('btcStore').value){showToast('Please select a store.','err');return}
+  if(!document.getElementById('btcDate').value){showToast('Please enter a purchase date.','err');return}
+  const _btcStCol=document.getElementById('btcColSection');
+  if(_btcStCol&&_btcStCol.style.display!=='none'&&!cBtcCol.length){showToast('Please pick at least one Steam collection.','err');return}
   const costRaw=document.getElementById('btcCost').value.trim();
   const cost=costRaw!==''?parseFloat(costRaw).toFixed(2):'0.00';
   const dateRaw=document.getElementById('btcDate').value||'';
@@ -2953,6 +2957,7 @@ document.getElementById('pov').onclick=closePanel;
 function startRemove(id){rmId=id;document.getElementById('rmNote').value='';_pushModalHistory();document.getElementById('rmov').classList.add('on')}
 document.getElementById('rmCancel').onclick=()=>history.back();
 document.getElementById('rmConfirm').onclick=()=>{
+  if(!document.getElementById('rmNote').value.trim()){showToast('Please enter a reason for removing.','err');return}
   const g=games.find(x=>x.id===rmId);
   if(g){g.status='removed';g.removeNote=document.getElementById('rmNote').value.trim();save()}
   document.getElementById('rmov').classList.remove('on');_popModalHistory();closePanel();renderAll();
@@ -3751,6 +3756,15 @@ document.getElementById('mov').onclick=e=>{if(e.target===e.currentTarget)history
 document.getElementById('msave').onclick=()=>{
   const title=document.getElementById('fTitle').value.trim();
   if(!title){alert('Please enter a title.');return}
+  if(document.getElementById('fType').value==='dlc'&&!document.getElementById('fParentAppId').value.trim()){showToast('Please select a base game for this DLC.','err');return}
+  const _colSec=document.getElementById('modalColSection');
+  if(_colSec&&_colSec.style.display!=='none'){
+    if(!document.getElementById('fColStore').value){showToast('Please select a store.','err');return}
+    if(!document.getElementById('fColCost').value.trim()){showToast('Please enter a cost.','err');return}
+    if(!document.getElementById('fColDate').value){showToast('Please enter a purchase date.','err');return}
+    const _stCol=document.getElementById('fColSteamSection');
+    if(_stCol&&_stCol.style.display!=='none'&&!cModalCol.length){showToast('Please pick at least one Steam collection.','err');return}
+  }
   const _appIdChanged=document.getElementById('fAppId').value.trim()!==_originalAppId;
   if(_appIdChanged&&checkAppIdDup()){showToast('Fix the duplicate App ID before saving.','err');return}
   const hotRaw=document.getElementById('fHotness').value.trim();
