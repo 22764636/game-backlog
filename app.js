@@ -177,40 +177,6 @@ function fetchMeta(force){
 loadMetaCache();
 
 const PLATFORM_ORDER=['Steam','Epic Games','GOG','Other PC','Nintendo','PS','Xbox'];
-const PLATFORM_STORES={
-  'Steam':      ['Steam','Humble Bundle','Fanatical','Green Man Gaming','CDKeys','Instant Gaming','GameBillet','Gamesplanet','Gamivo','Indiegala','WinGameStore','G2A','Kinguin','Other'],
-  'Epic Games': ['Epic Games','Humble Bundle','CDKeys','Gamivo','G2A','Kinguin','Other'],
-  'GOG':        ['GOG','Humble Bundle','Fanatical','GameBillet','CDKeys','Other'],
-  'Other PC':   ['Origin / EA App','Battle.net','Ubisoft Connect','itch.io','Amazon','Other'],
-  'Nintendo':   ['Nintendo eShop','Amazon','Retail','CDKeys','Other'],
-  'PS':         ['PlayStation Store','Amazon','Retail','CDKeys','Eneba','Other'],
-  'Xbox':       ['Xbox Store','Amazon','Retail','CDKeys','Other'],
-};
-let _dynPlatStores=null;
-function getPlatformStores(plat){
-  if(_dynPlatStores&&_dynPlatStores[plat]&&_dynPlatStores[plat].length)return _dynPlatStores[plat];
-  return PLATFORM_STORES[plat]||['Steam','Other'];
-}
-function loadPlatformStores(){
-  if(!SHEET_URL)return;
-  if(USE_JSONP){
-    const cbName='_btbPS'+Date.now();
-    const script=document.createElement('script');
-    const timeout=setTimeout(()=>{delete window[cbName];try{document.head.removeChild(script)}catch(e){}},8000);
-    window[cbName]=data=>{
-      clearTimeout(timeout);delete window[cbName];try{document.head.removeChild(script)}catch(e){}
-      if(data&&typeof data==='object'&&!Array.isArray(data)&&!data.error)_dynPlatStores=data;
-    };
-    script.src=SHEET_URL+'?action=getPlatStores&callback='+cbName+'&_='+Date.now();
-    script.onerror=()=>{clearTimeout(timeout);delete window[cbName];};
-    document.head.appendChild(script);
-    return;
-  }
-  fetch(SHEET_URL+'?action=getPlatStores&_='+Date.now(),{mode:'cors'})
-    .then(r=>r.json())
-    .then(data=>{if(data&&typeof data==='object'&&!Array.isArray(data)&&!data.error)_dynPlatStores=data;})
-    .catch(()=>{});
-}
 function syncLegacyFromPurchases(g){
   const p0=g.purchases&&g.purchases[0];
   g.cost=p0?p0.cost||'':'';
@@ -814,7 +780,6 @@ async function initData(){
     setSyncStatus('ok','Loaded');
     dispatchRender();
     fetchMeta();
-    loadPlatformStores();
     loadSavedPrices();
     if(_migrationHappened){
       _migrationHappened=false;
@@ -995,6 +960,13 @@ function allSteamCollections(){
   const set=new Set(STEAM_COLLECTIONS);
   games.forEach(g=>(g.steamCollection||[]).forEach(c=>{if(c)set.add(c)}));
   return[...set].sort();
+}
+function allStoresForPlatform(plat){
+  const freq={};
+  games.forEach(g=>(g.purchases||[]).forEach(p=>{
+    if(p.platform===plat&&p.store)freq[p.store]=(freq[p.store]||0)+1;
+  }));
+  return Object.keys(freq).sort((a,b)=>freq[b]-freq[a]||a.localeCompare(b));
 }
 
 // ══════════════════════════════════════════
@@ -2065,12 +2037,9 @@ function _btcSelectPlat(plat){
   });
   const colSec=document.getElementById('btcColSection');
   if(colSec)colSec.style.display=plat==='Steam'?'':'none';
-  const stores=getPlatformStores(plat);
-  const cur=document.getElementById('btcStore').value;
-  if(!stores.includes(cur)){
-    document.getElementById('btcStore').value=stores[0];
-    document.getElementById('btcStoreLabel').textContent=stores[0];
-  }
+  const bsi=document.getElementById('btcStoreInput');if(bsi)bsi.value='';
+  document.getElementById('btcStore').value='';
+  const bsd=document.getElementById('btcStoreDd');if(bsd)bsd.classList.remove('on');
 }
 function _openBtcModal(id,addPlatMode){
   btcId=id;cBtcCol=[];btcAddPlatMode=addPlatMode;
@@ -2091,6 +2060,7 @@ function _openBtcModal(id,addPlatMode){
   document.getElementById('btcPlayStatus').value='Unplayed';
   _syncBtcPsBtn('Unplayed');
   document.getElementById('btcStore').value='';
+  const _bsi=document.getElementById('btcStoreInput');if(_bsi)_bsi.value='';
   _btcSelectPlat(btcSelPlat);
   cBtcCol=[];renderBtcCol();
   _pushModalHistory();
@@ -2181,26 +2151,17 @@ document.addEventListener('click',e=>{
   _toggleInlinePsPicker(document.getElementById('fColPsDd'),document.getElementById('fColPlayStatus'),_syncModalPsBtn,btn);
 });
 
-// ── INLINE MODAL PICKERS (store + play status) ───────────────────────────────
-function _toggleInlineStorePicker(dd,stores,currentVal,onSelect,triggerEl){
-  const wasOpen=dd.classList.contains('on');
-  document.querySelectorAll('.pick-dd.on').forEach(el=>{el.classList.remove('on')});
-  if(wasOpen)return;
-  const si=document.createElement('input');
-  si.type='text';si.className='store-picker-search';si.placeholder='Search stores…';
-  const lst=document.createElement('div');lst.className='store-picker-list';
-  function buildList(q){
-    const f=q?stores.filter(s=>s.toLowerCase().includes(q.toLowerCase())):stores;
-    lst.innerHTML=f.map(s=>`<div class="dd-opt${s===currentVal?' active':''}" data-s="${esc(s)}">${esc(s)}</div>`).join('');
-    lst.querySelectorAll('.dd-opt').forEach(opt=>{
-      opt.onclick=e=>{e.stopPropagation();onSelect(opt.dataset.s);dd.classList.remove('on')};
-    });
-  }
-  dd.innerHTML='';dd.appendChild(si);dd.appendChild(lst);
-  buildList('');si.oninput=()=>buildList(si.value);
+// ── INLINE MODAL PICKERS (play status) ───────────────────────────────
+function updateStoreDd(inp,dd,hidden,plat){
+  const q=(inp.value||'').toLowerCase().trim();
+  const all=allStoresForPlatform(plat);
+  const opts=q?all.filter(s=>s.toLowerCase().includes(q)):all;
+  if(!opts.length){dd.classList.remove('on');return;}
+  dd.innerHTML=opts.map(s=>`<div class="dd-opt${s===hidden.value?' active':''}" data-s="${esc(s)}">${esc(s)}</div>`).join('');
+  dd.querySelectorAll('.dd-opt').forEach(el=>{
+    el.onclick=()=>{inp.value=el.dataset.s;hidden.value=el.dataset.s;dd.classList.remove('on');};
+  });
   dd.classList.add('on');
-  _pickDdFlip(dd,triggerEl);
-  setTimeout(()=>si.focus(),50);
 }
 function _toggleInlinePsPicker(dd,hiddenInput,syncFn,triggerEl){
   const wasOpen=dd.classList.contains('on');
@@ -2247,22 +2208,24 @@ function _pickDdFlip(dd,triggerEl){
   }
 }
 
-// btcStorePick
-document.addEventListener('click',e=>{
-  const btn=e.target.closest('#btcStorePick');if(!btn)return;
-  e.stopPropagation();
-  _toggleInlineStorePicker(document.getElementById('btcStoreDd'),getPlatformStores(btcSelPlat),document.getElementById('btcStore').value,val=>{
-    document.getElementById('btcStore').value=val;document.getElementById('btcStoreLabel').textContent=val;
-  },btn);
-});
-// fColStorePick
-document.addEventListener('click',e=>{
-  const btn=e.target.closest('#fColStorePick');if(!btn)return;
-  e.stopPropagation();
-  _toggleInlineStorePicker(document.getElementById('fColStoreDd'),getPlatformStores(_modalColPlat||'Steam'),document.getElementById('fColStore').value,val=>{
-    document.getElementById('fColStore').value=val;document.getElementById('fColStoreLabel').textContent=val;
-  },btn);
-});
+// btcStoreInput autocomplete
+(function(){
+  const inp=document.getElementById('btcStoreInput');
+  const dd=document.getElementById('btcStoreDd');
+  const hid=document.getElementById('btcStore');
+  if(!inp)return;
+  inp.addEventListener('input',()=>{hid.value=inp.value;updateStoreDd(inp,dd,hid,btcSelPlat);});
+  inp.addEventListener('focus',()=>{updateStoreDd(inp,dd,hid,btcSelPlat);});
+})();
+// fColStoreInput autocomplete
+(function(){
+  const inp=document.getElementById('fColStoreInput');
+  const dd=document.getElementById('fColStoreDd');
+  const hid=document.getElementById('fColStore');
+  if(!inp)return;
+  inp.addEventListener('input',()=>{hid.value=inp.value;updateStoreDd(inp,dd,hid,_modalColPlat||'Steam');});
+  inp.addEventListener('focus',()=>{updateStoreDd(inp,dd,hid,_modalColPlat||'Steam');});
+})();
 // btcPlayStatusBtn
 document.addEventListener('click',e=>{
   const btn=e.target.closest('#btcPlayStatusBtn');if(!btn)return;
@@ -2294,6 +2257,7 @@ function bindPsPickerCards(container,start){
 function _rawCloseCollectionModal(){
   document.getElementById('btcov').classList.remove('on');
   const bdd=document.getElementById('btcColDd');if(bdd)bdd.classList.remove('on');
+  const bsd=document.getElementById('btcStoreDd');if(bsd)bsd.classList.remove('on');
   document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));
   btcId=null;cBtcCol=[];btcAddPlatMode=false;
 }
@@ -3048,7 +3012,7 @@ function updateTagsDd(){
 document.getElementById('tagsInput').addEventListener('input',updateTagsDd);
 document.getElementById('tagsInput').addEventListener('focus',updateTagsDd);
 document.addEventListener('click',e=>{
-  if(!e.target.closest('.genre-wrap')){document.getElementById('genreDd').classList.remove('on');document.getElementById('tagsDd').classList.remove('on');const bdd=document.getElementById('btcColDd');if(bdd)bdd.classList.remove('on');const mdd=document.getElementById('fColColDd');if(mdd)mdd.classList.remove('on');const idd=document.getElementById('colInlineDd');if(idd)idd.classList.remove('on');}
+  if(!e.target.closest('.genre-wrap')){document.getElementById('genreDd').classList.remove('on');document.getElementById('tagsDd').classList.remove('on');const bdd=document.getElementById('btcColDd');if(bdd)bdd.classList.remove('on');const mdd=document.getElementById('fColColDd');if(mdd)mdd.classList.remove('on');const idd=document.getElementById('colInlineDd');if(idd)idd.classList.remove('on');const bsd=document.getElementById('btcStoreDd');if(bsd)bsd.classList.remove('on');const fsd=document.getElementById('fColStoreDd');if(fsd)fsd.classList.remove('on');}
   if(!e.target.closest('#devGWrap'))document.getElementById('devDd').classList.remove('on');
   if(!e.target.closest('#pubGWrap'))document.getElementById('pubDd').classList.remove('on');
 });
@@ -3427,7 +3391,7 @@ function clearModal(){
   _modalNotes=[];renderModalNoteList();
   // Reset collection fields
   const fcs=document.getElementById('fColStore');if(fcs)fcs.value='';
-  const fcsl=document.getElementById('fColStoreLabel');if(fcsl)fcsl.textContent='— select store —';
+  const fcsl=document.getElementById('fColStoreInput');if(fcsl)fcsl.value='';
   const fcc=document.getElementById('fColCost');if(fcc)fcc.value='';
   const fcd=document.getElementById('fColDate');
   if(fcd){const n=new Date();fcd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
@@ -3500,14 +3464,14 @@ function _renderModalColPlatPills(){
 function _setModalColPlat(plat){
   _modalColPlat=plat;_renderModalColPlatPills();
   const stCol=document.getElementById('fColSteamSection');if(stCol)stCol.style.display=plat==='Steam'?'':'none';
-  const lbl=document.getElementById('fColStoreLabel');
+  const lbl=document.getElementById('fColStoreInput');
   const inp=document.getElementById('fColStore');
   if(editId){
     // Load existing purchase data for this platform when editing
     const g=games.find(x=>x.id===editId);
     const p=g?gamePurchases(g).find(x=>x.platform===plat):null;
     if(p){
-      if(lbl)lbl.textContent=p.store||'— select store —';
+      if(lbl)lbl.value=p.store||'';
       if(inp)inp.value=p.store||'';
       const fcc=document.getElementById('fColCost');if(fcc)fcc.value=p.cost!==undefined&&p.cost!==''?parseFloat(p.cost).toFixed(2):'';
       const fcd=document.getElementById('fColDate');
@@ -3516,7 +3480,7 @@ function _setModalColPlat(plat){
       const fcp=document.getElementById('fColPlayStatus');if(fcp){fcp.value=psVal;_syncModalPsBtn(psVal);}
       cModalCol=[...(p.steamCollection||[])];renderModalCol();
     } else {
-      if(lbl)lbl.textContent='— select store —';
+      if(lbl)lbl.value='';
       if(inp)inp.value='';
       const fcc=document.getElementById('fColCost');if(fcc)fcc.value='';
       const fcd=document.getElementById('fColDate');if(fcd){const n=new Date();fcd.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;}
@@ -3524,7 +3488,7 @@ function _setModalColPlat(plat){
       cModalCol=[];renderModalCol();
     }
   } else {
-    if(lbl)lbl.textContent='— select store —';
+    if(lbl)lbl.value='';
     if(inp)inp.value='';
   }
 }
@@ -3603,7 +3567,7 @@ function openEdit(id){
     const p0=gamePurchases(g)[0]||{};
     const storeVal=p0.store||g.store||'';
     const fcs=document.getElementById('fColStore');if(fcs)fcs.value=storeVal;
-    const fsLabel=document.getElementById('fColStoreLabel');if(fsLabel)fsLabel.textContent=storeVal||'— select store —';
+    const fsInp=document.getElementById('fColStoreInput');if(fsInp)fsInp.value=storeVal;
     const fcc=document.getElementById('fColCost');if(fcc)fcc.value=p0.cost!==undefined?parseFloat(p0.cost).toFixed(2):(g.cost?parseFloat(g.cost).toFixed(2):'');
     const fcd=document.getElementById('fColDate');
     if(fcd){
@@ -3673,7 +3637,7 @@ function renderModalNotes(g){
     };
   });
 }
-function _rawCloseModal(){document.getElementById('mov').classList.remove('on');steamStatus('');['genreDd','tagsDd','devDd','pubDd'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on')});document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));window._pendingShortDesc=null;}
+function _rawCloseModal(){document.getElementById('mov').classList.remove('on');steamStatus('');['genreDd','tagsDd','devDd','pubDd','fColStoreDd'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on')});document.querySelectorAll('.pick-dd.on').forEach(el=>el.classList.remove('on'));window._pendingShortDesc=null;}
 function closeModal(){_rawCloseModal();_popModalHistory();}
 // Modal notes: full note list with add/edit/delete (works in both add and edit mode)
 let _modalNotes=[]; // in-memory note list for the open modal
