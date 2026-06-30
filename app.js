@@ -317,6 +317,7 @@ function toSheetRecord(g){
   const r={...g};
   delete r.playStatus;delete r.cost;delete r.purchaseDate;delete r.store;
   delete r.steamCollection;delete r.platforms;delete r.platform;delete r.tbaText;
+  delete r.genre;
   return r;
 }
 let games=[];
@@ -396,8 +397,8 @@ function flushSave(){
         .then(()=>{_saveFlushing=false;setSyncStatus('ok','Saved');if(_saveQueue.length){_saveQueue=[];flushSave()}})
         .catch(()=>{
           // Apps Script doesn't support setRows — fall back to full save
-          _saveFlushing=false;
           _changedIds.clear();
+          if(!games.length){_saveFlushing=false;setSyncStatus('err','Save aborted — no data');return;}
           postToSheet({action:'setAll',data:JSON.stringify(games.map(toSheetRecord))})
             .then(()=>{_saveFlushing=false;setSyncStatus('ok','Saved');if(_saveQueue.length){_saveQueue=[];flushSave()}})
             .catch(err=>{_saveFlushing=false;setSyncStatus('err','Save failed — check console');console.error('BTB save error:',err)});
@@ -406,6 +407,7 @@ function flushSave(){
     }
   }
   _changedIds.clear();
+  if(!games.length){_saveFlushing=false;setSyncStatus('err','Save aborted — no data');return;}
   postToSheet({action:'setAll',data:JSON.stringify(games.map(toSheetRecord))})
     .then(()=>{
       _saveFlushing=false;
@@ -3526,6 +3528,7 @@ function openEdit(id){
   const g=games.find(x=>x.id===id);if(!g)return;
   editId=id;clearModal();
   document.getElementById('modalTitle').textContent=`Edit: ${esc(g.title)}`;
+  document.getElementById('msave').textContent='Save changes';
   document.getElementById('fTitle').value=g.title||'';
   document.getElementById('fAppId').value=g.steamAppId||'';
   _originalAppId=g.steamAppId||'';
@@ -3738,7 +3741,7 @@ document.getElementById('msave').onclick=()=>{
   const coverVal=document.getElementById('fCover').value.trim();
   const data={
     title,steamAppId:appId,
-    genres:[...cGenres],genre:cGenres.join(', '),
+    genres:[...cGenres],
     developer:[...cDev],
     publisher:[...cPub],
     releaseDate,
