@@ -447,7 +447,7 @@ button{text-transform:none;letter-spacing:0}
 .modal{background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);
   padding:1.3rem;width:100%;max-width:720px;max-height:min(90vh,90dvh);overflow-y:auto}
 .mt{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:1rem;color:var(--text)}
-.fg{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
 .fr{margin-bottom:.6rem}
 .fr label{display:block;font-size:.63rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:.25rem}
 .fr input,.fr select,.fr textarea{width:100%;background:var(--base);border:1px solid var(--bd);
@@ -544,16 +544,16 @@ button{text-transform:none;letter-spacing:0}
 .fg3{display:grid;grid-template-columns:2fr 1fr 1.2fr;gap:.6rem}
 @media(max-width:560px){.fg3{grid-template-columns:1fr}}
 /* Type + [ParentAppId when DLC] + Priority row — flex so hidden middle item collapses */
-.type-row{display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.6rem}
-.type-row > .fr{flex-shrink:0;margin-bottom:0}
-.type-row > #parentAppIdRow{flex:1;min-width:0;margin-bottom:0}
+.fg3-mid-stretch{display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.6rem}
+.fg3-mid-stretch > .fr{flex-shrink:0;margin-bottom:0}
+.fg3-mid-stretch > #parentAppIdRow{flex:1;min-width:0;margin-bottom:0}
 @media(max-width:560px){
-  .type-row{flex-wrap:wrap}
-  .type-row > #parentAppIdRow{flex-basis:100%;order:10}
+  .fg3-mid-stretch{flex-wrap:wrap}
+  .fg3-mid-stretch > #parentAppIdRow{flex-basis:100%;order:10}
 }
 /* Release date + Price + Hotness + Live prices 4-col row */
-.fg-dates{display:grid;grid-template-columns:2fr .85fr .85fr .85fr;gap:.6rem}
-@media(max-width:560px){.fg-dates{grid-template-columns:1fr 1fr 1fr}.fg-dates>:first-child{grid-column:1/-1}}
+.fg4{display:grid;grid-template-columns:2fr .85fr .85fr .85fr;gap:.6rem}
+@media(max-width:560px){.fg4{grid-template-columns:1fr 1fr 1fr}.fg4>:first-child{grid-column:1/-1}}
 .fetch-tog{display:flex;gap:.35rem}
 .fetch-btn{padding:.25rem .65rem;border-radius:20px;border:1.5px solid var(--bd);background:transparent;color:var(--t2);cursor:pointer;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;transition:all .15s;font-family:'Rajdhani',sans-serif;white-space:nowrap;flex:1;text-align:center}
 .fetch-btn:hover{border-color:var(--blue);color:var(--text)}
@@ -909,7 +909,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   .hs-desk{display:flex!important}
 }
 @media(max-width:560px){
-  :root{--pw:100vw}.fg{grid-template-columns:1fr}.gg{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
+  :root{--pw:100vw}.fg2{grid-template-columns:1fr}.gg{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
   .sc{display:none}
 }
 
