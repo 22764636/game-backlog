@@ -4196,7 +4196,7 @@ document.addEventListener('keydown',function(e){
 
   async function run(){
     if(OFFLINE){showToast('Offline — cannot reach Steam.');return}
-    const targets=games.filter(g=>g.steamAppId&&isGameUnreleased(g)&&!isCancelled(g));
+    const targets=games.filter(g=>g.steamAppId&&isGameUnreleased(g)&&!isCancelled(g)&&g.status!=='removed');
     if(!targets.length){showToast('No unreleased Steam games found.');return}
 
     ov.classList.add('on');
@@ -4289,7 +4289,7 @@ document.addEventListener('keydown',function(e){
   }
   async function run(){
     if(OFFLINE){showToast('Offline — cannot reach Steam.');return}
-    const targets=games.filter(g=>g.steamAppId&&(g.price==null||g.price==='')&&!isGameUnreleased(g)&&!isCancelled(g)&&!g.delisted);
+    const targets=games.filter(g=>g.steamAppId&&(g.price==null||g.price==='')&&!isGameUnreleased(g)&&!isCancelled(g)&&!g.delisted&&g.status!=='removed');
     if(!targets.length){showToast('No released Steam games without a price found.');return}
     ov.classList.add('on');history.pushState({plcovOpen:true},'','');
     log.innerHTML='';summary.textContent=`Checking ${targets.length} game${targets.length>1?'s':''}…`;
