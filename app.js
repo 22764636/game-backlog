@@ -311,6 +311,7 @@ function normalise(g){
   });
   syncLegacyFromPurchases(g);
   g.delisted=g.delisted===true||g.delisted==='true'||g.delisted==='TRUE';
+  g.skipGGFetch=g.skipGGFetch===true||g.skipGGFetch==='true'||g.skipGGFetch==='TRUE';
   return g;
 }
 function toSheetRecord(g){
@@ -3301,6 +3302,13 @@ document.getElementById('fCover').addEventListener('blur',()=>{
 // ══════════════════════════════════════════
 //  TBA TOGGLE — button stays put, just swaps input
 // ══════════════════════════════════════════
+function setFetchState(skip){
+  document.getElementById('fFetchInc').classList.toggle('on',!skip);
+  document.getElementById('fFetchSkip').classList.toggle('on',skip);
+}
+document.getElementById('fFetchInc').addEventListener('click',()=>setFetchState(false));
+document.getElementById('fFetchSkip').addEventListener('click',()=>setFetchState(true));
+
 function setTbaState(on){
   document.getElementById('tbaBtn').classList.toggle('on',on);
   document.getElementById('dateRow').style.display=on?'none':'grid';
@@ -3406,6 +3414,7 @@ function clearModal(){
   document.getElementById('fAppId').classList.remove('err');
   _originalAppId='';
   setTbaState(false);
+  setFetchState(false);
   cGenres=[];cTags=[];cDev=[];cPub=[];cModalCol=[];renderGenres();renderTags();renderDev();renderPub();renderModalCol();
   _modalNotes=[];renderModalNoteList();
   // Reset collection fields
@@ -3556,6 +3565,7 @@ function openEdit(id){
   } else {
     setTbaState(false);document.getElementById('fDate').value='';
   }
+  setFetchState(!!g.skipGGFetch);
   const savedCover=g.cover||'';
   document.getElementById('fCover').value=savedCover;
   if(savedCover)setCoverPreview(savedCover);
@@ -3753,6 +3763,7 @@ document.getElementById('msave').onclick=()=>{
     storeLink:document.getElementById('fStore').value.trim(),
     type:document.getElementById('fType').value||'game',
     parentAppId:(()=>{const v=document.getElementById('fParentAppId').value.trim();return v||null})(),
+    skipGGFetch:document.getElementById('fFetchSkip').classList.contains('on'),
   };
   // Attach shortDescription fetched from Steam API if available
   const _fsd=document.getElementById('fShortDesc');const _sdVal=_fsd?_fsd.value.trim():'';if(_sdVal){data.shortDescription=_sdVal;}else if(window._pendingShortDesc){data.shortDescription=window._pendingShortDesc;window._pendingShortDesc=null;}
@@ -4372,7 +4383,8 @@ async function runGGDealsFetch(){
     /^\d{4}-\d{2}-\d{2}$/.test(g.releaseDate)&&
     g.releaseDate<=today&&
     !isCancelled(g)&&
-    !g.delisted
+    !g.delisted&&
+    !g.skipGGFetch
   ).sort((a,b)=>(parseInt(b.hotness)||0)-(parseInt(a.hotness)||0));
   if(!eligible.length){showToast('All released wishlist games already have prices.');return;}
 

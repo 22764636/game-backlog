@@ -546,9 +546,13 @@ button{text-transform:none;letter-spacing:0}
   .type-row{flex-wrap:wrap}
   .type-row > #parentAppIdRow{flex-basis:100%;order:10}
 }
-/* Release date + Price + Hotness narrow 3-col row */
-.fg-dates{display:grid;grid-template-columns:2fr .85fr .85fr;gap:.6rem}
-@media(max-width:560px){.fg-dates{grid-template-columns:1fr}}
+/* Release date + Price + Hotness + Live prices 4-col row */
+.fg-dates{display:grid;grid-template-columns:2fr .85fr .85fr .85fr;gap:.6rem}
+@media(max-width:560px){.fg-dates{grid-template-columns:1fr 1fr 1fr}.fg-dates>:first-child{grid-column:1/-1}}
+.fetch-tog{display:flex;gap:.3rem}
+.fetch-btn{background:var(--base);border:1px solid var(--bd);border-radius:5px;color:var(--t3);font-size:.6rem;font-weight:700;letter-spacing:.04em;padding:.3rem .4rem;cursor:pointer;flex:1;text-align:center;font-family:'Rajdhani',sans-serif}
+.fetch-btn.inc.on{border-color:var(--green);color:var(--green);background:#9cff0018}
+.fetch-btn.skip.on{border-color:var(--pink);color:var(--pink);background:#ff00aa18}
 /* Hamburger menu export/import two-column row */
 .hmi-row2{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--bd)}
 .hmi-row2 .hmi{border-top:none}
