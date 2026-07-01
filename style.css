@@ -52,9 +52,11 @@ button{text-transform:none;letter-spacing:0}
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%234a6280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 6px center;transition:border-color .15s}
 .ts:focus{border-color:var(--blue)}.ts option{background:var(--s1)}
-.sc{display:flex;gap:.3rem;flex-wrap:wrap;margin-left:auto}
-.chip,.sc-chip{background:#02b3fc15;border:1px solid var(--bd2);border-radius:99px;padding:.16rem .55rem;
-  font-size:.66rem;color:var(--text);display:flex;align-items:center;gap:.22rem}
+.sc{display:flex;gap:.6rem;flex-wrap:wrap;margin-left:auto}
+/* stat readout — aggregate page-level counters, deliberately unboxed (plain text) to stay
+   visually distinct from pill/badge/chip, which are all "a labeled box" of some kind */
+.chip,.sc-chip{background:none;border:none;padding:0;
+  font-size:.72rem;color:var(--text);display:inline-flex;align-items:center;gap:.22rem}
 .chip b,.sc-chip b{color:var(--blue);font-weight:700}
 .chip span,.sc-chip span{color:var(--t2)}
 
@@ -130,7 +132,7 @@ button{text-transform:none;letter-spacing:0}
 /* Collection card — same base as .gc but different pill bar */
 .gc.col-card .hb2{display:none} /* no hotness bar */
 .col-ps-badge{font-size:.58rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  padding:2px 6px;border-radius:99px;cursor:default;position:relative;white-space:nowrap}
+  padding:2px 6px;border-radius:4px;cursor:default;position:relative;white-space:nowrap}
 .col-ps-badge .ps-tip{display:none;position:absolute;bottom:calc(100% + 5px);left:50%;
   transform:translateX(-50%);background:var(--s1);border:1px solid var(--bd2);
   border-radius:var(--r);padding:3px 8px;font-size:.65rem;font-weight:400;
@@ -165,7 +167,7 @@ button{text-transform:none;letter-spacing:0}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .col-row-tags{display:flex;gap:.25rem;flex-wrap:nowrap;overflow:hidden;flex-shrink:1;min-width:0}
 .col-row-tag{font-size:.55rem;font-weight:600;letter-spacing:.03em;padding:1px 5px;
-  border-radius:99px;background:#1a0a3a;border:1px solid #4a2080;color:#c4a0ff;
+  border-radius:4px;background:#1a0a3a;border:1px solid #4a2080;color:#c4a0ff;
   white-space:nowrap;flex-shrink:0}
 .sb-body.expanded{overflow:visible}
 .sb.collapsed .sb-body{max-height:0!important;overflow:hidden}
@@ -257,10 +259,10 @@ button{text-transform:none;letter-spacing:0}
 .cbot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-top:auto}
 .cprice{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);flex-shrink:0}
 .ggp-ov{position:absolute;bottom:3px;left:0;right:0;display:flex;flex-wrap:nowrap;align-items:flex-end;justify-content:space-between;padding:0 .3rem .25rem;z-index:3;pointer-events:none}
-.ggp-retail{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:#e0f7ff;background:rgba(3,19,41,.6);border-radius:3px;padding:.05rem .3rem;white-space:nowrap}
-.ggp-keys{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:var(--amber);background:rgba(3,19,41,.6);border-radius:3px;padding:.05rem .3rem;white-space:nowrap}
-.ggp-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:var(--green);background:#0a1a0acc;border-radius:3px;padding:.05rem .3rem;white-space:nowrap}
-.ggp-hist-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:#ffd700;background:#1a140acc;border-radius:3px;padding:.05rem .3rem;white-space:nowrap}
+.ggp-retail{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:#e0f7ff;background:rgba(3,19,41,.6);border-radius:4px;padding:.05rem .3rem;white-space:nowrap}
+.ggp-keys{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:var(--amber);background:rgba(3,19,41,.6);border-radius:4px;padding:.05rem .3rem;white-space:nowrap}
+.ggp-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:var(--green);background:#0a1a0acc;border-radius:4px;padding:.05rem .3rem;white-space:nowrap}
+.ggp-hist-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:#ffd700;background:#1a140acc;border-radius:4px;padding:.05rem .3rem;white-space:nowrap}
 .gg.lv .ggp-ov{display:none}
 #ggFetchBubble{display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;background:var(--cyan);border:none;cursor:pointer;z-index:400;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:#031329;text-align:center;line-height:1.2;box-shadow:0 2px 16px rgba(2,179,252,.45);animation:ggPulse 1.8s ease-in-out infinite}
 #ggFetchBubble.on{display:flex}
@@ -484,10 +486,13 @@ button{text-transform:none;letter-spacing:0}
   border:1px solid var(--bd);border-radius:var(--r);
   padding:0 .4rem;cursor:text;min-height:34px;transition:border-color .15s}
 .ciw:focus-within{border-color:var(--blue)}
-.cich{background:#0a1824;border:1px solid #1a4060;color:#5db8e8;border-radius:4px;
-  padding:2px 6px;font-size:.66rem;font-weight:500;display:flex;align-items:center;gap:.18rem}
-.cich button{background:none;border:none;color:#02b3fc99;cursor:pointer;padding:0;font-size:.7rem;line-height:1}
+/* tag chip — the only editable/removable one of the .cich family, so it's the only true
+   "chip" (has its own × action); restyled to match the chip family's grammar (.fchip) */
+.cich{background:#02b3fc15;border:1px solid var(--bd2);color:var(--text);border-radius:99px;
+  padding:.2rem .5rem .2rem .6rem;font-size:.68rem;font-weight:500;display:flex;align-items:center;gap:.3rem}
+.cich button{background:none;border:none;color:var(--t3);cursor:pointer;padding:0;font-size:.8rem;line-height:1;transition:color .1s}
 .cich button:hover{color:var(--pink)}
+/* read-only tags — no remove action, so these are badges, not chips (already 4px, matching) */
 .cich-ro{background:#1a0a3a;border:1px solid #4a2080;color:#c4a0ff;border-radius:4px;user-select:none;
   padding:2px 6px;font-size:.66rem;font-weight:500;display:inline-flex;align-items:center;gap:.18rem}
 .cich-tag{background:#0a1824;border:1px solid #1a4060;color:#5db8e8;border-radius:4px;user-select:none;
@@ -603,12 +608,14 @@ button{text-transform:none;letter-spacing:0}
 #toast.warn{border-color:var(--amber);color:var(--amber)}
 #toast.err{border-color:var(--pink);color:var(--pink)}
 
-/* ── SYNC FLOATING PILL ── */
+/* ── SYNC STATUS CHIP ── */
+/* Reclassified from "pill" to chip: it's informational, not a multi-option selector, and
+   only becomes clickable (to retry) in its error/offline state. */
 /* Desktop: inline in header */
 .sync-hdr{font-size:.68rem;font-weight:500;color:var(--t3);white-space:nowrap}
 .sync-hdr:empty{display:none}
 #syncPill{display:none} /* hidden on desktop */
-/* Mobile: floating pill bottom-left */
+/* Mobile: floating chip bottom-left */
 @media(max-width:640px){
   .sync-hdr{display:none}
   #syncPill{
@@ -617,9 +624,11 @@ button{text-transform:none;letter-spacing:0}
     background:var(--s1);border:1px solid var(--bd);border-radius:99px;
     padding:.3rem .65rem .3rem .5rem;font-size:.68rem;font-weight:500;color:var(--t3);
     box-shadow:0 2px 12px rgba(0,0,0,.25);
-    transition:opacity .3s,transform .3s;
-    cursor:pointer;user-select:none;-webkit-user-select:none;
+    transition:opacity .3s,transform .3s,border-color .15s,color .15s;
+    cursor:default;user-select:none;-webkit-user-select:none;
   }
+  #syncPill.clickable{cursor:pointer}
+  #syncPill.clickable:hover{border-color:var(--pink);color:var(--pink)}
   #syncPill.hidden{opacity:0;transform:translateY(6px);pointer-events:none}
   #syncPill .sp-dot{
     width:7px;height:7px;border-radius:50%;background:var(--t3);flex-shrink:0;
@@ -967,7 +976,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .coll-2col-cell{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .coll-chips-row{display:flex;gap:.28rem;flex-wrap:wrap;justify-content:center}
 .plat-tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.6rem;justify-content:center}
-.plat-tab{padding:.22rem .6rem;border-radius:4px;border:1px solid var(--bd);background:transparent;
+/* reclassified as a selector pill — same shape/grammar as .btc-plat-pill (it's picking
+   which purchase record to view/edit, same job as picking a platform value in the modal) */
+.plat-tab{padding:.25rem .65rem;border-radius:20px;border:1.5px solid var(--bd);background:transparent;
   color:var(--t2);font-size:.68rem;font-weight:700;cursor:pointer;transition:all .15s;
   font-family:'Rajdhani',sans-serif;letter-spacing:.04em;text-transform:uppercase}
 .plat-tab:hover{border-color:var(--blue);color:var(--blue)}
@@ -1078,19 +1089,21 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .fbar-opt-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fbar-opt-count{font-size:.62rem;color:var(--t3);flex-shrink:0}
 
-/* Hotness tier chips */
+/* Hotness tier filter — reclassified as a filter pill (was its own bespoke "chip" style,
+   inconsistent with the other sidebar filters); shape/opacity/count now come from .fbar-pill */
 .fbar-hot-chips{display:flex;gap:.4rem;flex-wrap:wrap;padding:.45rem .75rem .6rem}
-.fbar-hot-chip{background:var(--base);border:1px solid var(--bd);border-radius:99px;
-  color:var(--t2);font-size:.72rem;padding:.25rem .65rem;cursor:pointer;font-family:inherit;
-  transition:background .12s,border-color .12s,color .12s;touch-action:manipulation}
-.fbar-hot-chip:hover{border-color:var(--blue);color:var(--blue)}
-.fbar-hot-chip.active{background:#02b3fc18;border-color:var(--blue);color:var(--blue)}
+.fbar-hot-chip{padding:2px 6px;font-family:inherit}
 
-/* Filter bar pills (priority, play status, platform) */
+/* Filter bar pills (priority, play status, platform, hotness) — canonical pill shape:
+   20px radius, no glow ring (selected state is opacity-only) */
 .fbar-pills{display:flex;flex-wrap:wrap;gap:.3rem;padding:.1rem 0}
-.fbar-pill{cursor:pointer;border:none;opacity:.55;transition:opacity .12s,box-shadow .12s;font-size:.62rem}
+.fbar-pill{cursor:pointer;border:1.5px solid transparent;border-radius:20px;opacity:.55;
+  transition:opacity .12s;font-size:.62rem}
 .fbar-pill:hover{opacity:.8}
-.fbar-pill.selected{opacity:1;box-shadow:0 0 0 2px #fff4,inset 0 0 0 1px #fff3}
+.fbar-pill.selected{opacity:1}
+.fbar-pill-count{margin-left:.35rem;padding:1px 6px;border-radius:99px;font-weight:700;font-size:.85em;display:inline-block}
+.fbar-pill-count.fpc-dark{background:rgba(3,19,41,.55);color:#fff}
+.fbar-pill-count.fpc-light{background:rgba(255,255,255,.6);color:#031329}
 
 /* Sidebar footer */
 .fbar-footer{padding:0;border-top:1px solid var(--bd);flex-shrink:0}

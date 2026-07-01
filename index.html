@@ -224,10 +224,10 @@
         </button>
         <div class="fbar-sec-body" id="fbar-hot-body" style="display:none">
           <div class="fbar-hot-chips" id="fbar-hot-chips">
-            <button class="fbar-hot-chip active" data-min="0" data-max="100">Any</button>
-            <button class="fbar-hot-chip" data-min="70" data-max="100">HOT 70+</button>
-            <button class="fbar-hot-chip" data-min="40" data-max="69">MID 40–69</button>
-            <button class="fbar-hot-chip" data-min="0" data-max="39">LOW &lt;40</button>
+            <button class="fbar-pill fbar-hot-chip selected" data-min="0" data-max="100" style="background:#f7cd26;color:#031329">Any<span class="fbar-pill-count fpc-dark"></span></button>
+            <button class="fbar-pill fbar-hot-chip" data-min="70" data-max="100" style="background:#f7cd26;color:#031329">HOT 70+<span class="fbar-pill-count fpc-dark"></span></button>
+            <button class="fbar-pill fbar-hot-chip" data-min="40" data-max="69" style="background:#f7cd26;color:#031329">MID 40–69<span class="fbar-pill-count fpc-dark"></span></button>
+            <button class="fbar-pill fbar-hot-chip" data-min="0" data-max="39" style="background:#f7cd26;color:#031329">LOW &lt;40<span class="fbar-pill-count fpc-dark"></span></button>
           </div>
         </div>
       </div>
@@ -477,7 +477,7 @@
   </div>
 </div>
 <div id="metaFloatTip"></div>
-<div id="syncPill" class="hidden" title="Sync status — tap to retry"><span class="sp-dot"></span><span id="syncPillTxt"></span></div>
+<div id="syncPill" class="hidden" title="Sync status"><span class="sp-dot"></span><span id="syncPillTxt"></span></div>
 
 <!-- SIDE PANEL -->
 <div id="panel">
