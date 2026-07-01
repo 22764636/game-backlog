@@ -788,6 +788,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
   top:calc(100% + 4px);left:50%;transform:translateX(-50%);
 }
 .cal-cell:last-child .cal-pop,.cal-cell:nth-last-child(-n+2) .cal-pop{left:auto;right:0;transform:none}
+.cal-cell:nth-child(7n+1) .cal-pop{left:0;right:auto;transform:none}
 .cal-pop.open{display:block}
 .cal-pop-item{
   display:block;padding:.28rem .45rem;border-radius:5px;font-size:.72rem;
