@@ -779,13 +779,13 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 }
 .cal-count:hover{transform:scale(1.15);box-shadow:0 0 0 3px #02b3fc33}
 .cal-count.has-pre{background:var(--amber)}
-/* popover */
+/* popover — singleton, position:fixed so it can never be clipped by the
+   calendar's own scroll/overflow containers; JS sets top/left per-open */
 .cal-pop{
-  display:none;position:absolute;z-index:400;
+  display:none;position:fixed;z-index:9999;
   background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);
   padding:.35rem;width:max-content;max-width:220px;
   box-shadow:0 6px 20px rgba(0,0,0,.45);
-  top:calc(100% + 4px);left:50%;transform:translateX(-50%);
 }
 .cal-pop.open{display:block}
 .cal-pop-item{
