@@ -91,13 +91,22 @@ function setSyncStatus(state, msg){
       }, state==='ok' ? 2500 : 0);
     }
   }
-  // ── Mobile floating pill ──
+  // ── Mobile floating sync chip ──
   const pill = document.getElementById('syncPill');
   const pillTxt = document.getElementById('syncPillTxt');
   if(pill && pillTxt){
     const labels = {idle:'', syncing:'Saving…', ok:'Saved', err:'Sync failed', offline:'Offline'};
     pillTxt.textContent = msg || labels[state] || '';
     pill.className = state==='idle' ? 'hidden' : 'sp-'+state;
+    const retryable = state==='err' || state==='offline';
+    if(retryable){
+      pill.classList.add('clickable');
+      pill.onclick = ()=>resync();
+      pill.title = 'Sync status — tap to retry';
+    } else {
+      pill.onclick = null;
+      pill.title = 'Sync status';
+    }
     if(state==='ok'){
       clearTimeout(setSyncStatus._hideTimer);
       setSyncStatus._hideTimer = setTimeout(()=>{ pill.className='hidden'; },2500);
@@ -3903,7 +3912,7 @@ function restoreFromHash(){
     if(p.has('pr'))fPrios=new Set(p.get('pr').split('|').filter(Boolean));
     if(p.has('hmin'))hrMinVal=Math.max(0,Math.min(100,parseInt(p.get('hmin'))||0));
     if(p.has('hmax'))hrMaxVal=Math.max(0,Math.min(100,parseInt(p.get('hmax'))||100));
-    document.querySelectorAll('.fbar-hot-chip').forEach(c=>c.classList.toggle('active',parseInt(c.dataset.min)===hrMinVal&&parseInt(c.dataset.max)===hrMaxVal));
+    document.querySelectorAll('.fbar-hot-chip').forEach(c=>c.classList.toggle('selected',parseInt(c.dataset.min)===hrMinVal&&parseInt(c.dataset.max)===hrMaxVal));
     if(p.has('cg'))cfGenres=new Set(p.get('cg').split('|').filter(Boolean));
     if(p.has('cgl'))cfGenreLogic=p.get('cgl');
     if(p.has('cps'))cfPlayStatus=new Set(p.get('cps').split('|').filter(Boolean));
@@ -4740,8 +4749,22 @@ function _closeAllFloating(){
     syncFbarBadges();
   }
   function _syncHotChips(){
+    const base=games.filter(g=>g.status!=='bought');
+    const counts={any:0,hot:0,mid:0,low:0};
+    base.forEach(g=>{
+      counts.any++;
+      if(nr(g))return;
+      const h=parseInt(g.hotness)||0;
+      if(h>=70)counts.hot++;
+      else if(h>=40)counts.mid++;
+      else counts.low++;
+    });
     document.querySelectorAll('.fbar-hot-chip').forEach(chip=>{
-      chip.classList.toggle('active',parseInt(chip.dataset.min)===hrMinVal&&parseInt(chip.dataset.max)===hrMaxVal);
+      const mn=parseInt(chip.dataset.min),mx=parseInt(chip.dataset.max);
+      chip.classList.toggle('selected',mn===hrMinVal&&mx===hrMaxVal);
+      const c=mn===0&&mx===100?counts.any:mn===70?counts.hot:mn===40?counts.mid:counts.low;
+      const cnt=chip.querySelector('.fbar-pill-count');
+      if(cnt)cnt.textContent=c;
     });
   }
   document.querySelectorAll('.fbar-hot-chip').forEach(chip=>{
@@ -4824,7 +4847,7 @@ function _closeAllFloating(){
     games.filter(g=>g.status!=='bought').forEach(g=>{const p=g.priority||'medium';freq[p]=(freq[p]||0)+1;});
     list.innerHTML=`<div class="fbar-pills">${PRIOS.map(({value,label})=>{
       const sel=fPrios.has(value);
-      return`<button class="b-plat fbar-pill${sel?' selected':''}" data-val="${value}" style="background:${prioColor(value)};color:#031329">${label}<span style="margin-left:.25rem;opacity:.75">${freq[value]||0}</span></button>`;
+      return`<button class="b-plat fbar-pill${sel?' selected':''}" data-val="${value}" style="background:${prioColor(value)};color:#031329">${label}<span class="fbar-pill-count fpc-dark">${freq[value]||0}</span></button>`;
     }).join('')}</div>`;
     list.querySelectorAll('.fbar-pill').forEach(el=>{
       el.addEventListener('click',()=>{
@@ -4862,7 +4885,7 @@ function _closeAllFloating(){
     list.innerHTML=`<div class="fbar-pills">${opts.map(v=>{
       const m=PS_META[v]||{code:'UP',cls:'ps-UP'};
       const sel=cfPlayStatus.has(v);
-      return`<button class="col-ps-badge ${m.cls} fbar-pill${sel?' selected':''}" data-val="${esc(v)}" style="cursor:pointer">${m.code}<span style="margin-left:.3rem;opacity:.7">${freq[v]||0}</span></button>`;
+      return`<button class="col-ps-badge ${m.cls} fbar-pill${sel?' selected':''}" data-val="${esc(v)}" style="cursor:pointer">${m.code}<span class="fbar-pill-count fpc-light">${freq[v]||0}</span></button>`;
     }).join('')}</div>`;
     list.querySelectorAll('.fbar-pill').forEach(el=>{
       el.addEventListener('click',()=>{
@@ -4882,7 +4905,8 @@ function _closeAllFloating(){
     if(!platforms.length){list.innerHTML=`<div class="fbar-opt" style="color:var(--t3);cursor:default">No options</div>`;return;}
     list.innerHTML=`<div class="fbar-pills">${platforms.map(p=>{
       const sel=cfPlats.has(p);
-      return`<button class="b-plat fbar-pill${sel?' selected':''}" data-val="${esc(p)}" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}<span style="margin-left:.25rem;opacity:.75">${freq[p]}</span></button>`;
+      const cntCls=platTextColor(p)==='#fff'?'fpc-light':'fpc-dark';
+      return`<button class="b-plat fbar-pill${sel?' selected':''}" data-val="${esc(p)}" style="background:${platColor(p)};color:${platTextColor(p)}">${esc(p)}<span class="fbar-pill-count ${cntCls}">${freq[p]}</span></button>`;
     }).join('')}</div>`;
     list.querySelectorAll('.fbar-pill').forEach(el=>{
       el.addEventListener('click',()=>{
@@ -4945,6 +4969,7 @@ function _closeAllFloating(){
     if(toggleId==='fbar-genre-toggle')refreshFbarGenre();
     else if(toggleId==='fbar-tags-toggle')refreshFbarTags();
     else if(toggleId==='fbar-prio-toggle')refreshFbarPrio();
+    else if(toggleId==='fbar-hot-toggle')_syncHotChips();
     else if(toggleId==='fbar-cgenre-toggle')refreshFbarCGenre();
     else if(toggleId==='fbar-cplay-toggle')refreshFbarCPlay();
     else if(toggleId==='fbar-cplat-toggle')refreshFbarCPlat();
@@ -4952,7 +4977,7 @@ function _closeAllFloating(){
   }
   function _fbarRefreshAll(){
     fbarUpdateSlider=()=>{};  // no-op: slider replaced by chips
-    ['fbar-genre-toggle','fbar-tags-toggle','fbar-prio-toggle',
+    ['fbar-genre-toggle','fbar-tags-toggle','fbar-prio-toggle','fbar-hot-toggle',
      'fbar-cgenre-toggle','fbar-cplay-toggle','fbar-cplat-toggle','fbar-ccol-toggle'].forEach(id=>{
       const btn=document.getElementById(id);
       if(btn&&btn.classList.contains('open'))_fbarRefreshSection(id);
