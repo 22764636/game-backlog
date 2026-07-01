@@ -92,14 +92,15 @@ button{text-transform:none;letter-spacing:0}
 .ps-seg-idle{border-color:var(--bd)!important;background:var(--base)!important;color:var(--t3)!important}
 
 /* ── DLC COUNT BADGE ON CARDS ── */
-.dlc-count-badge{font-size:.62rem;color:#c4a0ff;cursor:default;white-space:nowrap;
-  padding:1px 6px;border-radius:4px;border:1px solid #4a2080;background:#1a0a3a;
-  margin-left:auto;flex-shrink:0;user-select:none;transition:background .12s}
-.dlc-count-badge:hover{background:#2a1050}
+.dlc-count-badge{font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:#c4a0ff;cursor:default;white-space:nowrap;
+  padding:2px 6px;border-radius:4px;line-height:1.4;background:#1a0a3a;
+  margin-left:auto;flex-shrink:0;user-select:none}
 /* ── COLLECTION TYPE BADGE ── */
-.col-type-badge{font-size:.6rem;background:#1a0a3a;color:#c4a0ff;border:1px solid #4a2080;
-  border-radius:4px;padding:1px 5px;max-width:120px;overflow:hidden;text-overflow:ellipsis;
-  white-space:nowrap;display:inline-block;line-height:1.5}
+.col-type-badge{font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  background:#1a0a3a;color:#c4a0ff;
+  border-radius:4px;padding:2px 6px;line-height:1.4;max-width:120px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;display:inline-block}
 /* ── PANEL DLC GRID ── */
 .panel-dlc-item{cursor:pointer}
 /* ── PLAY STATUS FILTER BADGE STYLE ── */
@@ -131,14 +132,16 @@ button{text-transform:none;letter-spacing:0}
 
 /* Collection card — same base as .gc but different pill bar */
 .gc.col-card .hb2{display:none} /* no hotness bar */
-.col-ps-badge{font-size:.58rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  padding:2px 6px;border-radius:4px;cursor:default;position:relative;white-space:nowrap}
+.col-ps-badge{font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;line-height:1.4;cursor:default;position:relative;white-space:nowrap}
 .col-ps-badge .ps-tip{display:none;position:absolute;bottom:calc(100% + 5px);left:50%;
   transform:translateX(-50%);background:var(--s1);border:1px solid var(--bd2);
   border-radius:var(--r);padding:3px 8px;font-size:.65rem;font-weight:400;
   white-space:nowrap;pointer-events:none;z-index:200;color:var(--text);letter-spacing:0;text-transform:none}
 .col-ps-badge:hover .ps-tip{display:block}
-/* play status modal selector button — same pill shape as type-btn/prio-btn */
+/* play status modal selector button — same selector-pill branding (shape/type) as
+   type-btn/prio-btn/etc. It has no "unselected" look (always shows the current value
+   filled), which is why its border stays transparent like a selected priority pill does. */
 .ps-modal-btn{padding:.25rem .65rem;border-radius:20px;border:1.5px solid transparent;cursor:pointer;
   font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
   font-family:'Rajdhani',sans-serif;transition:all .15s;align-self:flex-start}
@@ -166,8 +169,9 @@ button{text-transform:none;letter-spacing:0}
 .col-row-title{flex:1;font-size:.76rem;font-weight:500;color:var(--text);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .col-row-tags{display:flex;gap:.25rem;flex-wrap:nowrap;overflow:hidden;flex-shrink:1;min-width:0}
-.col-row-tag{font-size:.55rem;font-weight:600;letter-spacing:.03em;padding:1px 5px;
-  border-radius:4px;background:#1a0a3a;border:1px solid #4a2080;color:#c4a0ff;
+.col-row-tag{font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;line-height:1.4;
+  border-radius:4px;background:#1a0a3a;color:#c4a0ff;
   white-space:nowrap;flex-shrink:0}
 .sb-body.expanded{overflow:visible}
 .sb.collapsed .sb-body{max-height:0!important;overflow:hidden}
@@ -211,8 +215,8 @@ button{text-transform:none;letter-spacing:0}
 .gc.cancelled .b-rm,.gc.cancelled .b-rev,.gc.cancelled .b-prio,
 .gc.cancelled .qb{filter:grayscale(1);opacity:.5}
 .gc.cancelled .b-cancelled{filter:none!important;opacity:1!important}
-.b-cancelled{background:#cc2200;color:#fff;border:1px solid #cc2200;font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;user-select:none;-webkit-user-select:none}
-.b-plat{font-size:.54rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;white-space:nowrap;flex-shrink:0;user-select:none;-webkit-user-select:none}
+.b-cancelled{background:#cc2200;color:#fff;font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;user-select:none;-webkit-user-select:none}
+.b-plat{font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.4;white-space:nowrap;flex-shrink:0;user-select:none;-webkit-user-select:none}
 .cbot .b-plat{pointer-events:none}
 .plat-filter-pills{display:flex;flex-wrap:wrap;gap:.35rem;padding:.3rem .1rem}
 .plat-filter-pill{cursor:pointer;border:none;opacity:.5;transition:opacity .15s,box-shadow .15s;pointer-events:auto}
@@ -245,12 +249,12 @@ button{text-transform:none;letter-spacing:0}
   user-select:none;-webkit-user-select:none}
 .b-bt{background:var(--green);color:#031329}
 .b-pre{background:var(--amber);color:#031329}
-.b-rm{background:var(--s3);color:var(--muted);border:1px solid #4a5560}
+.b-rm{background:var(--s3);color:var(--muted)}
 .b-unrel{background:#f472b6;color:#031329}
 .b-free{background:#ffffff;color:#031329}
-/* priority label badge on card — same style as side panel pill */
-.b-prio{font-size:.55rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-  padding:2px 5px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;color:#031329}
+/* priority label badge on card — same badge branding as every other badge */
+.b-prio{font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;line-height:1.4;pointer-events:none;white-space:nowrap;color:#031329}
 
 /* card body */
 .cb{padding:.5rem .65rem .55rem;flex:1;display:flex;flex-direction:column;gap:.3rem}
@@ -259,10 +263,10 @@ button{text-transform:none;letter-spacing:0}
 .cbot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-top:auto}
 .cprice{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;color:var(--blue);flex-shrink:0}
 .ggp-ov{position:absolute;bottom:3px;left:0;right:0;display:flex;flex-wrap:nowrap;align-items:flex-end;justify-content:space-between;padding:0 .3rem .25rem;z-index:3;pointer-events:none}
-.ggp-retail{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:#e0f7ff;background:rgba(3,19,41,.6);border-radius:4px;padding:.05rem .3rem;white-space:nowrap}
-.ggp-keys{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.75rem;color:var(--amber);background:rgba(3,19,41,.6);border-radius:4px;padding:.05rem .3rem;white-space:nowrap}
-.ggp-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:var(--green);background:#0a1a0acc;border-radius:4px;padding:.05rem .3rem;white-space:nowrap}
-.ggp-hist-low{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:#ffd700;background:#1a140acc;border-radius:4px;padding:.05rem .3rem;white-space:nowrap}
+.ggp-retail{font-weight:700;font-size:.56rem;letter-spacing:.04em;text-transform:uppercase;line-height:1.4;color:#e0f7ff;background:rgba(3,19,41,.6);border-radius:4px;padding:2px 6px;white-space:nowrap}
+.ggp-keys{font-weight:700;font-size:.56rem;letter-spacing:.04em;text-transform:uppercase;line-height:1.4;color:var(--amber);background:rgba(3,19,41,.6);border-radius:4px;padding:2px 6px;white-space:nowrap}
+.ggp-low{font-weight:700;font-size:.56rem;letter-spacing:.04em;text-transform:uppercase;line-height:1.4;color:var(--green);background:#0a1a0acc;border-radius:4px;padding:2px 6px;white-space:nowrap}
+.ggp-hist-low{font-weight:700;font-size:.56rem;letter-spacing:.04em;text-transform:uppercase;line-height:1.4;color:#ffd700;background:#1a140acc;border-radius:4px;padding:2px 6px;white-space:nowrap}
 .gg.lv .ggp-ov{display:none}
 #ggFetchBubble{display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;background:var(--cyan);border:none;cursor:pointer;z-index:400;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.68rem;color:#031329;text-align:center;line-height:1.2;box-shadow:0 2px 16px rgba(2,179,252,.45);animation:ggPulse 1.8s ease-in-out infinite}
 #ggFetchBubble.on{display:flex}
@@ -489,14 +493,16 @@ button{text-transform:none;letter-spacing:0}
 /* tag chip — the only editable/removable one of the .cich family, so it's the only true
    "chip" (has its own × action); restyled to match the chip family's grammar (.fchip) */
 .cich{background:#02b3fc15;border:1px solid var(--bd2);color:var(--text);border-radius:99px;
-  padding:.2rem .5rem .2rem .6rem;font-size:.68rem;font-weight:500;display:flex;align-items:center;gap:.3rem}
-.cich button{background:none;border:none;color:var(--t3);cursor:pointer;padding:0;font-size:.8rem;line-height:1;transition:color .1s}
+  padding:.18rem .5rem .18rem .6rem;font-size:.65rem;display:flex;align-items:center;gap:.25rem}
+.cich button{background:none;border:none;color:var(--t3);cursor:pointer;padding:0 0 0 .2rem;font-size:.75rem;line-height:1;transition:color .1s}
 .cich button:hover{color:var(--pink)}
-/* read-only tags — no remove action, so these are badges, not chips (already 4px, matching) */
-.cich-ro{background:#1a0a3a;border:1px solid #4a2080;color:#c4a0ff;border-radius:4px;user-select:none;
-  padding:2px 6px;font-size:.66rem;font-weight:500;display:inline-flex;align-items:center;gap:.18rem}
-.cich-tag{background:#0a1824;border:1px solid #1a4060;color:#5db8e8;border-radius:4px;user-select:none;
-  padding:2px 6px;font-size:.66rem;font-weight:500;display:inline-flex;align-items:center;gap:.18rem}
+/* read-only tags — no remove action, so these are badges, not chips: same badge branding */
+.cich-ro{background:#1a0a3a;color:#c4a0ff;border-radius:4px;user-select:none;
+  font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;line-height:1.4;display:inline-flex;align-items:center;gap:.18rem}
+.cich-tag{background:#0a1824;color:#5db8e8;border-radius:4px;user-select:none;
+  font-size:.56rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;line-height:1.4;display:inline-flex;align-items:center;gap:.18rem}
 .cir{background:transparent;border:none;outline:none;color:var(--text);font-size:.78rem;flex:1;min-width:60px;padding:0}
 
 /* genre suggestions dropdown */
@@ -619,10 +625,10 @@ button{text-transform:none;letter-spacing:0}
 @media(max-width:640px){
   .sync-hdr{display:none}
   #syncPill{
-    display:flex;align-items:center;gap:.32rem;
+    display:flex;align-items:center;gap:.25rem;
     position:fixed;bottom:5rem;left:.85rem;z-index:490;
-    background:var(--s1);border:1px solid var(--bd);border-radius:99px;
-    padding:.3rem .65rem .3rem .5rem;font-size:.68rem;font-weight:500;color:var(--t3);
+    background:var(--s1);border:1px solid var(--bd2);border-radius:99px;
+    padding:.18rem .5rem .18rem .6rem;font-size:.65rem;color:var(--t3);
     box-shadow:0 2px 12px rgba(0,0,0,.25);
     transition:opacity .3s,transform .3s,border-color .15s,color .15s;
     cursor:default;user-select:none;-webkit-user-select:none;
@@ -979,7 +985,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 /* reclassified as a selector pill — same shape/grammar as .btc-plat-pill (it's picking
    which purchase record to view/edit, same job as picking a platform value in the modal) */
 .plat-tab{padding:.25rem .65rem;border-radius:20px;border:1.5px solid var(--bd);background:transparent;
-  color:var(--t2);font-size:.68rem;font-weight:700;cursor:pointer;transition:all .15s;
+  color:var(--t2);font-size:.7rem;font-weight:700;cursor:pointer;transition:all .15s;
   font-family:'Rajdhani',sans-serif;letter-spacing:.04em;text-transform:uppercase}
 .plat-tab:hover{border-color:var(--blue);color:var(--blue)}
 .plat-tab.active{color:#031329;border-color:transparent}
@@ -1090,15 +1096,20 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .fbar-opt-count{font-size:.62rem;color:var(--t3);flex-shrink:0}
 
 /* Hotness tier filter — reclassified as a filter pill (was its own bespoke "chip" style,
-   inconsistent with the other sidebar filters); shape/opacity/count now come from .fbar-pill */
+   inconsistent with the other sidebar filters); shape/font/opacity/count now come entirely
+   from .fbar-pill, so this class carries no styling of its own anymore */
 .fbar-hot-chips{display:flex;gap:.4rem;flex-wrap:wrap;padding:.45rem .75rem .6rem}
-.fbar-hot-chip{padding:2px 6px;font-family:inherit}
 
-/* Filter bar pills (priority, play status, platform, hotness) — canonical pill shape:
-   20px radius, no glow ring (selected state is opacity-only) */
+/* Filter bar pills (priority, play status, platform, hotness) — same branding as the
+   selector pills (padding/font/radius/weight/casing), so the two Pill sub-flavors only
+   differ by their agreed differences: filter pills stay tinted+dimmed instead of
+   colorless-until-chosen, and always show a count. Set explicitly here (not inherited
+   from whatever base class — .b-plat/.col-ps-badge — a pill happens to be paired with)
+   so every filter pill matches regardless of which values it's built from. */
 .fbar-pills{display:flex;flex-wrap:wrap;gap:.3rem;padding:.1rem 0}
 .fbar-pill{cursor:pointer;border:1.5px solid transparent;border-radius:20px;opacity:.55;
-  transition:opacity .12s;font-size:.62rem}
+  transition:opacity .12s;padding:.25rem .65rem;font-size:.7rem;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;font-family:'Rajdhani',sans-serif}
 .fbar-pill:hover{opacity:.8}
 .fbar-pill.selected{opacity:1}
 .fbar-pill-count{margin-left:.35rem;padding:1px 6px;border-radius:99px;font-weight:700;font-size:.85em;display:inline-block}

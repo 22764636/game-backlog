@@ -2124,7 +2124,7 @@ function openPsPicker(badge,gameId){
   picker.innerHTML=statuses.map(s=>{
     const m=PS_META[s];
     return'<div class="ps-pick-opt'+(s===cur?' active':'')+'" data-s="'+esc(s)+'">'+
-      '<span class="col-ps-badge '+m.cls+'" style="font-size:.52rem;padding:1px 5px;flex-shrink:0">'+m.code+'</span>'+
+      '<span class="col-ps-badge '+m.cls+'" style="flex-shrink:0">'+m.code+'</span>'+
       '<span class="ps-pick-label">'+esc(s)+'</span>'+
     '</div>';
   }).join('');
@@ -2180,7 +2180,7 @@ function _toggleInlinePsPicker(dd,hiddenInput,syncFn,triggerEl){
   dd.innerHTML=Object.keys(PS_META).map(s=>{
     const m=PS_META[s];
     return'<div class="ps-pick-opt'+(s===cur?' active':'')+'" data-s="'+esc(s)+'">'+
-      '<span class="col-ps-badge '+m.cls+'" style="font-size:.52rem;padding:1px 5px;flex-shrink:0">'+m.code+'</span>'+
+      '<span class="col-ps-badge '+m.cls+'" style="flex-shrink:0">'+m.code+'</span>'+
       '<span class="ps-pick-label">'+esc(s)+'</span></div>';
   }).join('');
   dd.querySelectorAll('.ps-pick-opt').forEach(opt=>{
@@ -2323,7 +2323,7 @@ function _buildPlatTabContent(g,plat){
     ${p.purchaseDate?`<div class="purch-cell"><div class="purch-lbl">Date</div><div class="purch-val">${esc(fmtDate(p.purchaseDate)||p.purchaseDate)}</div></div>`:''}
   </div>`;
 
-  const psSpan=`<span class="col-ps-badge ${psM.cls}" style="font-size:.72rem;padding:4px 10px">${psM.code} <span style="font-size:.68rem;font-weight:400;margin-left:4px">${esc(ps)}</span></span>`;
+  const psSpan=`<span class="col-ps-badge ${psM.cls}">${psM.code} ${esc(ps)}</span>`;
 
   const twoCol=isSteam
     ?`<div class="coll-2col">
