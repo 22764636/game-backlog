@@ -707,9 +707,24 @@ function renderCalendar(){
       const dateStr=this.dataset.date;
       const pop=document.getElementById('pop-'+dateStr);
       main.querySelectorAll('.cal-pop.open').forEach(p=>{if(p!==pop)p.classList.remove('open')});
+      const willOpen=!pop.classList.contains('open');
       pop.classList.toggle('open');
+      if(willOpen)clampPopToContainer(pop,main);
     });
   });
+}
+
+// Keep a day popover's default centered position, but nudge it sideways
+// just enough to stay inside the calendar viewport (which clips overflow).
+function clampPopToContainer(pop,container){
+  pop.style.transform='translateX(-50%)';
+  const popRect=pop.getBoundingClientRect();
+  const containerRect=container.getBoundingClientRect();
+  const margin=4;
+  let shift=0;
+  if(popRect.left<containerRect.left+margin)shift=(containerRect.left+margin)-popRect.left;
+  else if(popRect.right>containerRect.right-margin)shift=(containerRect.right-margin)-popRect.right;
+  if(shift)pop.style.transform=`translateX(calc(-50% + ${shift}px))`;
 }
 
 // Calendar controls

@@ -783,11 +783,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .cal-pop{
   display:none;position:absolute;z-index:400;
   background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);
-  padding:.35rem;min-width:160px;max-width:220px;
+  padding:.35rem;width:max-content;max-width:220px;
   box-shadow:0 6px 20px rgba(0,0,0,.45);
   top:calc(100% + 4px);left:50%;transform:translateX(-50%);
 }
-.cal-cell:last-child .cal-pop,.cal-cell:nth-last-child(-n+2) .cal-pop{left:auto;right:0;transform:none}
 .cal-pop.open{display:block}
 .cal-pop-item{
   display:block;padding:.28rem .45rem;border-radius:5px;font-size:.72rem;
