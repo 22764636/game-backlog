@@ -790,8 +790,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) s
 .cal-pop.open{display:block}
 .cal-pop-item{
   display:block;padding:.28rem .45rem;border-radius:5px;font-size:.72rem;
-  color:var(--t2);cursor:pointer;white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;transition:background .1s,color .1s;
+  color:var(--t2);cursor:pointer;white-space:normal;word-break:break-word;
+  transition:background .1s,color .1s;
 }
 .cal-pop-item:hover{background:#02b3fc15;color:var(--text)}
 .cal-pop-item.pre{color:var(--amber)}

@@ -434,6 +434,7 @@ function openCalendar(){
 function _rawCloseCalendar(){
   document.getElementById('calOv').classList.remove('on');
   document.getElementById('calOv').style.display='none';
+  document.getElementById('calFloatPop').classList.remove('open');
   calShowTba=false;
 }
 function closeCalendar(){
@@ -712,7 +713,7 @@ function renderCalendar(){
       floatPop.classList.remove('open');
       if(alreadyOpenHere)return;
       const cellGames=byDate[dateStr]||[];
-      floatPop.innerHTML=cellGames.map(g=>`<div class="cal-pop-item${isPreOrder(g)?' pre':''}" onclick="openPanel('${g.id}')">${esc(g.title)}</div>`).join('');
+      floatPop.innerHTML=cellGames.map(g=>`<div class="cal-pop-item${isPreOrder(g)?' pre':''}" onclick="this.closest('.cal-pop').classList.remove('open');openPanel('${g.id}')">${esc(g.title)}</div>`).join('');
       floatPop.dataset.date=dateStr;
       positionFloatPop(floatPop,this);
       floatPop.classList.add('open');
