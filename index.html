@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Building the Backlog</title>
+<meta name="description" content="Building the Backlog — your personal game backlog manager. Track your wishlist, collection, and play progress.">
+<meta property="og:title" content="Building the Backlog">
+<meta property="og:description" content="Your personal game backlog manager. Track your wishlist, collection, and play progress.">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+  <!-- PWA Meta -->
+  <meta name="theme-color" content="#031329">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BtB">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+
+<header id="hdr">
+  <!-- Badge mark (shared by both breakpoints) -->
+  <svg class="logo-svg logo-badge" width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <defs>
+      <linearGradient id="lg-stripes" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%"  stop-color="#02b3fc"/><stop offset="27%" stop-color="#02b3fc"/>
+        <stop offset="27%" stop-color="#ffffff"/><stop offset="35%" stop-color="#ffffff"/>
+        <stop offset="35%" stop-color="#ff00aa"/><stop offset="65%" stop-color="#ff00aa"/>
+        <stop offset="65%" stop-color="#ffffff"/><stop offset="73%" stop-color="#ffffff"/>
+        <stop offset="73%" stop-color="#02b3fc"/><stop offset="100%" stop-color="#02b3fc"/>
+      </linearGradient>
+      <linearGradient id="lg-bevel" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%"   stop-color="white" stop-opacity=".45"/><stop offset="5%"   stop-color="white" stop-opacity="0"/>
+        <stop offset="22%"  stop-color="black" stop-opacity="0"/>  <stop offset="27%"  stop-color="black" stop-opacity=".3"/>
+        <stop offset="27%"  stop-color="white" stop-opacity=".45"/><stop offset="30%"  stop-color="white" stop-opacity="0"/>
+        <stop offset="33%"  stop-color="black" stop-opacity="0"/>  <stop offset="35%"  stop-color="black" stop-opacity=".25"/>
+        <stop offset="35%"  stop-color="white" stop-opacity=".45"/><stop offset="40%"  stop-color="white" stop-opacity="0"/>
+        <stop offset="60%"  stop-color="black" stop-opacity="0"/>  <stop offset="65%"  stop-color="black" stop-opacity=".3"/>
+        <stop offset="65%"  stop-color="white" stop-opacity=".45"/><stop offset="68%"  stop-color="white" stop-opacity="0"/>
+        <stop offset="71%"  stop-color="black" stop-opacity="0"/>  <stop offset="73%"  stop-color="black" stop-opacity=".25"/>
+        <stop offset="73%"  stop-color="white" stop-opacity=".45"/><stop offset="78%"  stop-color="white" stop-opacity="0"/>
+        <stop offset="96%"  stop-color="black" stop-opacity="0"/>  <stop offset="100%" stop-color="black" stop-opacity=".3"/>
+      </linearGradient>
+      <filter id="lg-shadow" x="-60%" y="-60%" width="220%" height="220%">
+        <feDropShadow dx="1.5" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="1"/>
+        <feDropShadow dx="0"   dy="1" stdDeviation=".5" flood-color="#000" flood-opacity=".6"/>
+      </filter>
+      <clipPath id="lg-clip"><rect width="36" height="36" rx="9"/></clipPath>
+    </defs>
+    <g clip-path="url(#lg-clip)">
+      <rect width="36" height="36" fill="url(#lg-stripes)"/>
+      <rect width="36" height="36" fill="url(#lg-bevel)"/>
+    </g>
+    <text x="18" y="27" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="26" fill="white" filter="url(#lg-shadow)">B</text>
+  </svg>
+  <!-- Desktop: separator + wordmark -->
+  <svg class="logo-svg logo-full" viewBox="0 0 196 28" height="28" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <line x1="0" y1="0" x2="0" y2="28" stroke="#14528f" stroke-opacity=".6" stroke-width="1"/>
+    <text y="20" font-family="Rajdhani,sans-serif" font-weight="700" font-size="20" letter-spacing=".4">
+      <tspan x="12" fill="#02b3fc">Building </tspan><tspan fill="#e8f4ff">the </tspan><tspan fill="#ff00aa">Backlog</tspan>
+    </text>
+  </svg>
+  <div class="hs hs-desk">
+    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search…" autocomplete="off">
+    <button class="hs-clear" id="searchClear" tabindex="-1">Clear</button>
+  </div>
+  <div class="hs hs-mob">
+    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="searchInputMob" placeholder="Search…" autocomplete="off">
+    <button class="hs-clear" id="searchClearMob" tabindex="-1">Clear</button>
+  </div>
+  <span id="syncStatus" class="sync-hdr"></span>
+  <div class="hr">
+    <button class="hb hb-desk accent" id="calBtn" title="Release Calendar"><span class="hb-label">Calendar</span></button>
+    <button class="hb hb-desk accent kb-help-btn" id="kbHelpBtn" title="Keyboard shortcuts">?</button>
+    <div class="mode-tog hb-desk" id="modeTog">
+      <button class="mode-btn on" id="modeWishlist">Wishlist</button>
+      <button class="mode-btn" id="modeCollection">Collection</button>
+    </div>
+    <button class="hb p" id="addBtn">＋<span class="hb-label"> Add game</span></button>
+    <button class="hb hb-desk accent" id="dhBtn" title="More options" style="font-size:1rem;padding:0 .5rem">☰</button>
+    <button class="hb hb-mob accent" id="hamburgerBtn" style="font-size:1rem;padding:0 .5rem" title="Menu">☰</button>
+  </div>
+</header>
+
+
+<!-- SHORTCUTS POPOVER (desktop) -->
+<div id="kbPop" class="kb-pop">
+  <div class="kb-pop-title">Keyboard Shortcuts</div>
+  <div class="kb-row"><span>Focus search</span><span class="kb-key">/</span></div>
+  <div class="kb-row"><span>Add game</span><span class="kb-key">A</span></div>
+  <div class="kb-row"><span>Release calendar</span><span class="kb-key">C</span></div>
+  <div class="kb-row"><span>Grid view</span><span class="kb-key">G</span></div>
+  <div class="kb-row"><span>List view</span><span class="kb-key">L</span></div>
+  <div class="kb-row"><span>Wishlist</span><span class="kb-key">W</span></div>
+  <div class="kb-row"><span>Collection</span><span class="kb-key">O</span></div>
+  <div class="kb-row"><span>Close / dismiss</span><span class="kb-key">Esc</span></div>
+</div>
+
+<!-- TODAY'S RELEASES TICKER -->
+<div id="todayTicker">
+  <div class="ticker-label">OUT TODAY</div>
+  <div class="ticker-track">
+    <div class="ticker-inner" id="tickerInner"></div>
+  </div>
+</div>
+<!-- Mobile dropdown menu — outside header to avoid overflow:hidden clipping -->
+<div id="hmenu">
+  <button class="hmi" id="hmRdcBtn">Check release dates</button>
+  <button class="hmi" id="hmPriceBtn">Check live prices</button>
+  <button class="hmi" id="hmSteamPriceBtn">Fill missing prices</button>
+  <div class="hmi-row2">
+    <button class="hmi" id="hmExpBtn">Export</button>
+    <button class="hmi" id="hmImpBtn">Import</button>
+  </div>
+</div>
+<!-- Desktop dropdown menu -->
+<div id="dhmenu">
+  <div class="hmi-theme"><span class="hmi-theme-label">View</span><div class="mode-tog" id="dhViewTog"><button class="mode-btn on" id="dhViewGrid" title="Grid view">⊞</button><button class="mode-btn" id="dhViewList" title="List view">☰</button></div></div>
+  <button class="hmi" id="dhMetaBtn">Refresh genre &amp; tag data</button>
+  <button class="hmi" id="dhDatesBtn">Check release dates</button>
+  <button class="hmi" id="dhPriceBtn">Check live prices</button>
+  <button class="hmi" id="dhSteamPriceBtn">Fill missing prices</button>
+  <div class="hmi-row2">
+    <button class="hmi" id="dhExpBtn">Export</button>
+    <button class="hmi" id="dhImpBtn">Import</button>
+  </div>
+</div>
+
+<div id="fbar-ov"></div>
+<div id="fbar">
+  <div class="fbar-header">
+    <span class="fbar-title">Filters</span>
+    <button class="fbar-close" id="fbarClose">✕</button>
+  </div>
+  <div id="fchips"></div>
+  <div class="fbar-body" id="fbarBody">
+    <!-- Stats chips (moved from main layout) -->
+    <div class="fbar-stats-row">
+      <div class="sc" id="statChips"></div>
+      <div class="sc" id="cStatChips" style="display:none"></div>
+    </div>
+    <!-- Wishlist sections -->
+    <div id="fbar-wl">
+      <div class="fbar-sort-row">
+        <div class="fbar-sort-item">
+          <label class="fbar-sort-label">Sort</label>
+          <input type="hidden" id="sortSel" value="hotness">
+          <div class="pick-wrap">
+            <button type="button" class="pick-btn" id="sortSelBtn"><span id="sortSelLabel">Hotness</span><span class="spb-arrow">▾</span></button>
+            <div class="pick-dd" id="sortSelDd"></div>
+          </div>
+        </div>
+        <div class="fbar-sort-item">
+          <label class="fbar-sort-label">Group</label>
+          <input type="hidden" id="groupSel" value="none">
+          <div class="pick-wrap">
+            <button type="button" class="pick-btn" id="groupSelBtn"><span id="groupSelLabel">None</span><span class="spb-arrow">▾</span></button>
+            <div class="pick-dd" id="groupSelDd"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-genre-sec">
+        <button class="fbar-sec-hdr" id="fbar-genre-toggle">
+          <span class="fbar-sec-title">Genre</span>
+          <span class="fbar-sec-badge" id="fbar-genre-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-genre-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <input class="fbar-search" id="fbar-genre-search" type="text" placeholder="Search…" autocomplete="off">
+            <div class="fbar-logic-tog" id="fbar-genre-logic">
+              <button class="fbar-logic-btn on" data-l="or">OR</button>
+              <button class="fbar-logic-btn" data-l="and">AND</button>
+            </div>
+            <button class="fbar-sec-clear" id="fbar-genre-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-genre-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-tags-sec">
+        <button class="fbar-sec-hdr" id="fbar-tags-toggle">
+          <span class="fbar-sec-title">Tags</span>
+          <span class="fbar-sec-badge" id="fbar-tags-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-tags-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <input class="fbar-search" id="fbar-tags-search" type="text" placeholder="Search…" autocomplete="off">
+            <div class="fbar-logic-tog" id="fbar-tags-logic">
+              <button class="fbar-logic-btn on" data-l="or">OR</button>
+              <button class="fbar-logic-btn" data-l="and">AND</button>
+            </div>
+            <button class="fbar-sec-clear" id="fbar-tags-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-tags-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-prio-sec">
+        <button class="fbar-sec-hdr" id="fbar-prio-toggle">
+          <span class="fbar-sec-title">Priority</span>
+          <span class="fbar-sec-badge" id="fbar-prio-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-prio-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <span class="fbar-fill"></span>
+            <button class="fbar-sec-clear" id="fbar-prio-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-prio-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-hot-sec">
+        <button class="fbar-sec-hdr" id="fbar-hot-toggle">
+          <span class="fbar-sec-title">Hotness</span>
+          <span class="fbar-sec-badge" id="fbar-hot-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-hot-body" style="display:none">
+          <div class="fbar-hot-chips" id="fbar-hot-chips">
+            <button class="fbar-pill fbar-hot-chip selected" data-min="0" data-max="100" style="background:#f7cd26;color:#031329">Any<span class="fbar-pill-count fpc-dark"></span></button>
+            <button class="fbar-pill fbar-hot-chip" data-min="70" data-max="100" style="background:#f7cd26;color:#031329">HOT 70+<span class="fbar-pill-count fpc-dark"></span></button>
+            <button class="fbar-pill fbar-hot-chip" data-min="40" data-max="69" style="background:#f7cd26;color:#031329">MID 40–69<span class="fbar-pill-count fpc-dark"></span></button>
+            <button class="fbar-pill fbar-hot-chip" data-min="0" data-max="39" style="background:#f7cd26;color:#031329">LOW &lt;40<span class="fbar-pill-count fpc-dark"></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Collection sections -->
+    <div id="fbar-col" style="display:none">
+      <div class="fbar-sort-row">
+        <div class="fbar-sort-item" style="flex:1">
+          <label class="fbar-sort-label">Sort</label>
+          <input type="hidden" id="cSortSel" value="steamcol">
+          <div class="pick-wrap">
+            <button type="button" class="pick-btn" id="cSortSelBtn"><span id="cSortSelLabel">Steam Collection</span><span class="spb-arrow">▾</span></button>
+            <div class="pick-dd" id="cSortSelDd"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-cgenre-sec">
+        <button class="fbar-sec-hdr" id="fbar-cgenre-toggle">
+          <span class="fbar-sec-title">Genre</span>
+          <span class="fbar-sec-badge" id="fbar-cgenre-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-cgenre-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <input class="fbar-search" id="fbar-cgenre-search" type="text" placeholder="Search…" autocomplete="off">
+            <div class="fbar-logic-tog" id="fbar-cgenre-logic">
+              <button class="fbar-logic-btn on" data-l="or">OR</button>
+              <button class="fbar-logic-btn" data-l="and">AND</button>
+            </div>
+            <button class="fbar-sec-clear" id="fbar-cgenre-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-cgenre-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-cplay-sec">
+        <button class="fbar-sec-hdr" id="fbar-cplay-toggle">
+          <span class="fbar-sec-title">Play Status</span>
+          <span class="fbar-sec-badge" id="fbar-cplay-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-cplay-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <span class="fbar-fill"></span>
+            <button class="fbar-sec-clear" id="fbar-cplay-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-cplay-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-cplat-sec">
+        <button class="fbar-sec-hdr" id="fbar-cplat-toggle">
+          <span class="fbar-sec-title">Platform</span>
+          <span class="fbar-sec-badge" id="fbar-cplat-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-cplat-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <span class="fbar-fill"></span>
+            <div class="fbar-logic-tog" id="fbar-cplat-excl">
+              <button class="fbar-logic-btn on" data-m="any">ANY</button>
+              <button class="fbar-logic-btn" data-m="excl">EXCL</button>
+            </div>
+            <button class="fbar-sec-clear" id="fbar-cplat-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-cplat-list"></div>
+        </div>
+      </div>
+      <div class="fbar-section" id="fbar-ccol-sec">
+        <button class="fbar-sec-hdr" id="fbar-ccol-toggle">
+          <span class="fbar-sec-title">Steam Collection</span>
+          <span class="fbar-sec-badge" id="fbar-ccol-badge" style="display:none"></span>
+          <span class="fbar-sec-arrow">▾</span>
+        </button>
+        <div class="fbar-sec-body" id="fbar-ccol-body" style="display:none">
+          <div class="fbar-sec-toolbar">
+            <input class="fbar-search" id="fbar-ccol-search" type="text" placeholder="Search…" autocomplete="off">
+            <div class="fbar-logic-tog" id="fbar-ccol-logic">
+              <button class="fbar-logic-btn on" data-l="or">OR</button>
+              <button class="fbar-logic-btn" data-l="and">AND</button>
+            </div>
+            <button class="fbar-sec-clear" id="fbar-ccol-clear">Clear</button>
+          </div>
+          <div class="fbar-sec-list" id="fbar-ccol-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="fbar-footer">
+    <button class="fbar-clearall" id="fbarClearAll">Clear all filters</button>
+  </div>
+</div>
+<!-- ADD TYPE PICKER -->
+<div id="addPickPop" style="display:none;position:fixed;z-index:320;background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);padding:.3rem;box-shadow:0 6px 24px rgba(0,0,0,.5)">
+  <button class="add-pick-btn" id="addPickWishlist">
+    <div class="add-pick-title">Wishlist</div>
+    <div class="add-pick-sub">Track a game you want</div>
+  </button>
+  <button class="add-pick-btn" id="addPickCollection">
+    <div class="add-pick-title">Collection</div>
+    <div class="add-pick-sub">Add a game you own</div>
+  </button>
+</div>
+
+<div id="main">
+  <div id="content"><div id="gc"></div></div>
+</div>
+
+<!-- PRICE LOOKUP MODAL -->
+<div id="plcov">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-body">
+    <div class="mt" style="color:var(--blue)">$ Check Prices</div>
+    <div id="plcSummary" style="font-size:.82rem;color:var(--t2);margin-bottom:.7rem;min-height:1.1em"></div>
+    <div id="plcLog"></div>
+    </div>
+    <div class="ma">
+      <button class="mb2" id="plcClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- GG.DEALS FETCH PROGRESS MODAL -->
+<div id="ggFetchOv">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-body">
+      <div class="mt">Fetching Live Prices</div>
+      <div style="margin:.8rem 0 .5rem">
+        <div style="font-size:.85rem;color:var(--t2);margin-bottom:.4rem" id="ggFetchProgress">Preparing…</div>
+        <div style="height:6px;background:var(--s2);border-radius:3px;overflow:hidden">
+          <div id="ggFetchBar" style="height:100%;background:var(--cyan);width:0%;transition:width .4s"></div>
+        </div>
+      </div>
+      <div style="font-size:.82rem;color:var(--amber);min-height:1.2em" id="ggFetchStatus"></div>
+      <div id="ggFetchList" style="margin-top:.55rem;max-height:110px;overflow-y:auto;font-size:.74rem;color:var(--t3);line-height:1.7"></div>
+    </div>
+    <div class="ma">
+      <button class="mb2" id="ggFetchClose" style="display:none">Close</button>
+      <button class="mb2" id="ggFetchHide">Hide</button>
+      <button class="mb2" id="ggFetchCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+<!-- GG.DEALS FETCH FLOATING BUBBLE (shown when modal is hidden) -->
+<button id="ggFetchBubble" aria-label="Price fetch in progress"></button>
+
+<!-- RELEASE DATE CHECK MODAL -->
+<div id="rdcov">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-body">
+    <div class="mt" style="color:var(--blue)">↻ Release Date Check</div>
+    <div id="rdcSummary" style="font-size:.82rem;color:var(--t2);margin-bottom:.7rem;min-height:1.1em"></div>
+    <div id="rdcLog"></div>
+    </div><!-- /.modal-body -->
+    <div class="ma">
+      <button class="mb2" id="rdcClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="pov"></div>
+<div id="toast"></div>
+
+<!-- MOVE TO COLLECTION / ADD PLATFORM MODAL -->
+<div id="btcov">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-body">
+    <div class="mt" id="btcModalTitle" style="color:var(--green)">Move to Collection</div>
+    <div id="btcTitle" style="font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;color:var(--t2);margin-bottom:.8rem;letter-spacing:.02em"></div>
+    <!-- Platform pills (populated by JS) -->
+    <div class="fr">
+      <label>Platform <sup class="req">mandatory</sup></label>
+      <div class="btc-plat-pills" id="btcPlatPills"></div>
+    </div>
+    <!-- Store (styled picker) -->
+    <div class="fr">
+      <label>Store <sup class="req">mandatory</sup></label>
+      <input type="hidden" id="btcStore" value="">
+      <div class="genre-wrap" id="btcStoreWrap">
+        <input type="text" class="cir" id="btcStoreInput" placeholder="Type or pick a store…" autocomplete="off">
+        <div class="genre-dd" id="btcStoreDd"></div>
+      </div>
+    </div>
+    <!-- Cost + Purchase date -->
+    <div class="fg2">
+      <div class="fr"><label>Cost (€)</label><input type="number" id="btcCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
+      <div class="fr"><label>Purchase date <sup class="req">mandatory</sup></label><input type="date" id="btcDate" autocomplete="off"></div>
+    </div>
+    <!-- Play status (styled button) -->
+    <div class="fr">
+      <label>Play status <sup class="req">mandatory</sup></label>
+      <input type="hidden" id="btcPlayStatus" value="Unplayed">
+      <div class="pick-wrap">
+        <button type="button" id="btcPlayStatusBtn" class="ps-modal-btn ps-UP">Unplayed</button>
+        <div class="pick-dd" id="btcPsDd"></div>
+      </div>
+    </div>
+    <!-- Steam Collection (hidden when non-Steam platform selected) -->
+    <div class="fr" id="btcColSection">
+      <label>Steam Collection <sup class="req">mandatory</sup> <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
+      <div class="genre-wrap">
+        <div class="ciw" id="btcColWrap"><input type="text" class="cir" id="btcColInput" placeholder="Type to filter…" autocomplete="off"></div>
+        <div class="genre-dd" id="btcColDd"></div>
+      </div>
+    </div>
+    </div><!-- /.modal-body -->
+    <div class="ma">
+      <button class="mb2" id="btcCancel">Cancel</button>
+      <button class="mb2 add" id="btcConfirm">Add to Collection</button>
+    </div>
+  </div>
+</div>
+
+<!-- RELEASE CALENDAR MODAL -->
+<div id="calOv" style="display:none;position:fixed;inset:0;background:rgba(3,19,41,.85);backdrop-filter:blur(4px);z-index:250;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);width:100%;max-width:900px;margin:0 auto">
+    <!-- Calendar header -->
+    <div id="calHdr" style="border-bottom:1px solid var(--bd)">
+      <!-- Desktop: single row. Mobile: two rows (CSS handles it) -->
+      <div class="cal-hdr-inner">
+        <span class="cal-hdr-title">Release Calendar</span>
+        <div class="cal-hdr-nav">
+          <button class="hb cal-arrow accent" id="calPrev">‹</button>
+          <select id="calMonthSel" class="ts cal-month-sel"></select>
+          <select id="calYearSel" class="ts cal-year-sel"></select>
+          <button class="hb cal-arrow accent" id="calNext">›</button>
+        </div>
+        <div class="cal-hdr-right">
+          <button class="hb cal-tba-toggle accent" id="calTbaBtn" title="Date Unknown games" style="display:none">TBA</button>
+          <button class="hb accent" id="calClose">✕</button>
+        </div>
+      </div>
+    </div>
+    <!-- Calendar body -->
+    <div style="display:flex;gap:0;min-height:400px;align-items:center;" id="calBody">
+      <!-- 3-month stacked grid area -->
+      <div id="calMain" style="flex:1;padding:.5rem .6rem;min-width:0;overflow:hidden"></div>
+      <!-- TBA sidebar (desktop, wider) -->
+      <div id="calTba" class="cal-tba-wide">
+        <div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.6rem;flex-shrink:0">Date Unknown</div>
+        <div class="tba-list-viewport" id="calTbaViewport">
+          <div class="tba-list-track" id="calTbaTrack"></div>
+        </div>
+        <div class="tba-pagination" id="tbaPagination" style="display:none">
+          <span class="tba-page-info" id="tbaPageInfo"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="metaFloatTip"></div>
+<div id="calFloatPop" class="cal-pop"></div>
+<div id="syncPill" class="hidden" title="Sync status"><span class="sp-dot"></span><span id="syncPillTxt"></span></div>
+
+<!-- SIDE PANEL -->
+<div id="panel">
+<div id="panel-drag-handle" title="Drag to resize"></div>
+  <div class="pcov">
+    <div class="pcph" id="pph">🎮</div>
+    <img id="pimg" src="" alt="" style="display:none">
+    <div class="pcg"></div>
+    <button class="pcl" id="pclose">✕</button>
+    <div class="pcnav">
+      <button class="pcnav-btn" id="pnavPrev" title="Previous game (← or K)">‹</button>
+      <button class="pcnav-btn" id="pnavNext" title="Next game (→ or J)">›</button>
+    </div>
+  </div>
+  <div class="pb2" id="pbody"></div>
+  <div class="panel-footer" id="panelFooter"></div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div id="mov">
+  <div class="modal">
+    <div class="modal-body">
+    <div class="mt" id="modalTitle">Add game</div>
+    <!-- Row 1: Store link full-width -->
+    <div class="fr">
+      <label>Store link <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— paste Steam URL to auto-fill Title &amp; App ID</span></label>
+      <input type="url" id="fStore" placeholder="https://store.steampowered.com/app/…">
+    </div>
+    <!-- Row 2: Title + App ID -->
+    <div class="fg2">
+      <div class="fr"><label>Title <sup class="req">mandatory</sup></label><input type="text" id="fTitle" placeholder="Game title"></div>
+      <div class="fr">
+        <label>Steam App ID</label>
+        <input type="text" id="fAppId" placeholder="e.g. 2239770" inputmode="numeric">
+        <div class="ferr" id="appIdErr">Already in your list.</div>
+        <div id="steamStatus" style="display:none;font-size:.62rem;margin-top:.2rem"></div>
+      </div>
+    </div>
+    <!-- Row 3: Cover preview + URL -->
+    <div id="cprevWrap" class="cprev-wrap">
+      <img id="cprev" class="cprev" alt="Cover preview">
+      <div id="cprevPlaceholder" class="cprev-placeholder">Cover art appears here</div>
+    </div>
+    <div class="cover-hint" id="coverHint">⚠ CDN image not found — paste the correct URL below</div>
+    <div class="fr" style="margin-top:.35rem">
+      <label>Cover URL <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">(auto-filled from App ID · or paste your own)</span></label>
+      <input type="url" id="fCover" placeholder="https://…">
+    </div>
+    <div class="fr">
+      <label>Short Description <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— auto-filled from Steam, editable</span></label>
+      <textarea id="fShortDesc" placeholder="Brief description of the game…"></textarea>
+    </div>
+    <!-- Row: Type + [Base Game when DLC] + Priority -->
+    <div class="fg3-mid-stretch">
+      <div class="fr">
+        <label>Type</label>
+        <div class="type-tog">
+          <button type="button" class="type-btn on" id="fTypeGame">Game</button>
+          <button type="button" class="type-btn" id="fTypeDlc">DLC</button>
+        </div>
+        <input type="hidden" id="fType" value="game">
+      </div>
+      <div class="fr disabled" id="parentAppIdRow">
+        <label>Base Game <sup class="req">mandatory</sup> <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— required for DLC</span></label>
+        <div class="genre-wrap">
+          <input type="text" id="fParentSearch" placeholder="Search by title or App ID…" autocomplete="off">
+          <input type="hidden" id="fParentAppId">
+          <div class="genre-dd" id="parentDd"></div>
+        </div>
+      </div>
+      <div class="fr">
+        <label>Priority</label>
+        <div class="prio-btns" id="prioBtns">
+          <button type="button" class="prio-btn" data-v="high">High</button>
+          <button type="button" class="prio-btn prio-btn-on" data-v="medium">Medium</button>
+          <button type="button" class="prio-btn" data-v="low">Low</button>
+        </div>
+        <input type="hidden" id="fPriority" value="medium">
+      </div>
+    </div>
+    <!-- Row 4: Genre -->
+    <div class="fr">
+      <label>Genre <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
+      <div class="genre-wrap">
+        <div class="ciw" id="genreWrap"><input type="text" class="cir" id="genreInput" placeholder="Start typing…" autocomplete="off"></div>
+        <div class="genre-dd" id="genreDd"></div>
+      </div>
+    </div>
+    <!-- Row 5: Dev + Publisher -->
+    <div class="fg2">
+      <div class="fr">
+        <label>Developer</label>
+        <div class="genre-wrap" id="devGWrap">
+          <div class="ciw" id="devWrap"><input type="text" class="cir" id="fDev" placeholder="Add developer…" autocomplete="off"></div>
+          <div class="genre-dd" id="devDd"></div>
+        </div>
+      </div>
+      <div class="fr">
+        <label>Publisher</label>
+        <div class="genre-wrap" id="pubGWrap">
+          <div class="ciw" id="pubWrap"><input type="text" class="cir" id="fPub" placeholder="Add publisher…" autocomplete="off"></div>
+          <div class="genre-dd" id="pubDd"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Row 6: Release date + Price + Hotness -->
+    <div class="fg4">
+      <div class="fr">
+        <label>Release date</label>
+        <!-- Overlay container: date and tba text occupy same space -->
+        <div class="date-overlay-wrap">
+          <div class="date-row" id="dateRow">
+            <input type="date" id="fDate" autocomplete="off">
+            <button type="button" class="tba-btn" id="tbaBtn">UNRELEASED</button>
+          </div>
+          <div class="date-row" id="tbaTxtRow" style="display:none">
+            <input type="text" id="fTbaText" placeholder="e.g. Q4 2026 · Coming Soon">
+            <button type="button" class="tba-btn on" id="tbaBtnOff">UNRELEASED</button>
+          </div>
+        </div>
+      </div>
+      <div class="fr"><label>Price (€)</label><input type="number" id="fPrice" placeholder="29.99" step="0.01" min="0" autocomplete="off"></div>
+      <div class="fr"><label>Hotness</label><input type="number" id="fHotness" placeholder="1 to 100" min="1" max="100" autocomplete="off"></div>
+      <div class="fr"><label>Live prices</label><div class="fetch-tog"><button type="button" class="fetch-btn inc on" id="fFetchInc">INCLUDE</button><button type="button" class="fetch-btn skip" id="fFetchSkip">SKIP</button></div></div>
+    </div>
+    <!-- Row 8: Tags -->
+    <div class="fr">
+      <label>Tags <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— type + Enter</span></label>
+      <div class="genre-wrap">
+        <div class="ciw" id="tagsWrap"><input type="text" class="cir" id="tagsInput" placeholder="Start typing…"></div>
+        <div class="genre-dd" id="tagsDd"></div>
+      </div>
+    </div>
+    <!-- Collection fields (shown only when adding directly to collection) -->
+    <div id="modalColSection" style="display:none;border-top:1px solid var(--bd);margin-top:.6rem;padding-top:.6rem">
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:.6rem">Collection Details</div>
+      <div class="fr">
+        <label>Platform <sup class="req">mandatory</sup></label>
+        <div class="btc-plat-pills" id="modalColPlatPills"></div>
+      </div>
+      <!-- Store + Cost + Purchase date -->
+      <div class="fr">
+        <label>Store <sup class="req">mandatory</sup></label>
+        <input type="hidden" id="fColStore" value="">
+        <div class="genre-wrap" id="fColStoreWrap">
+          <input type="text" class="cir" id="fColStoreInput" placeholder="Type or pick a store…" autocomplete="off">
+          <div class="genre-dd" id="fColStoreDd"></div>
+        </div>
+      </div>
+      <div class="fg2">
+        <div class="fr"><label>Cost (€) <sup class="req">mandatory</sup></label><input type="number" id="fColCost" placeholder="0.00" step="0.01" min="0" autocomplete="off"></div>
+        <div class="fr"><label>Purchase date <sup class="req">mandatory</sup></label><input type="date" id="fColDate" autocomplete="off"></div>
+      </div>
+      <div class="fr">
+        <label>Play status <sup class="req">mandatory</sup></label>
+        <input type="hidden" id="fColPlayStatus" value="Unplayed">
+        <div class="pick-wrap">
+          <button type="button" id="fColPlayStatusBtn" class="ps-modal-btn ps-UP">Unplayed</button>
+          <div class="pick-dd" id="fColPsDd"></div>
+        </div>
+      </div>
+      <div class="fr" id="fColSteamSection">
+        <label>Steam Collection <sup class="req">mandatory</sup> <span style="color:var(--t3);font-size:.62rem;text-transform:none;letter-spacing:0">— pick one or more</span></label>
+        <div class="genre-wrap">
+          <div class="ciw" id="fColColWrap"><input type="text" class="cir" id="fColColInput" placeholder="Type to filter…" autocomplete="off"></div>
+          <div class="genre-dd" id="fColColDd"></div>
+        </div>
+      </div>
+    </div>
+    <!-- steamWishlist toggle (shown only when editing a bought game with no Steam purchase) -->
+    <div id="steamWishlistRow" style="display:none;border-top:1px solid var(--bd);margin-top:.6rem;padding-top:.6rem">
+      <button type="button" id="steamWishlistToggle" class="hb" style="font-size:.72rem;padding:5px 14px;width:100%">☆ Also want on Steam</button>
+      <div style="font-size:.62rem;color:var(--t3);margin-top:.35rem;text-align:center">I own this elsewhere but also want it on Steam</div>
+    </div>
+    <!-- Notes in modal -->
+    <div class="fr" id="modalNotesSection">
+      <label>Notes <span class="meta-tip-icon" tabindex="0" data-desc="**bold**&#10;*italic*&#10;`code`&#10;[text](url)&#10;- bullet list">ⓘ</span></label>
+      <div class="note-compose">
+        <textarea class="note-add" id="fNoteTxt" placeholder="Add a note…" style="margin-bottom:0"></textarea>
+        <div class="note-compose-footer">
+          <input type="date" id="fNoteDate" class="note-compose-date">
+          <button class="note-save-btn" id="fNoteSaveBtn">＋ Save note</button>
+        </div>
+      </div>
+      <div id="fNoteList" style="margin-top:.45rem"></div>
+    </div>
+    </div><!-- /.modal-body -->
+    <div class="ma">
+      <button class="mb2" id="mcancel">Cancel</button>
+      <button class="mb2 p" id="msave">Save game</button>
+    </div>
+  </div>
+</div>
+
+<!-- REMOVE MODAL -->
+<div id="rmov">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-body">
+    <div class="mt" style="color:var(--pink)">Remove from list</div>
+    <div class="fr"><label>Why are you removing this game? <sup class="req">mandatory</sup></label>
+      <textarea class="rta" id="rmNote" placeholder="Not interested anymore, already bought elsewhere…"></textarea>
+    </div>
+    </div><!-- /.modal-body -->
+    <div class="ma">
+      <button class="mb2" id="rmCancel">Cancel</button>
+      <button class="mb2 d" id="rmConfirm">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- REINSTATE MODAL -->
+<div id="riov">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-body">
+    <div class="mt" style="color:var(--green)">Reinstate game</div>
+    <div class="fr"><label>Restore to which list?</label></div>
+    </div><!-- /.modal-body -->
+    <div class="ma">
+      <button class="mb2" id="riCancel">Cancel</button>
+      <button class="mb2 add" id="riWl">Wishlist</button>
+      <button class="mb2 p" id="riBt">Bought</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRE-ORDER / UNRELEASED CONFIRM MODAL -->
+<div id="preorderConfirm">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-body">
+    <div class="mt" style="color:var(--amber)">Game not yet released</div>
+    <div class="fr"><label id="preorderGameTitle" style="color:var(--text);font-weight:600;font-size:.95rem"></label></div>
+    <p style="margin:.5rem 0 1rem;color:var(--t2);font-size:.82rem">This game hasn't been released yet. It will show as <b style="color:var(--amber)">PRE-ORDER</b> until the release date.</p>
+    </div><!-- /.modal-body -->
+    <div class="ma">
+      <button class="mb2" id="preorderCancel">Cancel</button>
+      <button class="mb2 warn" id="preorderConfirmBtn">Add to Collection</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVE BACK TO WISHLIST CONFIRM MODAL -->
+<div id="wlovConfirm">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-body">
+    <div class="mt" style="color:var(--magenta)">Move back to Wishlist?</div>
+    <div class="fr"><label id="wlovGameTitle" style="color:var(--text);font-weight:600;font-size:.95rem"></label></div>
+    <p style="margin:.5rem 0 1rem;color:var(--t2);font-size:.82rem">All purchase data (platform, store, cost, date) will be removed.</p>
+    </div><!-- /.modal-body -->
+    <div class="ma">
+      <button class="mb2" id="wlovCancel">Cancel</button>
+      <button class="mb2 d" id="wlovConfirmBtn">Move to Wishlist</button>
+    </div>
+  </div>
+</div>
+
+<button class="fbar-fab" id="fbarFab" title="Filters">
+  <span>&#9881;</span>
+  <span class="fbar-fab-badge" id="fbarFabBadge" style="display:none"></span>
+</button>
+
+<!-- RADIAL QUICK-ACCESS FAB (mobile only) -->
+<div id="qfab" aria-label="Quick actions">
+  <button class="qfab-item" id="qfabCal" title="Release Calendar" aria-label="Release Calendar">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="12" rx="2"/><path d="M1 7h14M5 1v4M11 1v4"/></svg>
+  </button>
+  <button class="qfab-item" id="qfabMode" title="Wishlist / Collection" aria-label="Toggle mode">
+    <span id="qfabModeIco">W</span>
+  </button>
+  <button class="qfab-item" id="qfabView" title="Grid / List view" aria-label="Toggle view">
+    <span id="qfabViewIco">⊞</span>
+  </button>
+  <button class="qfab-item" id="qfabSync" title="Re-sync" aria-label="Re-sync">
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 8A5.5 5.5 0 1 1 10 3.1"/><path d="M10 1v3.5H13.5"/></svg>
+  </button>
+  <button id="qfabBtn" title="Quick actions" aria-label="Quick actions">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M7 2v10M2 7h10"/></svg>
+  </button>
+</div>
+<div id="qfab-ov"></div>
+
+<button id="back-to-top" title="Back to top">&#8593;</button>
+
+<script src="btb-url.js" onerror="void 0"></script>
+<script src="app.js"></script>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js',{scope:'./'})
+    .then(()=>console.log('BtB: SW registered'))
+    .catch(e=>console.warn('BtB: SW failed',e));
+}
+</script>
+<script>
+(function(){
+  var modes=['standalone','minimal-ui','fullscreen'];
+  var isPWA=window.navigator.standalone===true||modes.some(function(m){return window.matchMedia('(display-mode:'+m+')').matches;});
+  if(!isPWA)return;
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a');
+    if(!a||!a.href)return;
+    try{
+      if(new URL(a.href).origin!==location.origin){
+        e.preventDefault();
+        var w=window.open(a.href,'_blank');
+        if(w)w.opener=null;
+      }
+    }catch(err){}
+  });
+})();
+</script>
+</body>
+</html>

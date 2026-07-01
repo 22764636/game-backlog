@@ -1,0 +1,3 @@
+# Local config — holds your SHEET_URL; never commit this
+config.js
+.claude/

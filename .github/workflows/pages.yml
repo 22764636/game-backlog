@@ -1,0 +1,33 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write secrets to btb-url.js
+        env:
+          SHEET_URL: ${{ secrets.SHEET_URL }}
+          GGDEALS_WORKER: ${{ secrets.GGDEALS_WORKER }}
+        run: |
+          printf 'window.BTB_SHEET_URL = "%s";\n' "$SHEET_URL" > btb-url.js
+          printf 'window.BTB_GGDEALS_WORKER = "%s";\n' "$GGDEALS_WORKER" >> btb-url.js
+          echo "btb-url.js: $(wc -c < btb-url.js) bytes"
+
+      - name: Push to gh-pages branch
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git checkout --orphan gh-pages-deploy
+          git add -A
+          git commit -m "deploy: ${GITHUB_SHA::7}"
+          git push origin gh-pages-deploy:gh-pages --force
