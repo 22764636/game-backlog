@@ -51,7 +51,9 @@
 .dpill-filt{background:var(--pc);color:var(--ptx,#031329);border-color:transparent;opacity:.55}
 .dpill-filt:hover{opacity:.8}
 .dpill-filt.on{opacity:1}
-.dpill-count{margin-left:.3rem;opacity:.75;font-weight:700}
+.dpill-count{margin-left:.35rem;padding:1px 6px;border-radius:99px;font-weight:700;font-size:.85em}
+.dpill-count.on-dark{background:rgba(3,19,41,.55);color:#fff}
+.dpill-count.on-light{background:rgba(255,255,255,.6);color:#031329}
 
 /* ═══ BADGE (shared grammar: 4px radius, no border, solid fill, static) ═══ */
 .dbadge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:.58rem;font-weight:700;
@@ -172,15 +174,15 @@
       <div class="bgrow">
         <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
           <div class="bgbody">
-            <div class="statecell"><span class="statelabel">Unselected (dimmed)</span><button class="dpill dpill-filt" style="--pc:#02b3fc;--ptx:#031329">High<span class="dpill-count">12</span></button></div>
-            <div class="statecell"><span class="statelabel">Hover (try it)</span><button class="dpill dpill-filt" style="--pc:#ff00aa;--ptx:#031329">Medium<span class="dpill-count">27</span></button></div>
-            <div class="statecell"><span class="statelabel">Selected (full opacity)</span><button class="dpill dpill-filt on" style="--pc:#9cff00;--ptx:#031329">Low<span class="dpill-count">4</span></button></div>
+            <div class="statecell"><span class="statelabel">Unselected (dimmed)</span><button class="dpill dpill-filt" style="--pc:#02b3fc;--ptx:#031329">High<span class="dpill-count on-dark">12</span></button></div>
+            <div class="statecell"><span class="statelabel">Hover (try it)</span><button class="dpill dpill-filt" style="--pc:#ff00aa;--ptx:#031329">Medium<span class="dpill-count on-dark">27</span></button></div>
+            <div class="statecell"><span class="statelabel">Selected (full opacity)</span><button class="dpill dpill-filt on" style="--pc:#9cff00;--ptx:#031329">Low<span class="dpill-count on-dark">4</span></button></div>
           </div>
         </div>
         <div class="bgbox bg-page"><span class="bglabel">page bg — reference only</span>
           <div class="bgbody">
-            <button class="dpill dpill-filt" style="--pc:#02b3fc;--ptx:#031329">High<span class="dpill-count">12</span></button>
-            <button class="dpill dpill-filt on" style="--pc:#ff00aa;--ptx:#031329">Medium<span class="dpill-count">27</span></button>
+            <button class="dpill dpill-filt" style="--pc:#02b3fc;--ptx:#031329">High<span class="dpill-count on-dark">12</span></button>
+            <button class="dpill dpill-filt on" style="--pc:#ff00aa;--ptx:#031329">Medium<span class="dpill-count on-dark">27</span></button>
           </div>
         </div>
       </div>
@@ -188,13 +190,14 @@
 
     <div class="subblock">
       <div class="subblock-title">Filter pill — Platform (sidebar, with count)</div>
+      <div class="cat-sub" style="margin-bottom:.6rem">Label always uses the pill's normal contrast color; the count sits in its own small chip using the <b>opposite</b> polarity (dark chip+white text on light pills, light chip+dark text on dark pills) — a plain color swap would make white text unreadable on the bright cyan/lime/amber pills, so the count gets its own mini background instead of just changing font color.</div>
       <div class="bgrow">
         <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
           <div class="bgbody">
-            <button class="dpill dpill-filt" style="--pc:#66c0f4;--ptx:#031329">Steam<span class="dpill-count">41</span></button>
-            <button class="dpill dpill-filt on" style="--pc:#101014;--ptx:#fff">Epic<span class="dpill-count">3</span></button>
-            <button class="dpill dpill-filt" style="--pc:#003791;--ptx:#fff">PS<span class="dpill-count">6</span></button>
-            <button class="dpill dpill-filt on" style="--pc:#e4000f;--ptx:#fff">Nintendo<span class="dpill-count">2</span></button>
+            <button class="dpill dpill-filt" style="--pc:#66c0f4;--ptx:#031329">Steam<span class="dpill-count on-dark">41</span></button>
+            <button class="dpill dpill-filt on" style="--pc:#101014;--ptx:#fff">Epic<span class="dpill-count on-light">3</span></button>
+            <button class="dpill dpill-filt" style="--pc:#003791;--ptx:#fff">PS<span class="dpill-count on-light">6</span></button>
+            <button class="dpill dpill-filt on" style="--pc:#e4000f;--ptx:#fff">Nintendo<span class="dpill-count on-light">2</span></button>
           </div>
         </div>
       </div>
@@ -205,9 +208,9 @@
       <div class="bgrow">
         <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
           <div class="bgbody">
-            <button class="dpill dpill-filt" style="--pc:#2a2a2a;--ptx:#888">Unplayed<span class="dpill-count">9</span></button>
-            <button class="dpill dpill-filt on" style="--pc:#0a2a4a;--ptx:#4ab0f5">In Progress<span class="dpill-count">6</span></button>
-            <button class="dpill dpill-filt" style="--pc:#0a3320;--ptx:#5ddb8e">Completed<span class="dpill-count">19</span></button>
+            <button class="dpill dpill-filt" style="--pc:#2a2a2a;--ptx:#888">Unplayed<span class="dpill-count on-light">9</span></button>
+            <button class="dpill dpill-filt on" style="--pc:#0a2a4a;--ptx:#4ab0f5">In Progress<span class="dpill-count on-light">6</span></button>
+            <button class="dpill dpill-filt" style="--pc:#0a3320;--ptx:#5ddb8e">Completed<span class="dpill-count on-light">19</span></button>
           </div>
         </div>
       </div>
@@ -218,10 +221,10 @@
       <div class="bgrow">
         <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
           <div class="bgbody">
-            <button class="dpill dpill-filt" style="--pc:#f7cd26;--ptx:#031329">Any<span class="dpill-count">58</span></button>
-            <button class="dpill dpill-filt on" style="--pc:#f7cd26;--ptx:#031329">70+<span class="dpill-count">14</span></button>
-            <button class="dpill dpill-filt" style="--pc:#f7cd26;--ptx:#031329">40–69<span class="dpill-count">21</span></button>
-            <button class="dpill dpill-filt" style="--pc:#f7cd26;--ptx:#031329">&lt;40<span class="dpill-count">23</span></button>
+            <button class="dpill dpill-filt" style="--pc:#f7cd26;--ptx:#031329">Any<span class="dpill-count on-dark">58</span></button>
+            <button class="dpill dpill-filt on" style="--pc:#f7cd26;--ptx:#031329">70+<span class="dpill-count on-dark">14</span></button>
+            <button class="dpill dpill-filt" style="--pc:#f7cd26;--ptx:#031329">40–69<span class="dpill-count on-dark">21</span></button>
+            <button class="dpill dpill-filt" style="--pc:#f7cd26;--ptx:#031329">&lt;40<span class="dpill-count on-dark">23</span></button>
           </div>
         </div>
       </div>
