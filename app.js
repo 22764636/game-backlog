@@ -3975,7 +3975,7 @@ function _initFbarPicker(hidId,btnId,lblId,ddId,opts){
     dd.querySelectorAll('.dd-opt').forEach(opt=>{
       opt.addEventListener('click',ev=>{
         ev.stopPropagation();hid.value=opt.dataset.v;_sync();
-        dd.classList.remove('on');renderAll();
+        dd.classList.remove('on');dispatchRender();
       });
     });
     dd.classList.add('on');
