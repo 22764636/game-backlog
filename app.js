@@ -715,8 +715,8 @@ function renderCalendar(){
       const cellGames=byDate[dateStr]||[];
       floatPop.innerHTML=cellGames.map(g=>`<div class="cal-pop-item${isPreOrder(g)?' pre':''}" onclick="this.closest('.cal-pop').classList.remove('open');openPanel('${g.id}')">${esc(g.title)}</div>`).join('');
       floatPop.dataset.date=dateStr;
-      positionFloatPop(floatPop,this);
       floatPop.classList.add('open');
+      positionFloatPop(floatPop,this);
     });
   });
 }
@@ -725,7 +725,6 @@ function positionFloatPop(pop,anchor){
   const r=anchor.getBoundingClientRect();
   const margin=6;
   pop.style.left=margin+'px';pop.style.top=margin+'px';
-  pop.style.display='block';
   const pr=pop.getBoundingClientRect();
   let left=r.left+r.width/2-pr.width/2;
   if(left<margin)left=margin;
