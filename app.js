@@ -2323,7 +2323,7 @@ function _buildPlatTabContent(g,plat){
     ${p.purchaseDate?`<div class="purch-cell"><div class="purch-lbl">Date</div><div class="purch-val">${esc(fmtDate(p.purchaseDate)||p.purchaseDate)}</div></div>`:''}
   </div>`;
 
-  const psSpan=`<span class="col-ps-badge ${psM.cls}">${psM.code} ${esc(ps)}</span>`;
+  const psSpan=`<span class="col-ps-badge ${psM.cls}">${psM.code} · ${esc(ps)}</span>`;
 
   const twoCol=isSteam
     ?`<div class="coll-2col">
