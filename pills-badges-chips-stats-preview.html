@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pill / Badge / Chip / Stat — Proposed System Preview</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.audit-wrap{max-width:1240px;margin:0 auto;padding:2rem 1.2rem 6rem;font-family:'Inter',sans-serif}
+.audit-h1{font-family:'Rajdhani',sans-serif;font-size:1.8rem;font-weight:700;color:var(--text);margin-bottom:.3rem}
+.audit-sub{color:var(--t2);font-size:.9rem;margin-bottom:1.4rem;max-width:880px;line-height:1.5}
+.audit-toc{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.6rem;font-size:.75rem}
+.audit-toc a{color:var(--blue);border:1px solid var(--bd2);border-radius:99px;padding:.25rem .65rem}
+.audit-hint{font-size:.72rem;color:var(--amber);background:#f7cd2610;border:1px solid #f7cd2640;border-radius:6px;padding:.5rem .8rem;margin-bottom:1.6rem}
+
+/* system legend */
+.sys-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:2rem}
+.sys-table th{text-align:left;color:var(--t2);font-family:'Rajdhani',sans-serif;font-size:.68rem;letter-spacing:.05em;
+  text-transform:uppercase;padding:.5rem .6rem;border-bottom:1px solid var(--bd2)}
+.sys-table td{padding:.55rem .6rem;border-bottom:1px solid var(--bd);color:var(--text)}
+.sys-shape{display:inline-block;width:34px;height:18px;vertical-align:-4px;margin-right:.4rem;border-width:2px;border-style:solid}
+
+/* section shells */
+.cat{background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);padding:1.2rem 1.3rem;margin-bottom:1.8rem}
+.cat-title{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:.2rem}
+.cat-sub{font-size:.75rem;color:var(--t2);margin-bottom:1rem;line-height:1.5}
+.subblock{margin-bottom:1.4rem}
+.subblock-title{font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:700;color:var(--blue);margin-bottom:.5rem}
+
+/* background swatch rows */
+.bgrow{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem}
+.bgbox{flex:1;min-width:230px;border-radius:8px;padding:.7rem .8rem;position:relative}
+.bg-page{background:var(--base);border:1px dashed var(--bd2)}
+.bg-panel{background:#0d1e33;border:1px solid var(--bd2)}
+.bg-cover{position:relative;background:linear-gradient(135deg,#0a2a4a,#1a0a3a 55%,#031329);border:1px solid var(--cbr);overflow:hidden}
+.bg-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,#031329cc 0%,transparent 65%);pointer-events:none}
+.bglabel{position:absolute;top:-9px;left:8px;background:var(--s1);padding:0 .35rem;font-size:.56rem;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--t3);font-family:'Rajdhani',sans-serif;z-index:2}
+.bgbody{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;position:relative;z-index:1}
+.statelabel{font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:.2rem}
+.statecell{display:flex;flex-direction:column;align-items:flex-start;gap:.2rem}
+
+/* ═══ PILL (shared grammar: 20px radius, 1.5px border, no glow) ═══ */
+.dpill{display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .7rem;border-radius:20px;
+  border:1.5px solid var(--bd);background:transparent;color:var(--t2);cursor:pointer;
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;
+  transition:border-color .15s,color .15s,background .15s,opacity .15s;white-space:nowrap;user-select:none}
+/* selector pill: colorless until chosen */
+.dpill-sel:hover{border-color:var(--blue);color:var(--text)}
+.dpill-sel.on{background:var(--pc);border-color:transparent;color:var(--ptx,#031329)}
+/* filter pill: always tinted with its color, dims when off, shows a count */
+.dpill-filt{background:var(--pc);color:var(--ptx,#031329);border-color:transparent;opacity:.55}
+.dpill-filt:hover{opacity:.8}
+.dpill-filt.on{opacity:1}
+.dpill-count{margin-left:.3rem;opacity:.75;font-weight:700}
+
+/* ═══ BADGE (shared grammar: 4px radius, no border, solid fill, static) ═══ */
+.dbadge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:.58rem;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;line-height:1.4;white-space:nowrap;pointer-events:none;
+  background:var(--pc);color:var(--ptx,#031329)}
+
+/* ═══ CHIP (shared grammar: 99px radius, 1px border, translucent/standalone, has its own action) ═══ */
+.dchip{display:inline-flex;align-items:center;gap:.3rem;border-radius:99px;border:1px solid var(--bd2);
+  background:#02b3fc15;padding:.2rem .5rem .2rem .6rem;font-size:.68rem;color:var(--text)}
+.dchip-label{color:var(--t2)}
+.dchip-val{color:var(--blue);font-weight:600}
+.dchip-x{background:transparent;border:none;color:var(--t3);cursor:pointer;padding:0 0 0 .15rem;font-size:.8rem;line-height:1;transition:color .1s}
+.dchip-x:hover{color:var(--pink)}
+.dchip-sync{border-radius:99px;border:1px solid var(--bd2);background:#0d1e33;padding:.32rem .7rem .32rem .55rem;
+  font-size:.68rem;color:var(--t3);display:inline-flex;align-items:center;gap:.4rem}
+.dchip-sync.clickable{cursor:pointer}
+.dchip-sync.clickable:hover{border-color:var(--pink);color:var(--pink)}
+.dchip-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dchip-dot.syncing{background:var(--amber);animation:dchip-pulse 1.4s ease-in-out infinite}
+.dchip-dot.ok{background:var(--green)}
+.dchip-dot.err{background:var(--pink)}
+.dchip-dot.off{background:var(--t3)}
+@keyframes dchip-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ═══ STAT (shared grammar: no box at all, plain text) ═══ */
+.dstat{font-size:.76rem;color:var(--text)}
+.dstat b{color:var(--blue);font-weight:700}
+.dstat .muted{color:var(--muted)}
+
+.legend-mini{display:flex;gap:1rem;flex-wrap:wrap;font-size:.68rem;color:var(--t3);margin-bottom:1rem}
+.legend-mini span{display:inline-flex;align-items:center;gap:.3rem}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+</style>
+</head>
+<body style="overflow:auto;height:auto;display:block">
+<div class="audit-wrap">
+  <h1 class="audit-h1">Pill / Badge / Chip / Stat — Proposed System Preview</h1>
+  <p class="audit-sub">This is a live mockup of the new rules, not yet applied to the real app: canonical pill radius 20px with no glow, badge radius unified to 4px, chips split into two sub-styles, stats de-boxed into plain text. Everything below uses real CSS states — hover your mouse over any element to see its actual hover behavior.</p>
+  <div class="audit-hint">Nothing in the live app has been changed yet. This file only exists to preview the new look before you confirm it.</div>
+
+  <div class="audit-toc">
+    <a href="#system">The 4-way system</a>
+    <a href="#pill">Pill</a>
+    <a href="#badge">Badge</a>
+    <a href="#chip">Chip</a>
+    <a href="#stat">Stat</a>
+  </div>
+
+  <h2 class="cat-title" id="system" style="color:var(--blue)">The 4-way system</h2>
+  <table class="sys-table">
+    <tr><th>Category</th><th>Shape</th><th>Radius</th><th>Border</th><th>Fill</th><th>Interactive</th></tr>
+    <tr><td><b>Pill</b></td><td><span class="sys-shape" style="border-radius:20px;border-color:var(--blue)"></span></td><td>20px</td><td>1.5px solid</td><td>transparent → solid color when chosen</td><td>Yes — click to toggle</td></tr>
+    <tr><td><b>Badge</b></td><td><span class="sys-shape" style="border-radius:4px;border-color:var(--t3);background:var(--t3)"></span></td><td>4px</td><td>none</td><td>always solid color</td><td>No — static</td></tr>
+    <tr><td><b>Chip</b></td><td><span class="sys-shape" style="border-radius:99px;border-color:var(--green)"></span></td><td>99px</td><td>1px solid</td><td>translucent tint (or solid dark if it floats over arbitrary content)</td><td>Yes — has its own × or action</td></tr>
+    <tr><td><b>Stat</b></td><td><span class="sys-shape" style="border:none"></span></td><td>—</td><td>none</td><td>none — plain text</td><td>No — pure readout</td></tr>
+  </table>
+
+  <!-- ═══════════════════ PILL ═══════════════════ -->
+  <div class="cat" id="pill">
+    <div class="cat-title">Pill</div>
+    <div class="cat-sub">Both flavors share the shape (20px, 1.5px border, no glow). Selector pills stay colorless until chosen (matches how the Add/Edit modal already behaves); filter pills stay tinted with their color at all times and just dim when not selected, plus always show a live count — this lets you scan the whole palette in the sidebar at a glance. Both appear only on the panel background (modal / sidebar); other backgrounds shown below for reference only, since pills don't naturally sit there today.</div>
+
+    <div class="subblock">
+      <div class="subblock-title">Selector pill — Priority (Add/Edit modal)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
+          <div class="bgbody">
+            <div class="statecell"><span class="statelabel">Unselected</span><button class="dpill dpill-sel">High</button></div>
+            <div class="statecell"><span class="statelabel">Hover (try it)</span><button class="dpill dpill-sel">Medium</button></div>
+            <div class="statecell"><span class="statelabel">Selected</span><button class="dpill dpill-sel on" style="--pc:#9cff00;--ptx:#031329">Low</button></div>
+          </div>
+        </div>
+        <div class="bgbox bg-page"><span class="bglabel">page bg — reference only</span>
+          <div class="bgbody">
+            <button class="dpill dpill-sel">High</button>
+            <button class="dpill dpill-sel on" style="--pc:#ff00aa">Medium</button>
+          </div>
+        </div>
+        <div class="bgbox bg-cover"><span class="bglabel">cover art — reference only</span>
+          <div class="bgbody">
+            <button class="dpill dpill-sel">High</button>
+            <button class="dpill dpill-sel on" style="--pc:#02b3fc">High</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subblock">
+      <div class="subblock-title">Selector pill — Platform (Add/Edit modal) &amp; reclassified Platform tab (purchase editor)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
+          <div class="bgbody">
+            <button class="dpill dpill-sel">Steam</button>
+            <button class="dpill dpill-sel on" style="--pc:#66c0f4;--ptx:#031329">Steam</button>
+            <button class="dpill dpill-sel on" style="--pc:#101014;--ptx:#fff">Epic</button>
+            <button class="dpill dpill-sel on" style="--pc:#9b4dca;--ptx:#fff">GOG</button>
+            <button class="dpill dpill-sel on" style="--pc:#107c10;--ptx:#fff">Xbox</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subblock">
+      <div class="subblock-title">Selector pill — Play status (Add/Edit modal)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
+          <div class="bgbody">
+            <button class="dpill dpill-sel">Unplayed</button>
+            <button class="dpill dpill-sel on" style="--pc:#0a2a4a;--ptx:#4ab0f5">In Progress</button>
+            <button class="dpill dpill-sel on" style="--pc:#0a3320;--ptx:#5ddb8e">Completed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subblock">
+      <div class="subblock-title">Filter pill — Priority (sidebar, with count)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
+          <div class="bgbody">
+            <div class="statecell"><span class="statelabel">Unselected (dimmed)</span><button class="dpill dpill-filt" style="--pc:#02b3fc;--ptx:#031329">High<span class="dpill-count">12</span></button></div>
+            <div class="statecell"><span class="statelabel">Hover (try it)</span><button class="dpill dpill-filt" style="--pc:#ff00aa;--ptx:#031329">Medium<span class="dpill-count">27</span></button></div>
+            <div class="statecell"><span class="statelabel">Selected (full opacity)</span><button class="dpill dpill-filt on" style="--pc:#9cff00;--ptx:#031329">Low<span class="dpill-count">4</span></button></div>
+          </div>
+        </div>
+        <div class="bgbox bg-page"><span class="bglabel">page bg — reference only</span>
+          <div class="bgbody">
+            <button class="dpill dpill-filt" style="--pc:#02b3fc;--ptx:#031329">High<span class="dpill-count">12</span></button>
+            <button class="dpill dpill-filt on" style="--pc:#ff00aa;--ptx:#031329">Medium<span class="dpill-count">27</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subblock">
+      <div class="subblock-title">Filter pill — Platform (sidebar, with count)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
+          <div class="bgbody">
+            <button class="dpill dpill-filt" style="--pc:#66c0f4;--ptx:#031329">Steam<span class="dpill-count">41</span></button>
+            <button class="dpill dpill-filt on" style="--pc:#101014;--ptx:#fff">Epic<span class="dpill-count">3</span></button>
+            <button class="dpill dpill-filt" style="--pc:#003791;--ptx:#fff">PS<span class="dpill-count">6</span></button>
+            <button class="dpill dpill-filt on" style="--pc:#e4000f;--ptx:#fff">Nintendo<span class="dpill-count">2</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subblock">
+      <div class="subblock-title">Filter pill — Play status (sidebar, with count)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
+          <div class="bgbody">
+            <button class="dpill dpill-filt" style="--pc:#2a2a2a;--ptx:#888">Unplayed<span class="dpill-count">9</span></button>
+            <button class="dpill dpill-filt on" style="--pc:#0a2a4a;--ptx:#4ab0f5">In Progress<span class="dpill-count">6</span></button>
+            <button class="dpill dpill-filt" style="--pc:#0a3320;--ptx:#5ddb8e">Completed<span class="dpill-count">19</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subblock">
+      <div class="subblock-title">Filter pill — reclassified Hotness tier (sidebar, now with count — was a chip before)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
+          <div class="bgbody">
+            <button class="dpill dpill-filt" style="--pc:#02b3fc;--ptx:#031329">Any<span class="dpill-count">58</span></button>
+            <button class="dpill dpill-filt on" style="--pc:#02b3fc;--ptx:#031329">70+<span class="dpill-count">14</span></button>
+            <button class="dpill dpill-filt" style="--pc:#02b3fc;--ptx:#031329">40–69<span class="dpill-count">21</span></button>
+            <button class="dpill dpill-filt" style="--pc:#02b3fc;--ptx:#031329">&lt;40<span class="dpill-count">23</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ BADGE ═══════════════════ -->
+  <div class="cat" id="badge">
+    <div class="cat-title">Badge</div>
+    <div class="cat-sub">All badges unified to 4px, no border, solid fill, purely static (no hover/selected states — nothing to interact with). Shown on both real locations: over the game cover art, and inside panel/card body. Page bg included for reference.</div>
+
+    <div class="subblock">
+      <div class="subblock-title">Priority, Platform, Status badges — over cover art (natural location for card badges)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-cover"><span class="bglabel">cover art — natural location</span>
+          <div class="bgbody">
+            <span class="dbadge" style="--pc:#02b3fc;--ptx:#031329">High</span>
+            <span class="dbadge" style="--pc:#ff00aa;--ptx:#031329">87</span>
+            <span class="dbadge" style="--pc:#f7cd26;--ptx:#031329">PRE-ORDER</span>
+            <span class="dbadge" style="--pc:#9cff00;--ptx:#031329">IN COLLECTION</span>
+            <span class="dbadge" style="--pc:#353e46;--ptx:#b3b3b3">Removed</span>
+            <span class="dbadge" style="--pc:#f472b6;--ptx:#031329">UNRELEASED</span>
+            <span class="dbadge" style="--pc:#fff;--ptx:#031329">FREE</span>
+            <span class="dbadge" style="--pc:#cc2200;--ptx:#fff">CANCELLED</span>
+            <span class="dbadge" style="--pc:#cc6600;--ptx:#fff">DELISTED</span>
+            <span class="dbadge" style="--pc:#66c0f4;--ptx:#031329">Steam</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subblock">
+      <div class="subblock-title">Play status, DLC count, Collection tags — panel/card body (natural location)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel/card bg — natural location</span>
+          <div class="bgbody">
+            <span class="dbadge" style="--pc:#0a2a4a;--ptx:#4ab0f5">IP</span>
+            <span class="dbadge" style="--pc:#0a3320;--ptx:#5ddb8e">COM</span>
+            <span class="dbadge" style="--pc:#1a0a3a;--ptx:#c4a0ff">DLC (3)</span>
+            <span class="dbadge" style="--pc:#1a0a3a;--ptx:#c4a0ff">Definitive Edition +1</span>
+            <span class="dbadge" style="--pc:#1a0a3a;--ptx:#c4a0ff">Definitive Edition</span>
+            <span class="dbadge" style="--pc:#0a1824;--ptx:#5db8e8">Open World</span>
+          </div>
+        </div>
+        <div class="bgbox bg-page"><span class="bglabel">page bg — reference only</span>
+          <div class="bgbody">
+            <span class="dbadge" style="--pc:#0a2a4a;--ptx:#4ab0f5">IP</span>
+            <span class="dbadge" style="--pc:#1a0a3a;--ptx:#c4a0ff">DLC (3)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subblock">
+      <div class="subblock-title">Price overlay badges — over cover art (natural location, now 4px like every other badge)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-cover" style="min-height:90px"><span class="bglabel">cover art — natural location</span>
+          <div class="bgbody" style="position:absolute;bottom:8px;left:8px;right:8px;justify-content:space-between">
+            <span class="dbadge" style="--pc:rgba(3,19,41,.75);--ptx:#e0f7ff">€19.99</span>
+            <span class="dbadge" style="--pc:#0a1a0acc;--ptx:#9cff00">★ Low</span>
+            <span class="dbadge" style="--pc:rgba(3,19,41,.75);--ptx:#f7cd26">🔑 €14.50</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CHIP ═══════════════════ -->
+  <div class="cat" id="chip">
+    <div class="cat-title">Chip</div>
+    <div class="cat-sub">Two sub-flavors sharing the chip grammar (99px, 1px border, own action): the <b>filter chip</b> shows an applied filter as "Label: Value" with its own × to remove it; the <b>tag chip</b> shows one raw value from a multi-value field with its own × to remove it. The <b>sync chip</b> (reclassified from "pill") is informational and only becomes clickable in its error/offline state, to trigger a retry.</div>
+
+    <div class="subblock">
+      <div class="subblock-title">Filter chip — active filter tag (sidebar)</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
+          <div class="bgbody">
+            <span class="dchip"><span class="dchip-label">Priority:</span><span class="dchip-val">High</span><button class="dchip-x">✕</button></span>
+            <span class="dchip"><span class="dchip-label">Platform:</span><span class="dchip-val">Steam</span><button class="dchip-x">✕</button></span>
+          </div>
+        </div>
+        <div class="bgbox bg-page"><span class="bglabel">page bg — reference only</span>
+          <div class="bgbody"><span class="dchip"><span class="dchip-label">Priority:</span><span class="dchip-val">High</span><button class="dchip-x">✕</button></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subblock">
+      <div class="subblock-title">Tag chip — genre/developer/publisher/collection input (Add/Edit modal), now 99px to match the chip family</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location</span>
+          <div class="bgbody">
+            <span class="dchip"><span class="dchip-val" style="color:var(--text)">Action</span><button class="dchip-x">✕</button></span>
+            <span class="dchip"><span class="dchip-val" style="color:var(--text)">Open World</span><button class="dchip-x">✕</button></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subblock">
+      <div class="subblock-title">Sync chip (reclassified) — mobile floating status</div>
+      <div class="bgrow">
+        <div class="bgbox bg-page"><span class="bglabel">page bg — natural location</span>
+          <div class="bgbody">
+            <span class="dchip-sync"><span class="dchip-dot syncing"></span>Saving…</span>
+            <span class="dchip-sync"><span class="dchip-dot ok"></span>Saved</span>
+          </div>
+        </div>
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — reference only</span>
+          <div class="bgbody">
+            <span class="dchip-sync clickable" title="Click to retry (try hovering)"><span class="dchip-dot err"></span>Sync failed — retry</span>
+            <span class="dchip-sync clickable"><span class="dchip-dot off"></span>Offline — retry</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ STAT ═══════════════════ -->
+  <div class="cat" id="stat">
+    <div class="cat-title">Stat</div>
+    <div class="cat-sub">No box at all — plain inline text. Not interactive, not per-item; an aggregate page-level readout. This is what most clearly separates it from the other three, which are all "a labeled box" of some kind.</div>
+    <div class="subblock">
+      <div class="subblock-title">Games / DLC / cost totals — header &amp; sidebar stats row</div>
+      <div class="bgrow">
+        <div class="bgbox bg-panel"><span class="bglabel">panel bg — natural location (header + sidebar)</span>
+          <div class="bgbody">
+            <span class="dstat"><b>42</b>/<span class="muted">58</span> games</span>
+            <span class="dstat"><b>12</b> DLC</span>
+            <span class="dstat"><b>€245.30</b></span>
+          </div>
+        </div>
+        <div class="bgbox bg-page"><span class="bglabel">page bg — reference only</span>
+          <div class="bgbody"><span class="dstat"><b>42</b>/<span class="muted">58</span> games</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
